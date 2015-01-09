@@ -1,8 +1,0 @@
-require(roxygen2)
-require(Rcpp)
-
-compileAttributes("diffr")
-roxygenize("diffr")
-system("R CMD build diffr")
-install.packages("bamsignals_0.1.tar.gz")
-system("rm bamsignals_0.1.tar.gz")
