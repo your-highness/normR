@@ -1,0 +1,13 @@
+diffr 0.1
+------------------------------------------------------------------------------
+
+MINOR CHANGES
+
+* 
+
+DEVELOPMENT
+
+* diffr packaging started with migrating difference calling pipeline scripts
+  and C++ code to this packages
+
+ 
