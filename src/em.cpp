@@ -54,7 +54,7 @@ struct CompareIndex {
 };
 std::vector< unsigned int > indexSort( std::vector< double > data ) {
 	std::vector< unsigned int > index ( data.size() );
-	for ( int i = 0; i < index.size(); ++i ) index[i] = i;
+	for ( unsigned int i = 0; i < index.size(); ++i ) index[i] = i;
 
 	// struct that takes values and sorts a given vector based on internal values
 	CompareIndex compix( data );
@@ -96,17 +96,20 @@ NumericMatrix subMatrix( const NumericMatrix& mat, int col ) {
 
 // [[Rcpp::export]]
 List em( const NumericVector& r, const NumericVector& s, int models = 2, double eps = .001, bool verbose = false ) {
-	Rcout << "Starting Expectation maximization em()" << std::endl;
+	if ( verbose ) {
+		Rcout << "Starting Expectation maximization em()" << std::endl;
+	}
 
 	if (models < 2) {
 		Rcout << "Error: need at least 2 models (i.e. background and foreground)" << std::endl;
-		return NULL; 
+		return List::create(); 
 	}
 
 	//subset data (uses Rcpp sugar)
 	LogicalVector idx = (r + s) > 0;
 	NumericVector rsub = r[ idx ];
 	NumericVector ssub = s[ idx ];
+	double qstar = sum( ssub ) / sum( rsub + ssub );
 	if ( verbose ) {
 		Rcout << "\t... removing (r + s) == 0 [ " << ( r.length() - rsub.length() ) << " bins ]" << std::endl;
 	}
@@ -118,7 +121,7 @@ List em( const NumericVector& r, const NumericVector& s, int models = 2, double 
 	NumericVector lnprior(models), lntheta(models), lnftheta(models);
 	lnprior = runif(models, 0, 1);
 	lnprior = log( lnprior / sum(lnprior) );
-	lntheta = rep( sum( ssub ) / sum( rsub + ssub ), models ) + runif(models, 0, .01);
+	lntheta = rep( qstar, models ) + runif(models, 0, .01);
 	lnftheta = log( 1 - lntheta );
 	lntheta = log( lntheta );
 
@@ -131,7 +134,7 @@ List em( const NumericVector& r, const NumericVector& s, int models = 2, double 
 	double lnPostSum = 0;
 	NumericVector lnL(1, -DBL_MAX), lnZ(lsub);
 	NumericMatrix lnPost(lsub, models);
-	while ( runs < 10 | notConverged ) {
+	while ( (runs < 10) | notConverged ) {
 
 		//Expectation
 		for (int k = 0; k < models; ++k) { //loop over model components and Rcpp sugar
@@ -158,7 +161,7 @@ List em( const NumericVector& r, const NumericVector& s, int models = 2, double 
 		lnL.push_back( lnLNew );
 
 		//Logging
-	 	runs++;
+		runs++;
 		if ( verbose && ( !notConverged || (runs % 10) == 0 ) ) {
 			Rcout << "Run " << runs << ": lnL=" << lnL[ lnL.size()-1 ] << ", step=" << (lnL[lnL.size() - 1] - lnL[ lnL.size() - 2]) << ", prior=";
 			for (int k = 0; k < models; k++) { //loop over model components
@@ -169,15 +172,15 @@ List em( const NumericVector& r, const NumericVector& s, int models = 2, double 
 				Rcout << exp( lntheta[k] ) << " ";
 			}
 			Rcout << std::endl;
-	 	}
+		}
 	}
 	if ( verbose ) {
-	Rcout << "\t... finished EM." << std::endl;
+		Rcout << "\t... finished EM." << std::endl;
 	}
 
 	//binomial computation of posteriors to get posterios that add up to one
 	if ( verbose ) {
-	Rcout << "\t... computing overall Posterior" << std::endl;
+		Rcout << "\t... computing overall Posterior" << std::endl;
 	}
 	NumericMatrix lnPost2( r.length(), models);
 	NumericVector lnBinomCoeff( r.length() ); 
@@ -196,18 +199,11 @@ List em( const NumericVector& r, const NumericVector& s, int models = 2, double 
 
 	//folchange calculation
 	if ( verbose ) {
-	Rcout << "\t... computing P-values and Foldchange" << std::endl;
+		Rcout << "\t... computing Foldchange" << std::endl;
 	}
 	std::vector< unsigned int > o = indexSort( as<std::vector<double> >( lntheta ) );
 	NumericMatrix fc( r.length(), models-1 );
-	//RNGScope scope;
-	//Environment stats("package:stats");
-	//Function statsdbinom = stats["dbinom"], statspbinom = stats["pbinom"];
-	//NumericMatrix pvals( r.length(), models-1 );
 	for (int k = 1; k < models; ++k) {
-
-		//pvalue for originating from background
-		//pvals(_,k-1) = as<NumericVector>(statspbinom( s, r+s, exp( lntheta[ o[0] ] ), false, false)) + as<NumericVector>(statsdbinom( s, r+s, exp( lntheta[ o[0] ] ), false));
 
 		//foldchange for k against all other components
 		if (models == 2) {
@@ -216,7 +212,7 @@ List em( const NumericVector& r, const NumericVector& s, int models = 2, double 
 			fc(_,k-1) = lnPost2(_, o[ k ] ) - logSum( subMatrix( lnPost2, k ) );
 		}
 	}
-	
+
 	// Posteriors and sorted
 	NumericMatrix post( r.length(), models);
 	Rcout << post.nrow() << " " << post.ncol() << std::endl;
@@ -228,7 +224,7 @@ List em( const NumericVector& r, const NumericVector& s, int models = 2, double 
 	}
 
 	if ( verbose ) {
-	Rcout << "Finished Expectation maximization em()." << std::endl;
+		Rcout << "Finished Expectation maximization em()." << std::endl;
 	}
-	return List::create(_("posterior")=post, _("foldchange")=fc,_("fit")=List::create(_("theta")=theta, _("prior")=prior, _("lnL")=lnL));
+	return List::create(_("posterior")=post, _("foldchange")=fc,_("fit")=List::create(_("qstar")=qstar,_("theta")=theta, _("prior")=prior, _("lnL")=lnL));
 }

@@ -17,6 +17,7 @@ Imports:
     IRanges,
     parallel
 Suggests:
-    testthat (>= 0.9)
+    testthat (>= 0.9),
+    ggplot2
 LinkingTo: Rcpp
-License: GPL (>= 2)
+License: GPL-3
