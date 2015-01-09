@@ -1,0 +1,22 @@
+Package: diffr
+Type: Package
+Version: 0.1
+Title: Normalization and difference calling for Next Generation Sequencing
+    (NGS) data via joint multinomial modeling.
+Description: diffr implements normalization and diff calling procedures for NGS
+    data. Two NGS experiments are jointly modeled as a multinomial sampling
+    trial.
+Date: 2014-12-18
+Author: Johannes Helmuth
+Maintainer: Johannes Helmuth <helmuth@molgen.mpg.de>
+Depends:
+    Rcpp (>= 0.11.3)
+Imports:
+    bamsignals,
+    GenomicRanges,
+    IRanges,
+    parallel
+Suggests:
+    testthat (>= 0.9)
+LinkingTo: Rcpp
+License: GPL (>= 2)
