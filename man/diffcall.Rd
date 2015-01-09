@@ -73,4 +73,14 @@ ln likelihood. The background component is assumed to be the component
 with lowest mean and is used to compute two treatments fold change values
 and p-values for statistical significance of enrichment.
 }
+\examples{
+\dontrun{
+#bam file input
+normalize( "H3K4me3.bam", "H3K27me3.bam" )
+#count vector input
+normalize( H3K4me3.counts, H3K27me3.counts )
+#Differences of H3K4me3 and H3K27me3 from bam input with 2 enrichment regimes
+normalize( "H3K4me3.bam", "H3K27me3.bam", bin.size=150, models=5 )
+}
+}
 

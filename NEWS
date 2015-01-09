@@ -3,11 +3,17 @@ diffr 0.1
 
 MINOR CHANGES
 
-* 
+* processByChromosome is now generic for length(bam.files) > 2 
+* em.cpp::em(): returns "qstar" also
+* wrappers.R::normalize() and wrappers.R::diffcall(): 
+    P-value computation is done in R code
+	counts can be given directly or as a bam file to be counted with bamsignals
 
 DEVELOPMENT
 
 * diffr packaging started with migrating difference calling pipeline scripts
   and C++ code to this packages
+* roxygen2 documentation
+* ./tests/testthat created
+* ./exec/ holds commandline scripts
 
- 

@@ -73,4 +73,14 @@ component is assumed to be the component with lowest mean and is used
 to compute treatment fold change and P-Values for statistical significance
 of enrichment.
 }
+\examples{
+\dontrun{
+#bam file input
+normalize( "H3K4me3.bam", "Input.bam" )
+#count vector input
+normalize( H3K4me3.counts, Input.counts )
+#Normalize a H3K4me3 experiment from bam input with 2 enrichment regimes
+normalize( "H3K4me3.bam", "Input.bam", bin.size=150, models=3 )
+}
+}
 

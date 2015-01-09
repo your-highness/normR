@@ -13,6 +13,7 @@ Depends:
     Rcpp (>= 0.11.3)
 Imports:
     bamsignals,
+    GenomeInfoDb,
     GenomicRanges,
     IRanges,
     parallel
