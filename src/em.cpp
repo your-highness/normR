@@ -16,6 +16,7 @@
 
 using namespace Rcpp;
 
+// [[Rcpp::export]]
 NumericVector logSum( const NumericMatrix& mat ){
  	NumericVector rowSum(mat.nrow());
 	NumericVector::iterator rowSum_iter = rowSum.begin();
@@ -39,6 +40,7 @@ NumericVector logSum( const NumericMatrix& mat ){
 	return rowSum;
 }
 
+// [[Rcpp::export]]
 double logSumVector( const NumericVector& vec ) {
 	return logSum( NumericMatrix( 1, vec.length(), vec.begin() ) )[0];
 }
@@ -215,7 +217,6 @@ List em( const NumericVector& r, const NumericVector& s, int models = 2, double 
 
 	// Posteriors and sorted
 	NumericMatrix post( r.length(), models);
-	Rcout << post.nrow() << " " << post.ncol() << std::endl;
 	NumericVector prior(models), theta(models);
 	for (int k = 0; k < models; k++) { //loop over model components
 		post(_,k) = exp( lnPost2(_,o[k]) ); //Rcpp sugar 

@@ -69,10 +69,20 @@ NULL
 #'  }
 #'  \item{p.values}{-Log10 P-values for enrichment over background for model 
 #'  components (i=2..models).}
+#'
+#' @examples
+#' \dontrun{
+#' #bam file input
+#' normalize( "H3K4me3.bam", "Input.bam" )
+#' #count vector input
+#' normalize( H3K4me3.counts, Input.counts )
+#' #Normalize a H3K4me3 experiment from bam input with 2 enrichment regimes
+#' normalize( "H3K4me3.bam", "Input.bam", bin.size=150, models=3 )
+#' }
 #' 
 #' @export
 normalize <- function( treatment, 
- 					   control, 
+ 					   control,  
 					   genome, 
 					   bin.size=300, 
 					   models=2, 
@@ -94,14 +104,14 @@ normalize <- function( treatment,
 		#counting only possible on indexed bamfiles
 		if( !file.exists(paste(treatment, ".bai", sep="")) ) stop( "No index file for", treatment, "found.\n")
 		bam.files = c(bam.files, treatment)
-	} else if ( class(treatment) == "numeric" ) {
+	} else if ( class(treatment) == "numeric" | class(treatment) == "integer" ) {
 		counts[[1]] = treatment
 	}
 	if ( class(control) == "character") {
 		#counting only possible on indexed bamfiles
 		if( !file.exists(paste(control, ".bai", sep="")) ) stop( "No index file for", control, "found.\n")
 		bam.files = c(bam.files, control)
-	} else if ( class(control) == "numeric" ) {
+	} else if ( class(control) == "numeric" | class(control) == "integer" ) {
 		counts[[2]] = control
 	}
 
@@ -120,17 +130,17 @@ normalize <- function( treatment,
 		cat( "... computing P-values\n" )
 	}
 	result$p.values     <- matrix(0, nrow=nrow(result$posterior), ncol=(models-1))
-	result$p.values[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$theta[1], log=T)) )/log(10)
+	result$p.values[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
 
 	# some logging
 	if (verbose) {
-		cat( model , "-component multinomial mixture model for treatment with control:\n",
+		cat( models , "-component multinomial mixture model for treatment with control:\n",
 			 "LogLi k =", tail(result$fit$lnL, 1), ", runs =", 10*length(result$fit$lnL), "\n", 
 			 "\tq*=",   format( result$fit$qstar, 2, 2), "\n",
 			 "\tq =",   format( result$fit$theta, 2, 2), "\n",
 			 "\tmix =", format( result$fit$prior, 2, 2), "\n",
 			 "\tenriched (P-value     <= 0.05) =", length( which(result$p.values[,1] > -log10(0.05))), "\n",
-			 "\tenriched (adj P-value <= 0.05) =", length( which( p.adjust(10^(-result$p.pvalues[,1]), method="BH") < 0.05)), "\n"
+			 "\tenriched (adj P-value <= 0.05) =", length( which( p.adjust(10^(-result$p.values[,1]), method="BH") < 0.05)), "\n"
 		)
 	}
 
@@ -189,6 +199,16 @@ normalize <- function( treatment,
 #'  }
 #'  \item{p.values}{-Log10 P-values for enrichment over background for model 
 #'  components (i=2..models).}
+#'
+#' @examples
+#' \dontrun{
+#' #bam file input
+#' normalize( "H3K4me3.bam", "H3K27me3.bam" )
+#' #count vector input
+#' normalize( H3K4me3.counts, H3K27me3.counts )
+#' #Differences of H3K4me3 and H3K27me3 from bam input with 2 enrichment regimes
+#' normalize( "H3K4me3.bam", "H3K27me3.bam", bin.size=150, models=5 )
+#' }
 #' 
 #' @export
 diffcall <- function( treatment.1, 
@@ -214,14 +234,14 @@ diffcall <- function( treatment.1,
 		#counting only possible on indexed bamfiles
 		if( !file.exists(paste(treatment.1, ".bai", sep="")) ) stop( "No index file for", treatment.1, "found.\n")
 		bam.files = c(bam.files, treatment.1)
-	} else if ( class(treatment.1) == "numeric" ) {
+	} else if ( class(treatment.1) == "numeric" | class(treatment.1) == "integer" ) {
 		counts[[1]] = treatment.1
 	}
 	if ( class(treatment.2) == "character") {
 		#counting only possible on indexed bamfiles
 		if( !file.exists(paste(treatment.2, ".bai", sep="")) ) stop( "No index file for", treatment.2, "found.\n")
 		bam.files = c(bam.files, treatment.2)
-	} else if ( class(treatment.2) == "numeric" ) {
+	} else if ( class(treatment.2) == "numeric" | class(treatment.2) == "integer" ) {
 		counts[[2]] = treatment.2
 	}
 
@@ -240,20 +260,20 @@ diffcall <- function( treatment.1,
 		cat( "... computing P-values\n" )
 	}
 	result$p.values     <- matrix(0, nrow=nrow(result$posterior), ncol=(models-1))
-	result$p.values[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$theta[1], log=T)) )/log(10)
-	result$p.values[,2] <- -logSum( cbind(pbinom( counts[[2]], counts[[1]]+counts[[2]], result$theta[1], lower.tail=F, log.p=T), dbinom( counts[[2]], counts[[1]]+counts[[2]], result$theta[1], log=T)) )/log(10)
+	result$p.values[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
+	result$p.values[,2] <- -logSum( cbind(pbinom( counts[[2]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[2]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
 
 	# some logging
 	if (verbose) {
-		cat( model, "-component multinomial mixture model for difference calling between treatment.1 and treatment.2:\n",
+		cat( models, "-component multinomial mixture model for difference calling between treatment.1 and treatment.2:\n",
 			"LogLik =", tail(result$fit$lnL, 1), ", runs =", 10*length(result$fit$lnL), "\n", 
 			"\tq*=",   format( result$fit$qstar, 2, 2), "\n",
 			"\tq =",   format( result$fit$theta, 2, 2), "\n",
 			"\tmix =", format( result$fit$prior, 2, 2), "\n",
 			"\t'treatment.1' enriched (P-value     <= 0.05) =", length( which(result$p.values[,1] > -log10(0.05))), "\n",
-			"\t'treatment.1' enriched (adj P-value <= 0.05) =", length( which( p.adjust( 10^(-result$p.pvalues[,1]), method="BH") < 0.05)), "\n",
+			"\t'treatment.1' enriched (adj P-value <= 0.05) =", length( which( p.adjust( 10^(-result$p.values[,1]), method="BH") < 0.05)), "\n",
 			"\t'treatment.2' enriched (P-value     <= 0.05) =", length( which(result$p.values[,1] > -log10(0.05))), "\n",
-			"\t'treatment.2' enriched (adj P-value <= 0.05) =", length( which( p.adjust( 10^(-result$p.pvalues[,1]), method="BH") < 0.05)), "\n"
+			"\t'treatment.2' enriched (adj P-value <= 0.05) =", length( which( p.adjust( 10^(-result$p.values[,1]), method="BH") < 0.05)), "\n"
 			)
 	}
 
@@ -279,7 +299,7 @@ bin.genome <- function(genome, bin.size=300) {
 		gr <- c(gr, GRanges(seqnames=ch, IRanges(start=0:(n[ch] - 1) * bin.sizes[ch] + 1, width=bin.size)))
 	}
 	gr <- sort( gr )
-	seqlengths(gr) <- genome[,2]
+	GenomeInfoDb::seqlengths(gr) <- genome[,2]
 	(gr) 
 }
 
@@ -314,7 +334,7 @@ processByChromosome <- function(bam.files, gr, procs, bamsignals.function, mapqu
 				  gr.sub <- gr[ seqnames(gr) %in% chunk]
 				  lapply( bam.files, bamsignals.function, gr=gr.sub, mapqual=mapqual, shift=shift, paired.end=paired.end, paired.end.midpoint=paired.end.midpoint, verbose=verbose)
  				}, mc.cores=procs)
-	lapply( length(bam.files), function( i ) {
+	lapply( 1:length(bam.files), function( i ) {
 				unlist(lapply(x, "[[", i)) 
 			}
 	)
