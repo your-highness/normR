@@ -135,7 +135,7 @@ normalize <- function( treatment,
 	# some logging
 	if (verbose) {
 		cat( models , "-component multinomial mixture model for treatment with control:\n",
-			 "LogLi k =", tail(result$fit$lnL, 1), ", runs =", 10*length(result$fit$lnL), "\n", 
+			 "LogLik =", tail(result$fit$lnL, 1), ", runs =", 10*length(result$fit$lnL), "\n", 
 			 "\tq*=",   format( result$fit$qstar, 2, 2), "\n",
 			 "\tq =",   format( result$fit$theta, 2, 2), "\n",
 			 "\tmix =", format( result$fit$prior, 2, 2), "\n",
@@ -289,6 +289,8 @@ diffcall <- function( treatment.1,
 #' information can be retrieved via the UCSC chromSizes table.
 #' @param bin.size The size of the bins in bp.
 #' @return \link{GenomicRanges}-object specifying bins for genome
+#' 
+#' @export
 bin.genome <- function(genome, bin.size=300) {
 	n <- floor(genome[,2] / bin.size)
 	names(n) <- genome[,1]

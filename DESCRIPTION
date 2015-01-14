@@ -9,16 +9,19 @@ Description: diffr implements normalization and diff calling procedures for NGS
 Date: 2014-12-18
 Author: Johannes Helmuth
 Maintainer: Johannes Helmuth <helmuth@molgen.mpg.de>
-Depends:
+Depends: 
     Rcpp (>= 0.11.3)
-Imports:
+Imports: 
     bamsignals,
     GenomeInfoDb,
     GenomicRanges,
     IRanges,
     parallel
-Suggests:
+Suggests: 
+    ggplot2,
+	optparse,
     testthat (>= 0.9),
-    ggplot2
+    knitr
 LinkingTo: Rcpp
 License: GPL-3
+VignetteBuilder: knitr
