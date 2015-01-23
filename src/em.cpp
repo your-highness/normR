@@ -97,7 +97,7 @@ NumericMatrix subMatrix( const NumericMatrix& mat, int col ) {
 }
 
 // [[Rcpp::export]]
-List em( const NumericVector& r, const NumericVector& s, int models = 2, double eps = .001, bool verbose = false ) {
+List em( const NumericVector& s, const NumericVector& r, int models = 2, double eps = .001, bool verbose = false ) {
 	if ( verbose ) {
 		Rcout << "Starting Expectation maximization em()" << std::endl;
 	}
@@ -150,9 +150,10 @@ List em( const NumericVector& r, const NumericVector& s, int models = 2, double 
 		}
 		lnPostSum = logSumVector( lnPost );
 		for (int k = 0; k < models; ++k) { //loop over model components and Rcpp sugar
-			lntheta( k ) = log( sum( exp( lnPost(_,k) ) * ssub ) / sum( exp( lnPost(_,k) ) * (rsub + ssub) ) ); //TODO Can we do better here?
+			//lntheta( k ) = log( sum( exp( lnPost(_,k) ) * ssub ) / sum( exp( lnPost(_,k) ) * (rsub + ssub) ) ); //TODO Can we do better here?
+			lntheta( k ) = log( sum( exp( lnPost(_,k) ) * ssub ) ) - log( sum( exp( lnPost(_,k) ) * (rsub + ssub) ) ); //TODO Can we do better here?
 			lnftheta( k ) = log( 1 - exp( lntheta( k ) ) );
-			lnprior( k ) = logSumVector( lnPost(_,k) ) - lnPostSum;
+	 		lnprior( k ) = logSumVector( lnPost(_,k) ) - lnPostSum;
 		}
 
 		//Convergence
@@ -165,7 +166,7 @@ List em( const NumericVector& r, const NumericVector& s, int models = 2, double 
 		//Logging
 		runs++;
 		if ( verbose && ( !notConverged || (runs % 10) == 0 ) ) {
-			Rcout << "Run " << runs << ": lnL=" << lnL[ lnL.size()-1 ] << ", step=" << (lnL[lnL.size() - 1] - lnL[ lnL.size() - 2]) << ", prior=";
+	 		Rcout << "Run " << runs << ": lnL=" << lnL[ lnL.size()-1 ] << ", step=" << (lnL[lnL.size() - 1] - lnL[ lnL.size() - 2]) << ", prior=";
 			for (int k = 0; k < models; k++) { //loop over model components
 				Rcout << exp( lnprior[k] ) << " ";
 			}
@@ -205,6 +206,7 @@ List em( const NumericVector& r, const NumericVector& s, int models = 2, double 
 	}
 	std::vector< unsigned int > o = indexSort( as<std::vector<double> >( lntheta ) );
 	NumericMatrix fc( r.length(), models-1 );
+
 	for (int k = 1; k < models; ++k) {
 
 		//foldchange for k against all other components

@@ -169,7 +169,7 @@ normalize <- function( treatment,
 #' information can be retrieved via the UCSC chromSizes table.
 #' @param bin.size Width of genomic bins in bp.
 #' @param models Number of model components. Note that this should assemble to
-#' 1 background components and at least 2 treatment components.
+#' 1 background components and at least 2 treatment components. Default: 4
 #' @param eps Threshold for EM convergence.
 #' @param procs Number of threads to use in parallel::mclapply()
 #' @param mapqual discard reads with mapping quality strictly lower than this 
@@ -215,7 +215,7 @@ diffcall <- function( treatment.1,
 					  treatment.2, 
 					  genome, 
 					  bin.size=300, 
-					  models=3, 
+					  models=4, 
 					  eps=.001,
 					  procs=1, 
 					  mapqual=20, 
