@@ -129,8 +129,8 @@ normalize <- function( treatment,
 	if (verbose) {
 		cat( "... computing P-values\n" )
 	}
-	result$p.values     <- matrix(0, nrow=nrow(result$posterior), ncol=(models-1))
-	result$p.values[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
+	result$log10.p.values     <- matrix(0, nrow=nrow(result$posterior), ncol=(models-1))
+	result$log10.p.values[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
 
 	# some logging
 	if (verbose) {
@@ -139,8 +139,8 @@ normalize <- function( treatment,
 			 "\tq*=",   format( result$fit$qstar, 2, 2), "\n",
 			 "\tq =",   format( result$fit$theta, 2, 2), "\n",
 			 "\tmix =", format( result$fit$prior, 2, 2), "\n",
-			 "\tenriched (P-value     <= 0.05) =", length( which(result$p.values[,1] > -log10(0.05))), "\n",
-			 "\tenriched (adj P-value <= 0.05) =", length( which( p.adjust(10^(-result$p.values[,1]), method="BH") < 0.05)), "\n"
+			 "\tenriched (P-value     <= 0.05) =", length( which(result$log10.p.values[,1] > -log10(0.05))), "\n",
+			 "\tenriched (adj P-value <= 0.05) =", length( which( p.adjust(10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n"
 		)
 	}
 
@@ -259,9 +259,9 @@ diffcall <- function( treatment.1,
 	if (verbose) {
 		cat( "... computing P-values\n" )
 	}
-	result$p.values     <- matrix(0, nrow=nrow(result$posterior), ncol=(models-1))
-	result$p.values[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
-	result$p.values[,2] <- -logSum( cbind(pbinom( counts[[2]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[2]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
+	result$log10.p.values     <- matrix(0, nrow=nrow(result$posterior), ncol=(models-1))
+	result$log10.p.values[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
+	result$log10.p.values[,2] <- -logSum( cbind(pbinom( counts[[2]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[2]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
 
 	# some logging
 	if (verbose) {
@@ -270,10 +270,10 @@ diffcall <- function( treatment.1,
 			"\tq*=",   format( result$fit$qstar, 2, 2), "\n",
 			"\tq =",   format( result$fit$theta, 2, 2), "\n",
 			"\tmix =", format( result$fit$prior, 2, 2), "\n",
-			"\t'treatment.1' enriched (P-value     <= 0.05) =", length( which(result$p.values[,1] > -log10(0.05))), "\n",
-			"\t'treatment.1' enriched (adj P-value <= 0.05) =", length( which( p.adjust( 10^(-result$p.values[,1]), method="BH") < 0.05)), "\n",
-			"\t'treatment.2' enriched (P-value     <= 0.05) =", length( which(result$p.values[,1] > -log10(0.05))), "\n",
-			"\t'treatment.2' enriched (adj P-value <= 0.05) =", length( which( p.adjust( 10^(-result$p.values[,1]), method="BH") < 0.05)), "\n"
+			"\t'treatment.1' enriched (P-value     <= 0.05) =", length( which(result$log10.p.values[,1] > -log10(0.05))), "\n",
+			"\t'treatment.1' enriched (adj P-value <= 0.05) =", length( which( p.adjust( 10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n",
+			"\t'treatment.2' enriched (P-value     <= 0.05) =", length( which(result$log10.p.values[,1] > -log10(0.05))), "\n",
+			"\t'treatment.2' enriched (adj P-value <= 0.05) =", length( which( p.adjust( 10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n"
 			)
 	}
 
