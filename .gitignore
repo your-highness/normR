@@ -1,4 +1,6 @@
-inst/doc
+#compiled files
 *.o
 *.so
-RcppExports.*
+
+#test data
+tests/testthat/data
