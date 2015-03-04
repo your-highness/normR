@@ -108,7 +108,7 @@ List em( const NumericVector& s, const NumericVector& r, int models = 2, double 
 	}
 
 	//subset data (uses Rcpp sugar)
-	LogicalVector idx = (r + s) > 0;
+	LogicalVector idx = (r > 0 & s > 0);
 	NumericVector rsub = r[ idx ];
 	NumericVector ssub = s[ idx ];
 	double qstar = sum( ssub ) / sum( rsub + ssub );
