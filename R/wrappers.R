@@ -41,6 +41,7 @@ NULL
 #' @param bin.size Width of genomic bins in bp.
 #' @param models Number of model components.
 #' @param eps Threshold for EM convergence.
+#' @param p.values Flag for P value computation.
 #' @param procs Number of threads to use in parallel::mclapply()
 #' @param mapqual discard reads with mapping quality strictly lower than this 
 #' parameter. The value 0 ensures that no read will be discarded, the value 254
@@ -87,6 +88,7 @@ normalize <- function( treatment,
 					   bin.size=300, 
 					   models=2, 
 					   eps=.001,
+						 p.values=T,
 					   procs=1, 
 					   mapqual=20, 
 					   shift=0,
@@ -126,22 +128,27 @@ normalize <- function( treatment,
 	result <- em(counts[[1]], counts[[2]], models, eps, verbose)
 
 	# P-values
-	if (verbose) {
-		cat( "... computing P-values\n" )
+	if (p.values) {
+		if (verbose) {
+			cat( "... computing P-values\n" )
+		}
+		result$log10.p.values     <- matrix(0, nrow=nrow(result$posterior), ncol=(models-1))
+		result$log10.p.values[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
+	} else {
+		result$log10.p.values <- NULL
 	}
-	result$log10.p.values     <- matrix(0, nrow=nrow(result$posterior), ncol=(models-1))
-	result$log10.p.values[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
 
 	# some logging
 	if (verbose) {
-		cat( models , "-component multinomial mixture model for treatment with control:\n",
-			 "LogLik =", tail(result$fit$lnL, 1), ", runs =", 10*length(result$fit$lnL), "\n", 
-			 "\tq*=",   format( result$fit$qstar, 2, 2), "\n",
-			 "\tq =",   format( result$fit$theta, 2, 2), "\n",
-			 "\tmix =", format( result$fit$prior, 2, 2), "\n",
-			 "\tenriched (P-value     <= 0.05) =", length( which(result$log10.p.values[,1] > -log10(0.05))), "\n",
-			 "\tenriched (adj P-value <= 0.05) =", length( which( p.adjust(10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n"
-		)
+		cat(models , "-component multinomial mixture model for treatment with control:\n",
+				"LogLik =", tail(result$fit$lnL, 1), ", runs =", 10*length(result$fit$lnL), "\n", 
+				"\tq*=",   format( result$fit$qstar, 2, 2), "\n",
+				"\tq =",   format( result$fit$theta, 2, 2), "\n",
+				"\ttransitions =", format( result$fit$prior, 2, 2), "\n")
+		if(p.values) {
+			cat("\tenriched (P-value     <= 0.05) =", length( which(result$log10.p.values[,1] > -log10(0.05))), "\n",
+					"\tenriched (adj P-value <= 0.05) =", length( which( p.adjust(10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n")
+		}
 	}
 
 	( result )
@@ -171,6 +178,7 @@ normalize <- function( treatment,
 #' @param models Number of model components. Note that this should assemble to
 #' 1 background components and at least 2 treatment components. Default: 4
 #' @param eps Threshold for EM convergence.
+#' @param p.values Flag for P value computation.
 #' @param procs Number of threads to use in parallel::mclapply()
 #' @param mapqual discard reads with mapping quality strictly lower than this 
 #' parameter. The value 0 ensures that no read will be discarded, the value 254
@@ -217,6 +225,7 @@ diffcall <- function( treatment.1,
 					  bin.size=300, 
 					  models=4, 
 					  eps=.001,
+						p.values=T,
 					  procs=1, 
 					  mapqual=20, 
 					  shift=0,
@@ -256,25 +265,30 @@ diffcall <- function( treatment.1,
 	result <- em(counts[[1]], counts[[2]], models, eps, verbose)
 
 	# P-values
-	if (verbose) {
-		cat( "... computing P-values\n" )
+	if (p.values) {
+		if (verbose) {
+			cat( "... computing P-values\n" )
+		}
+		result$log10.p.values     <- matrix(0, nrow=nrow(result$posterior), ncol=(models-1))
+		result$log10.p.values[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
+		result$log10.p.values[,2] <- -logSum( cbind(pbinom( counts[[2]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[2]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
+	} else {
+		result$log10.p.values <- NULL
 	}
-	result$log10.p.values     <- matrix(0, nrow=nrow(result$posterior), ncol=(models-1))
-	result$log10.p.values[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
-	result$log10.p.values[,2] <- -logSum( cbind(pbinom( counts[[2]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[2]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
 
-	# some logging
+ 	# some logging
 	if (verbose) {
-		cat( models, "-component multinomial mixture model for difference calling between treatment.1 and treatment.2:\n",
-			"LogLik =", tail(result$fit$lnL, 1), ", runs =", 10*length(result$fit$lnL), "\n", 
-			"\tq*=",   format( result$fit$qstar, 2, 2), "\n",
-			"\tq =",   format( result$fit$theta, 2, 2), "\n",
-			"\tmix =", format( result$fit$prior, 2, 2), "\n",
-			"\t'treatment.1' enriched (P-value     <= 0.05) =", length( which(result$log10.p.values[,1] > -log10(0.05))), "\n",
-			"\t'treatment.1' enriched (adj P-value <= 0.05) =", length( which( p.adjust( 10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n",
-			"\t'treatment.2' enriched (P-value     <= 0.05) =", length( which(result$log10.p.values[,1] > -log10(0.05))), "\n",
-			"\t'treatment.2' enriched (adj P-value <= 0.05) =", length( which( p.adjust( 10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n"
-			)
+		cat(models , "-component multinomial mixture model for treatment with control:\n",
+				"LogLik =", tail(result$fit$lnL, 1), ", runs =", 10*length(result$fit$lnL), "\n", 
+				"\tq*=",   format( result$fit$qstar, 2, 2), "\n",
+				"\tq =",   format( result$fit$theta, 2, 2), "\n",
+				"\ttransitions =", format( result$fit$prior, 2, 2), "\n")
+		if(p.values) {
+			cat("\t'treatment.1' enriched (P-value     <= 0.05) =", length( which(result$log10.p.values[,1] > -log10(0.05))), "\n",
+					"\t'treatment.1' enriched (adj P-value <= 0.05) =", length( which( p.adjust( 10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n",
+					"\t'treatment.2' enriched (P-value     <= 0.05) =", length( which(result$log10.p.values[,1] > -log10(0.05))), "\n",
+					"\t'treatment.2' enriched (adj P-value <= 0.05) =", length( which( p.adjust( 10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n")
+		}
 	}
 
 	( result )
