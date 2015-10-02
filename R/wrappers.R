@@ -14,7 +14,7 @@
 #' @import bamsignals
 #' @docType package
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
-#' @useDynLib diffr
+#' @useDynLib diffr, .registration=TRUE
 NULL
 #' Normalize a NGS experiment with given background data.
 #'
@@ -48,14 +48,15 @@ NULL
 #' that only reads with the highest possible mapping quality will be considered.
 #' @param shift shift the read position by a user-defined number of basepairs. 
 #' This can be handy in the analysis of chip-seq data.
-#' @param paired.end A logical value indicating whether the bampath contains 
-#' paired-end sequencing output. In this case, only first reads in proper mapped
-#' pairs are considered (FLAG 66).
-#' @param paired.end.midpoint A logical value indicating whether the fragment 
-#' middle points of each fragment should be counted. Therefore it uses the tlen
-#' information from the given bam file (MidPoint = fragment_start + int( 
-#' abs(tlen) / 2) )). For even tlen, the given midpoint is the round half down 
-#' real midpoint.
+#' @param paired.end a character string indicating how to handle paired-end 
+#' reads. If \code{paired.end!="ignore"} then only first reads in proper mapped
+#' pairs will be consider (i.e. in the flag of the read, the bits in the mask 
+#' 66 must be all ones). If \code{paired.end=="midpoint"} then the midpoint of a
+#' fragment is considered, where \code{mid = fragment_start + int(abs(tlen)/2)},
+#' and where tlen is the template length stored in the bam file. For even tlen,
+#' the given midpoint will be moved of 0.5 basepairs in the 3' direction. 
+#' If \code{paired.end=="extend"} then the whole fragment is treated 
+#' as a single read.
 #' @param verbose A logical value indicating whether verbose output is desired
 #'
 #' @return a \link{list} with the following elements:
@@ -92,13 +93,8 @@ normalize <- function( treatment,
 					   procs=1, 
 					   mapqual=20, 
 					   shift=0,
-					   paired.end=F,
-					   paired.end.midpoint=T,
-					   verbose=T) {
-	# construct GRanges
-	if( is.null(genome) ) stop( "No genome specification given. Please provide chromSizes data frame.\n")
-	gr <- bin.genome(genome, bin.size)
-
+					   paired.end="ignore",
+						 verbose=T) {
 	# check if treatment and control give bamfiles or counts
 	counts = NULL
 	bam.files = NULL
@@ -119,23 +115,28 @@ normalize <- function( treatment,
 
 	# count in GRanges with bamsignals::count if necessary
 	if ( is.null(counts) ) {
-		counts <- processByChromosome( bam.files=c(treatment, control), gr=gr, procs=procs, bamsignals.function=count, mapqual=mapqual, shift=shift, paired.end=paired.end, paired.end.midpoint=paired.end.midpoint, verbose=verbose)
+		if( is.null(genome) ) stop( "No genome specification given. Please provide chromSizes data frame.\n")
+		gr <- bin.genome(genome, bin.size)
+		counts <- processByChromosome( bam.files=c(treatment, control), gr=gr, procs=procs, bamsignals.function=bamCount, mapqual=mapqual, shift=shift, paired.end=paired.end, verbose=verbose)
 	}
 
 	if ( length(counts[[1]]) != length(counts[[2]]) ) stop( "Incompatible lengths of treatment and control. Please provide compatible numeric arrays.\n" )
 
 	# fit multinomial model
-	result <- em(counts[[1]], counts[[2]], models, eps, verbose)
+	result <- list("control"=counts[[2]], "treatment"=counts[[1]])
+	result <- c(result, em(counts[[1]], counts[[2]], models, eps, verbose))
 
 	# P-values
 	if (p.values) {
 		if (verbose) {
 			cat( "... computing P-values\n" )
 		}
-		result$log10.p.values     <- matrix(0, nrow=nrow(result$posterior), ncol=(models-1))
-		result$log10.p.values[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
+		result$log10.p     <- matrix(0, nrow=nrow(result$posterior), ncol=models)
+		result$log10.p[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
+
+		#result$log10.adjp
 	} else {
-		result$log10.p.values <- NULL
+		result$log10.p <- NULL
 	}
 
 	# some logging
@@ -146,7 +147,7 @@ normalize <- function( treatment,
 				"\tq =",   format( result$fit$theta, 2, 2), "\n",
 				"\ttransitions =", format( result$fit$prior, 2, 2), "\n")
 		if(p.values) {
-			cat("\tenriched (P-value     <= 0.05) =", length( which(result$log10.p.values[,1] > -log10(0.05))), "\n",
+			cat("\tenriched (P-value     <= 0.05) =", length( which(result$log10.p[,1] > -log10(0.05))), "\n",
 					"\tenriched (adj P-value <= 0.05) =", length( which( p.adjust(10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n")
 		}
 	}
@@ -185,14 +186,15 @@ normalize <- function( treatment,
 #' that only reads with the highest possible mapping quality will be considered.
 #' @param shift shift the read position by a user-defined number of basepairs. 
 #' This can be handy in the analysis of chip-seq data.
-#' @param paired.end A logical value indicating whether the bampath contains 
-#' paired-end sequencing output. In this case, only first reads in proper mapped
-#' pairs are considered (FLAG 66).
-#' @param paired.end.midpoint A logical value indicating whether the fragment 
-#' middle points of each fragment should be counted. Therefore it uses the tlen
-#' information from the given bam file (MidPoint = fragment_start + int( 
-#' abs(tlen) / 2) )). For even tlen, the given midpoint is the round half down 
-#' real midpoint.
+#' @param paired.end a character string indicating how to handle paired-end 
+#' reads. If \code{paired.end!="ignore"} then only first reads in proper mapped
+#' pairs will be consider (i.e. in the flag of the read, the bits in the mask 
+#' 66 must be all ones). If \code{paired.end=="midpoint"} then the midpoint of a
+#' fragment is considered, where \code{mid = fragment_start + int(abs(tlen)/2)},
+#' and where tlen is the template length stored in the bam file. For even tlen,
+#' the given midpoint will be moved of 0.5 basepairs in the 3' direction. 
+#' If \code{paired.end=="extend"} then the whole fragment is treated 
+#' as a single read.
 #' @param verbose A logical value indicating whether verbose output is desired
 #'
 #' @return a \link{list} with the following elements:
@@ -229,13 +231,8 @@ diffcall <- function( treatment.1,
 					  procs=1, 
 					  mapqual=20, 
 					  shift=0,
-					  paired.end=F,
-					  paired.end.midpoint=T,
+					  paired.end="ignore",
 					  verbose=T) {
-	# construct GRanges
-	if( is.null(genome) ) stop( "No genome specification given. Please provide chromSizes data frame.\n")
-	gr <- bin.genome(genome, bin.size)
-
 	# check if treatment.1 and treatment.2 give bamfiles or counts
 	counts = NULL
 	bam.files = NULL
@@ -256,13 +253,18 @@ diffcall <- function( treatment.1,
 
 	# count in GRanges with bamsignals::count if necessary
 	if ( is.null(counts) ) {
-		counts <- processByChromosome( bam.files=c(treatment.1, treatment.2), gr=gr, procs=procs, bamsignals.function=count, mapqual=mapqual, shift=shift, paired.end=paired.end, paired.end.midpoint=paired.end.midpoint, verbose=verbose)
+		# construct GRanges
+		if( is.null(genome) ) stop( "No genome specification given. Please provide chromSizes data frame.\n")
+		gr <- bin.genome(genome, bin.size)
+
+		counts <- processByChromosome( bam.files=c(treatment.1, treatment.2), gr=gr, procs=procs, bamsignals.function=bamCount, mapqual=mapqual, shift=shift, paired.end=paired.end, verbose=verbose)
 	}
 
 	if ( length(counts[[1]]) != length(counts[[2]]) ) stop( "Incompatible lengths of treatment.1 and treatment.2 Please provide compatible numeric arrays.\n" )
 
 	# fit multinomial model
-	result <- em(counts[[1]], counts[[2]], models, eps, verbose)
+	result <- list("treatment.1"=counts[[1]], "treatment.2"=counts[[2]])
+	result <- c(result, em(counts[[1]], counts[[2]], models, eps, verbose))
 
 	# P-values
 	if (p.values) {
@@ -334,26 +336,47 @@ bin.genome <- function(genome, bin.size=300) {
 #' that only reads with the highest possible mapping quality will be considered.
 #' @param shift shift the read position by a user-defined number of basepairs. 
 #' This can be handy in the analysis of chip-seq data.
-#' @param paired.end A logical value indicating whether the bampath contains 
-#' paired-end sequencing output. In this case, only first reads in proper mapped
-#' pairs are considered (FLAG 66).
-#' @param paired.end.midpoint A logical value indicating whether the fragment 
-#' middle points of each fragment should be counted. Therefore it uses the tlen
-#' information from the given bam file (MidPoint = fragment_start + int( 
-#' abs(tlen) / 2) )). For even tlen, the given midpoint is the round half down 
-#' real midpoint.
+#' @param paired.end a character string indicating how to handle paired-end 
+#' reads. If \code{paired.end!="ignore"} then only first reads in proper mapped
+#' pairs will be consider (i.e. in the flag of the read, the bits in the mask 
+#' 66 must be all ones). If \code{paired.end=="midpoint"} then the midpoint of a
+#' fragment is considered, where \code{mid = fragment_start + int(abs(tlen)/2)},
+#' and where tlen is the template length stored in the bam file. For even tlen,
+#' the given midpoint will be moved of 0.5 basepairs in the 3' direction. 
+#' If \code{paired.end=="extend"} then the whole fragment is treated 
+#' as a single read.
 #' @param verbose A logical value indicating whether verbose output is desired
 #' @return a list of length(bam.files) with bamsignals.function results
-processByChromosome <- function(bam.files, gr, procs, bamsignals.function, mapqual, shift=0, paired.end=F, paired.end.midpoint=T, verbose=F) {
- 	x <- mclapply(as.character(unique(seqnames(gr))), function(chunk) {
+processByChromosome <- function(bam.files, gr, procs, bamsignals.function, mapqual, shift=0, paired.end="ignore", verbose=F) {
+ 	x <- safe_mclapply(as.character(unique(seqnames(gr))), function(chunk) {
 			 	  cat("[", paste(Sys.time()),"] Counting on chromosome", chunk, "\n")
 				  gr.sub <- gr[ seqnames(gr) %in% chunk]
-				  lapply( bam.files, bamsignals.function, gr=gr.sub, mapqual=mapqual, shift=shift, paired.end=paired.end, paired.end.midpoint=paired.end.midpoint, verbose=verbose)
+				  lapply( bam.files, bamsignals.function, gr=gr.sub, mapqual=mapqual, shift=shift, paired.end=paired.end, verbose=verbose)
  				}, mc.cores=procs)
 	lapply( 1:length(bam.files), function( i ) {
 				unlist(lapply(x, "[[", i)) 
 			}
 	)
 }
+
+#stolen from epicseg
+#make sure that errors occurring in mclapply get propagated
+propagateErrors <- function(l){
+    for (el in l) if (inherits(el, "try-error")) stop(el)
+    l
+}
+safe_mclapply <- function(...) propagateErrors(mclapply(...))
+
+
+#todelete
+map2uniquepairs <- function(r,s){
+	o <- order(r,s)
+	ov <- cbind(r[o], s[o])
+	iv <- ov[,1] != c(-1, ov[-nrow(ov), 1]) | ov[,2] != c(-1, ov[-nrow(ov), 2])
+	uv = ov[iv,]
+	umap <- integer(length = nrow(ov))
+	umap[ov] = cumsum(iv)
+	list(values = uv, map = umap)
+} 
 
 #EOF

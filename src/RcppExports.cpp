@@ -9,48 +9,36 @@ using namespace Rcpp;
 NumericVector logSum(const NumericMatrix& mat);
 RcppExport SEXP diffr_logSum(SEXP matSEXP) {
 BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< const NumericMatrix& >::type mat(matSEXP );
-        NumericVector __result = logSum(mat);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type mat(matSEXP);
+    __result = Rcpp::wrap(logSum(mat));
+    return __result;
 END_RCPP
 }
 // logSumVector
 double logSumVector(const NumericVector& vec);
 RcppExport SEXP diffr_logSumVector(SEXP vecSEXP) {
 BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< const NumericVector& >::type vec(vecSEXP );
-        double __result = logSumVector(vec);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const NumericVector& >::type vec(vecSEXP);
+    __result = Rcpp::wrap(logSumVector(vec));
+    return __result;
 END_RCPP
 }
 // em
-List em(const NumericVector& s, const NumericVector& r, int models = 2, double eps = .001, bool verbose = false);
+List em(NumericVector& s, NumericVector& r, int models, double eps, bool verbose);
 RcppExport SEXP diffr_em(SEXP sSEXP, SEXP rSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< const NumericVector& >::type s(sSEXP );
-        Rcpp::traits::input_parameter< const NumericVector& >::type r(rSEXP );
-        Rcpp::traits::input_parameter< int >::type models(modelsSEXP );
-        Rcpp::traits::input_parameter< double >::type eps(epsSEXP );
-        Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP );
-        List __result = em(s, r, models, eps, verbose);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericVector& >::type s(sSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< int >::type models(modelsSEXP);
+    Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    __result = Rcpp::wrap(em(s, r, models, eps, verbose));
+    return __result;
 END_RCPP
 }
