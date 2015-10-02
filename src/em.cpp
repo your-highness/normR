@@ -5,14 +5,13 @@
  * 
  * To avoid numerical under- and overflows, the EM is done in logspace.
  *
- * 2014-11-18
+ * 2015-10-01
  *
  * helmuth <helmuth@molgen.mpg.de> 
  *
- * TODO refactor code for packaging
- *
  */
 #include <Rcpp.h>
+#include <omp.h>
 
 using namespace Rcpp;
 
@@ -97,7 +96,7 @@ NumericMatrix subMatrix( const NumericMatrix& mat, int col ) {
 }
 
 // [[Rcpp::export]]
-List em( const NumericVector& s, const NumericVector& r, int models = 2, double eps = .001, bool verbose = false ) {
+List em( NumericVector& s, NumericVector& r, int models = 2, double eps = .001, bool verbose = false ) {
 	if ( verbose ) {
 		Rcout << "Starting Expectation maximization em()" << std::endl;
 	}
@@ -186,14 +185,19 @@ List em( const NumericVector& s, const NumericVector& r, int models = 2, double 
 		Rcout << "\t... computing overall Posterior" << std::endl;
 	}
 	NumericMatrix lnPost2( r.length(), models);
-	NumericVector lnBinomCoeff( r.length() ); 
-	NumericVector::iterator r_it = r.begin(), s_it = s.begin(), lnBinomCoeff_it = lnBinomCoeff.begin();
-	for (; r_it != r.end(); ++r_it, ++s_it, ++lnBinomCoeff_it) {
-		*lnBinomCoeff_it = binomialCoeff( (*r_it + *s_it), *s_it );
-	}
-	lnBinomCoeff = log( lnBinomCoeff );
+	NumericVector::iterator r_it = r.begin(), s_it = s.begin();
+	//helmuth 2015-09-17: Not needed for posterior computation
+	//NumericVector lnBinomCoeff( r.length() ); 
+	//NumericVector::iterator lnBinomCoeff_it = lnBinomCoeff.begin();
+	//for (; r_it != r.end(); ++r_it, ++s_it, ++lnBinomCoeff_it) {
+	//	*lnBinomCoeff_it = binomialCoeff( (*r_it + *s_it), *s_it );
+	//}
+	//lnBinomCoeff = log( lnBinomCoeff );
+	//for (int k = 0; k < models; ++k) { //loop over model components
+	//	lnPost2(_,k) = lnBinomCoeff + r * lnftheta( k ) + s * lntheta( k ) + lnprior( k );
+	//}
 	for (int k = 0; k < models; ++k) { //loop over model components
-		lnPost2(_,k) = lnBinomCoeff + r * lnftheta( k ) + s * lntheta( k ) + lnprior( k );
+		lnPost2(_,k) = r * lnftheta( k ) + s * lntheta( k ) + lnprior( k );
 	}
 	lnZ = logSum( lnPost2 );
 	for (int k = 0; k < models; k++) { //loop over model components
