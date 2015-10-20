@@ -7,7 +7,7 @@ Two NGS tracks are modeled simultaneously by fitting a binomial mixture model on
 In the first counting process, a desired smoothing kernel (bin size) and read characteristic threshold (quality, SAMFLAG) can be specified. 
 In a second step a binomial mixture model with a user-specified number of components is fit to the data.
 The fit yields different enrichment regimes in the supplied NGS tracks.
-Log-space computation is done in C/C++ where [OpenMP]{http://openmp.org} enables for fast parallel computation.
+Log-space computation is done in C/C++ where [OpenMP](http://openmp.org) enables for fast parallel computation.
 
 
 ## Installation
@@ -43,14 +43,14 @@ devtools::install_github("your-highness/diffr")
 
 Be sure to check out the following amazing github projects for your upcoming NGS magic:
 
-[bamsignals]{https://github.com/lamortenera/bamsignals} - Efficient Counting in Indexed Bam Files
+[bamsignals](https://github.com/lamortenera/bamsignals) - Efficient Counting in Indexed Bam Files
 for Single End and Paired End NGS Data
 
-[EpicSeg]{https://github.com/lamortenera/epicseg} - Chromatin Segmentation Based on a Probabilistic
+[EpicSeg](https://github.com/lamortenera/epicseg) - Chromatin Segmentation Based on a Probabilistic
 Multinomial Model for Read Counts
 
-[kfoots]{https://github.com/lamortenera/kfoots} - Fit Multivariate Discrete Probability
+[kfoots](https://github.com/lamortenera/kfoots) - Fit Multivariate Discrete Probability
 Distributions to Count Data
 
-[deepTools]{https://github.com/fidelram/deepTools} - User-Friendly Tools for Normalization and
+[deepTools](https://github.com/fidelram/deepTools) - User-Friendly Tools for Normalization and
 Visualization of Deep-Sequencing Data
