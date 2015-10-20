@@ -163,10 +163,10 @@ diffR <- function(treatment,
 	# some logging
 	if (verbose) {
 		cat(models , "-component multinomial mixture model for treatment with control:\n",
-				"LogLik =", tail(result$fit$lnL, 1), ", runs =", 10*length(result$fit$lnL), "\n", 
-				"\tq*=",   format( result$fit$qstar, 2, 2), "\n",
-				"\tq =",   format( result$fit$theta, 2, 2), "\n",
-				"\ttransitions =", format( result$fit$prior, 2, 2), "\n")
+				"LogLik =", tail(result$lnL, 1), ", runs =", 10*length(result$lnL), "\n", 
+				"\tq*=",   format( result$qstar, 2, 2), "\n",
+				"\tq =",   format( result$theta, 2, 2), "\n",
+				"\ttransitions =", format( result$prior, 2, 2), "\n")
 		#if(p.values) {
 		#	cat("\tenriched (P-value     <= 0.05) =", length( which(result$log10.p[,1] > -log10(0.05))), "\n",
 		#			"\tenriched (adj P-value <= 0.05) =", length( which( p.adjust(10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n")
