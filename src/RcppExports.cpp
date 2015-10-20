@@ -5,40 +5,90 @@
 
 using namespace Rcpp;
 
-// logSum
-NumericVector logSum(const NumericMatrix& mat);
-RcppExport SEXP diffr_logSum(SEXP matSEXP) {
+// logical2Int
+Rcpp::IntegerVector logical2Int(const Rcpp::LogicalVector& idx);
+RcppExport SEXP diffr_logical2Int(SEXP idxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type mat(matSEXP);
-    __result = Rcpp::wrap(logSum(mat));
+    Rcpp::traits::input_parameter< const Rcpp::LogicalVector& >::type idx(idxSEXP);
+    __result = Rcpp::wrap(logical2Int(idx));
+    return __result;
+END_RCPP
+}
+// logical2Count
+int logical2Count(const Rcpp::LogicalVector& vec, int nthreads);
+RcppExport SEXP diffr_logical2Count(SEXP vecSEXP, SEXP nthreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const Rcpp::LogicalVector& >::type vec(vecSEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    __result = Rcpp::wrap(logical2Count(vec, nthreads));
+    return __result;
+END_RCPP
+}
+// logRowSum
+Rcpp::NumericVector logRowSum(const Rcpp::NumericMatrix& mat, int nthreads);
+RcppExport SEXP diffr_logRowSum(SEXP matSEXP, SEXP nthreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type mat(matSEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    __result = Rcpp::wrap(logRowSum(mat, nthreads));
     return __result;
 END_RCPP
 }
 // logSumVector
-double logSumVector(const NumericVector& vec);
-RcppExport SEXP diffr_logSumVector(SEXP vecSEXP) {
+double logSumVector(const Rcpp::NumericVector& vec, int nthreads);
+RcppExport SEXP diffr_logSumVector(SEXP vecSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const NumericVector& >::type vec(vecSEXP);
-    __result = Rcpp::wrap(logSumVector(vec));
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type vec(vecSEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    __result = Rcpp::wrap(logSumVector(vec, nthreads));
+    return __result;
+END_RCPP
+}
+// mapToUniquePairs
+Rcpp::List mapToUniquePairs(const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s);
+RcppExport SEXP diffr_mapToUniquePairs(SEXP rSEXP, SEXP sSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type s(sSEXP);
+    __result = Rcpp::wrap(mapToUniquePairs(r, s));
+    return __result;
+END_RCPP
+}
+// mapToOriginal
+Rcpp::NumericVector mapToOriginal(const Rcpp::NumericVector& vec, const Rcpp::IntegerVector& map);
+RcppExport SEXP diffr_mapToOriginal(SEXP vecSEXP, SEXP mapSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type vec(vecSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type map(mapSEXP);
+    __result = Rcpp::wrap(mapToOriginal(vec, map));
     return __result;
 END_RCPP
 }
 // em
-List em(NumericVector& s, NumericVector& r, int models, double eps, bool verbose);
-RcppExport SEXP diffr_em(SEXP sSEXP, SEXP rSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP verboseSEXP) {
+Rcpp::List em(Rcpp::IntegerVector& r, Rcpp::IntegerVector& s, int models, double eps, bool verbose, int nthreads);
+RcppExport SEXP diffr_em(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< NumericVector& >::type s(sSEXP);
-    Rcpp::traits::input_parameter< NumericVector& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type s(sSEXP);
     Rcpp::traits::input_parameter< int >::type models(modelsSEXP);
     Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    __result = Rcpp::wrap(em(s, r, models, eps, verbose));
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    __result = Rcpp::wrap(em(r, s, models, eps, verbose, nthreads));
     return __result;
 END_RCPP
 }
