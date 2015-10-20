@@ -1,32 +1,56 @@
 diffr
 =====
 
-## Normalization and difference calling for Next Generation Sequencing (NGS) experiments via joint multinomial modeling
+## Normalization and Difference Calling for Next Generation Sequencing (NGS) Experiments via Joint Multinomial Modeling
 
-Functions for normalization and difference calling in NGS experiment setups. A
-binomial mixture model with a given number of components is fit and used for
-identifying enriched or depleted regions in two given data tracks. Log-space
-multinomial model is fit by Expectation maximization in C/C++.
+Two NGS tracks are modeled simultaneously by fitting a binomial mixture model on mapped read counts. 
+In the first counting process, a desired smoothing kernel (bin size) and read characteristic threshold (quality, SAMFLAG) can be specified. 
+In a second step a binomial mixture model with a user-specified number of components is fit to the data.
+The fit yields different enrichment regimes in the supplied NGS tracks.
+Log-space computation is done in C/C++ where [OpenMP]{http://openmp.org} enables for fast parallel computation.
 
-The background component is assumed to be the component with lowest mean and is
-used to compute treatment fold change and P-Values for statistical significance
-of enrichment.
 
 ## Installation
 
 To install diffr from the working repository, easiest is using devtools:
+
 ```R
+#install dependencies
+source("https://bioconductor.org/biocLite.R")
+biocLite("bamsignals", suppressUpdates=T)   
+#fetch current diffr version from github
 install.packages("devtools")
+require(devtools)
 devtools::install_github("your-highness/diffr")
 ```
+
 ## Use cases
 
-RNA-seq differential expression calling
+* ChIP-seq normalization / enrichment calling with an Input experiment (Whole Cell Extract, H3/IgG ChIP-seq)
 
-ChIP-seq normalization with Input experiment, ChIP-seq differential enrichment
-calling for different proteins in same cell type, ChIP-seq differential
-enrichment calling for same proteins in different cell types, ChIP-seq
-differential enrichment calling for different proteins in different cell types
+* ChIP-seq differential enrichment calling for two different antigens in same sample population
 
-ChIP-seq identification of enrichment regimes to investigate on two vs one
-histone tail modifications or cell population mixture effects
+* ChIP-seq identification of enrichment regimes to investigate on sample heterogeneity
+
+* RNA-seq differential expression calling
+
+* ChIP-seq differential enrichment calling in two different samples (be aware of CNVs!)
+
+* CNV identification
+
+
+## Useful links
+
+Be sure to check out the following amazing github projects for your upcoming NGS magic:
+
+[bamsignals]{https://github.com/lamortenera/bamsignals} - Efficient Counting in Indexed Bam Files
+for Single End and Paired End NGS Data
+
+[EpicSeg]{https://github.com/lamortenera/epicseg} - Chromatin Segmentation Based on a Probabilistic
+Multinomial Model for Read Counts
+
+[kfoots]{https://github.com/lamortenera/kfoots} - Fit Multivariate Discrete Probability
+Distributions to Count Data
+
+[deepTools]{https://github.com/fidelram/deepTools} - User-Friendly Tools for Normalization and
+Visualization of Deep-Sequencing Data
