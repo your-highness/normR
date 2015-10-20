@@ -1,10 +1,25 @@
+# Copyright (C) 2015 Johannes Helmuth
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #' Normalization and difference calling for Next Generation Sequencing (NGS)
 #' experiments via joint multinomial modeling
 #'
 #' Functions for normalization and difference calling in NGS experiment setups.
 #' A binomial mixture model with a given number of components is fit and used 
 #' for identifying enriched or depleted regions in two given data tracks.
-#' Log-space multinomial model is fit by Expectation maximization in C/C++.
+#' Log-space multinomial model is fit by Expectation maximization in C++.
 #'
 #' @name diffr
 #' @import Rcpp
@@ -27,11 +42,11 @@ NULL
 #' to compute treatment fold change and P-Values for statistical significance 
 #' of enrichment.
 #'
-#' @param treatment A \link{numeric} vector of treatment counts or a 
+#' @param treatment A \link{integer} vector of treatment counts or a 
 #' \link{character} pointing to the treatment bam file. In the latter case an
 #' \code{treatment}.bai index file should exist in the same folder. Should be
 #' consistent with control.
-#' @param control A \link{numeric} vector of control counts or a 
+#' @param control A \link{integer} vector of control counts or a 
 #' \link{character} pointing to the control bam file. In the latter case an
 #' \code{control}.bai index file should exist in the same folder. Should be
 #' consistent with treatment.
@@ -41,8 +56,8 @@ NULL
 #' @param bin.size Width of genomic bins in bp.
 #' @param models Number of model components.
 #' @param eps Threshold for EM convergence.
-#' @param p.values Flag for P value computation.
-#' @param procs Number of threads to use in parallel::mclapply()
+#' @param p.values Flag for P value computation (not implemented)
+#' @param procs Number of threads to use
 #' @param mapqual discard reads with mapping quality strictly lower than this 
 #' parameter. The value 0 ensures that no read will be discarded, the value 254
 #' that only reads with the highest possible mapping quality will be considered.
@@ -61,83 +76,89 @@ NULL
 #'
 #' @return a \link{list} with the following elements:
 #' 	\item{posterior}{a matrix containing posteriors for model components.}
-#' 	\item{foldchange}{a matrix containing foldchanges for model components
-#'  (i=2...models) to background component (i=1).}
 #'  \item{fit}{
 #'    Result of the multinomial fit. \code{qstar} is naive estimate of 
 #'    background intensity. \code{theta} gives binomial mixture model 
 #'    parameters. \code{prior} gives binomial mixture model priors.\code{lnL}
 #'    gives lLn Likelihood trace.
 #'  }
-#'  \item{p.values}{-Log10 P-values for enrichment over background for model 
-#'  components (i=2..models).}
 #'
 #' @examples
 #' \dontrun{
 #' #bam file input
-#' normalize( "H3K4me3.bam", "Input.bam" )
+#' diffr("H3K4me3.bam", "Input.bam")
 #' #count vector input
-#' normalize( H3K4me3.counts, Input.counts )
+#' diffr(H3K4me3.counts, Input.counts)
 #' #Normalize a H3K4me3 experiment from bam input with 2 enrichment regimes
-#' normalize( "H3K4me3.bam", "Input.bam", bin.size=150, models=3 )
+#' diffr("H3K4me3.bam", "Input.bam", bin.size=150, models=3)
+#' #Difference Calling
+#' diffr("H3K4me3.bam", "H3K4me2.bam", bin.size=150, models=3)
 #' }
 #' 
 #' @export
-normalize <- function( treatment, 
- 					   control,  
-					   genome, 
-					   bin.size=300, 
-					   models=2, 
-					   eps=.001,
-						 p.values=T,
-					   procs=1, 
-					   mapqual=20, 
-					   shift=0,
-					   paired.end="ignore",
-						 verbose=T) {
-	# check if treatment and control give bamfiles or counts
+diffR <- function(treatment, 
+									control,  
+									genome, 
+									bin.size=300, 
+									models=2, 
+									eps=.001,
+									p.values=T,
+									procs=1, 
+									mapqual=20, 
+									shift=0,
+									paired.end="ignore",
+									verbose=T) {
+
+	# Check if treatment and control give bampaths or counts
 	counts = NULL
 	bam.files = NULL
-	if ( class(treatment) == "character") {
-		#counting only possible on indexed bamfiles
-		if( !file.exists(paste(treatment, ".bai", sep="")) ) stop( "No index file for", treatment, "found.\n")
+	if (class(treatment) == "character") {
+		if(!file.exists(paste(treatment, ".bai", sep=""))) 
+			stop("No index file for", treatment, "found.\n")
 		bam.files = c(bam.files, treatment)
-	} else if ( class(treatment) == "numeric" | class(treatment) == "integer" ) {
+	} else if (class(treatment) == "numeric" | class(treatment) == "integer") {
 		counts[[1]] = treatment
 	}
-	if ( class(control) == "character") {
-		#counting only possible on indexed bamfiles
-		if( !file.exists(paste(control, ".bai", sep="")) ) stop( "No index file for", control, "found.\n")
+	if (class(control) == "character") {
+		if(!file.exists(paste(control, ".bai", sep=""))) stop("No index file for", control, "found.\n")
 		bam.files = c(bam.files, control)
-	} else if ( class(control) == "numeric" | class(control) == "integer" ) {
+	} else if (class(control) == "numeric" | class(control) == "integer") {
 		counts[[2]] = control
 	}
 
 	# count in GRanges with bamsignals::count if necessary
-	if ( is.null(counts) ) {
-		if( is.null(genome) ) stop( "No genome specification given. Please provide chromSizes data frame.\n")
+	if (is.null(counts)) {
+		if(is.null(genome)) 
+			stop("No genome specification given. Please provide chromSizes data frame.\n")
 		gr <- bin.genome(genome, bin.size)
-		counts <- processByChromosome( bam.files=c(treatment, control), gr=gr, procs=procs, bamsignals.function=bamCount, mapqual=mapqual, shift=shift, paired.end=paired.end, verbose=verbose)
+		counts <- processByChromosome(bam.files=path.expand(c(treatment, control)), 
+																	gr=gr, 
+																	procs=procs, 
+																	bamsignals.function=bamCount,
+																	mapqual=mapqual,
+																	shift=shift,
+																	paired.end=paired.end,
+																	verbose=verbose)
 	}
 
-	if ( length(counts[[1]]) != length(counts[[2]]) ) stop( "Incompatible lengths of treatment and control. Please provide compatible numeric arrays.\n" )
+	if (length(counts[[1]]) != length(counts[[2]])) 
+		stop("Incompatible lengths of treatment and control. Please provide compatible numeric arrays.\n")
 
 	# fit multinomial model
-	result <- list("control"=counts[[2]], "treatment"=counts[[1]])
-	result <- c(result, em(counts[[1]], counts[[2]], models, eps, verbose))
+	result <- list("ranges"=gr, "control"=counts[[2]], "treatment"=counts[[1]])
+	result <- c(result, em(counts[[2]], counts[[1]], models, eps, verbose, procs))
 
 	# P-values
-	if (p.values) {
-		if (verbose) {
-			cat( "... computing P-values\n" )
-		}
-		result$log10.p     <- matrix(0, nrow=nrow(result$posterior), ncol=models)
-		result$log10.p[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
-
-		#result$log10.adjp
-	} else {
-		result$log10.p <- NULL
-	}
+	#if (p.values) {
+	#	if (verbose) {
+	#		cat( "... computing P-values\n" )
+	#	}
+	#	result$log10.p     <- matrix(0, nrow=nrow(result$posterior), ncol=models)
+	#	result$log10.p[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
+	#	#result$log10.adjp
+	#} else {
+	#	result$log10.p <- NULL
+	#}
 
 	# some logging
 	if (verbose) {
@@ -146,154 +167,13 @@ normalize <- function( treatment,
 				"\tq*=",   format( result$fit$qstar, 2, 2), "\n",
 				"\tq =",   format( result$fit$theta, 2, 2), "\n",
 				"\ttransitions =", format( result$fit$prior, 2, 2), "\n")
-		if(p.values) {
-			cat("\tenriched (P-value     <= 0.05) =", length( which(result$log10.p[,1] > -log10(0.05))), "\n",
-					"\tenriched (adj P-value <= 0.05) =", length( which( p.adjust(10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n")
-		}
+		#if(p.values) {
+		#	cat("\tenriched (P-value     <= 0.05) =", length( which(result$log10.p[,1] > -log10(0.05))), "\n",
+		#			"\tenriched (adj P-value <= 0.05) =", length( which( p.adjust(10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n")
+		#}
 	}
 
-	( result )
-}
-#' Call differences in two NGS experiments.
-#'
-#' This function implements difference calling of two NGS experiments by joint
-#' multinomial modeling. A given number of model components are fit 
-#' simultaenously via an efficient Expectation Maximization implementation in 
-#' C++. Convergence is achieved by a threshold on the minimum change in model 
-#' ln likelihood. The background component is assumed to be the component 
-#' with lowest mean and is used to compute two treatments fold change values 
-#' and p-values for statistical significance of enrichment.
-#'
-#' @param treatment.1 A \link{numeric} vector of treatment.1 counts or a 
-#' \link{character} pointing to the treatment.1 bam file. In the latter case an
-#' \code{treatment.1}.bai index file should exist in the same folder. Should be
-#' consistent with treatment.2.
-#' @param treatment.2 A \link{numeric} vector of treatment.2 counts or a 
-#' \link{character} pointing to the treatment.2 bam file. In the latter case an
-#' \code{treatment.2}.bai index file should exist in the same folder. Should be
-#' consistent with treatment.1.
-#' @param genome A \link{data.frame} consisting of two columns. First column 
-#' gives sequence names. Second column gives chromosome lengths. This 
-#' information can be retrieved via the UCSC chromSizes table.
-#' @param bin.size Width of genomic bins in bp.
-#' @param models Number of model components. Note that this should assemble to
-#' 1 background components and at least 2 treatment components. Default: 4
-#' @param eps Threshold for EM convergence.
-#' @param p.values Flag for P value computation.
-#' @param procs Number of threads to use in parallel::mclapply()
-#' @param mapqual discard reads with mapping quality strictly lower than this 
-#' parameter. The value 0 ensures that no read will be discarded, the value 254
-#' that only reads with the highest possible mapping quality will be considered.
-#' @param shift shift the read position by a user-defined number of basepairs. 
-#' This can be handy in the analysis of chip-seq data.
-#' @param paired.end a character string indicating how to handle paired-end 
-#' reads. If \code{paired.end!="ignore"} then only first reads in proper mapped
-#' pairs will be consider (i.e. in the flag of the read, the bits in the mask 
-#' 66 must be all ones). If \code{paired.end=="midpoint"} then the midpoint of a
-#' fragment is considered, where \code{mid = fragment_start + int(abs(tlen)/2)},
-#' and where tlen is the template length stored in the bam file. For even tlen,
-#' the given midpoint will be moved of 0.5 basepairs in the 3' direction. 
-#' If \code{paired.end=="extend"} then the whole fragment is treated 
-#' as a single read.
-#' @param verbose A logical value indicating whether verbose output is desired
-#'
-#' @return a \link{list} with the following elements:
-#' 	\item{posterior}{a matrix containing posteriors for model components.}
-#' 	\item{foldchange}{a matrix containing foldchanges for model components
-#'  (i=2...models) to background component (i=1).}
-#'  \item{fit}{
-#'    Result of the multinomial fit. \code{qstar} is naive estimate of 
-#'    background intensity. \code{theta} gives binomial mixture model 
-#'    parameters. \code{prior} gives binomial mixture model priors.\code{lnL}
-#'    gives lLn Likelihood trace.
-#'  }
-#'  \item{p.values}{-Log10 P-values for enrichment over background for model 
-#'  components (i=2..models).}
-#'
-#' @examples
-#' \dontrun{
-#' #bam file input
-#' normalize( "H3K4me3.bam", "H3K27me3.bam" )
-#' #count vector input
-#' normalize( H3K4me3.counts, H3K27me3.counts )
-#' #Differences of H3K4me3 and H3K27me3 from bam input with 2 enrichment regimes
-#' normalize( "H3K4me3.bam", "H3K27me3.bam", bin.size=150, models=5 )
-#' }
-#' 
-#' @export
-diffcall <- function( treatment.1, 
-					  treatment.2, 
-					  genome, 
-					  bin.size=300, 
-					  models=4, 
-					  eps=.001,
-						p.values=T,
-					  procs=1, 
-					  mapqual=20, 
-					  shift=0,
-					  paired.end="ignore",
-					  verbose=T) {
-	# check if treatment.1 and treatment.2 give bamfiles or counts
-	counts = NULL
-	bam.files = NULL
-	if ( class(treatment.1) == "character") {
-		#counting only possible on indexed bamfiles
-		if( !file.exists(paste(treatment.1, ".bai", sep="")) ) stop( "No index file for", treatment.1, "found.\n")
-		bam.files = c(bam.files, treatment.1)
-	} else if ( class(treatment.1) == "numeric" | class(treatment.1) == "integer" ) {
-		counts[[1]] = treatment.1
-	}
-	if ( class(treatment.2) == "character") {
-		#counting only possible on indexed bamfiles
-		if( !file.exists(paste(treatment.2, ".bai", sep="")) ) stop( "No index file for", treatment.2, "found.\n")
-		bam.files = c(bam.files, treatment.2)
-	} else if ( class(treatment.2) == "numeric" | class(treatment.2) == "integer" ) {
-		counts[[2]] = treatment.2
-	}
-
-	# count in GRanges with bamsignals::count if necessary
-	if ( is.null(counts) ) {
-		# construct GRanges
-		if( is.null(genome) ) stop( "No genome specification given. Please provide chromSizes data frame.\n")
-		gr <- bin.genome(genome, bin.size)
-
-		counts <- processByChromosome( bam.files=c(treatment.1, treatment.2), gr=gr, procs=procs, bamsignals.function=bamCount, mapqual=mapqual, shift=shift, paired.end=paired.end, verbose=verbose)
-	}
-
-	if ( length(counts[[1]]) != length(counts[[2]]) ) stop( "Incompatible lengths of treatment.1 and treatment.2 Please provide compatible numeric arrays.\n" )
-
-	# fit multinomial model
-	result <- list("treatment.1"=counts[[1]], "treatment.2"=counts[[2]])
-	result <- c(result, em(counts[[1]], counts[[2]], models, eps, verbose))
-
-	# P-values
-	if (p.values) {
-		if (verbose) {
-			cat( "... computing P-values\n" )
-		}
-		result$log10.p.values     <- matrix(0, nrow=nrow(result$posterior), ncol=(models-1))
-		result$log10.p.values[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
-		result$log10.p.values[,2] <- -logSum( cbind(pbinom( counts[[2]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[2]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
-	} else {
-		result$log10.p.values <- NULL
-	}
-
- 	# some logging
-	if (verbose) {
-		cat(models , "-component multinomial mixture model for treatment with control:\n",
-				"LogLik =", tail(result$fit$lnL, 1), ", runs =", 10*length(result$fit$lnL), "\n", 
-				"\tq*=",   format( result$fit$qstar, 2, 2), "\n",
-				"\tq =",   format( result$fit$theta, 2, 2), "\n",
-				"\ttransitions =", format( result$fit$prior, 2, 2), "\n")
-		if(p.values) {
-			cat("\t'treatment.1' enriched (P-value     <= 0.05) =", length( which(result$log10.p.values[,1] > -log10(0.05))), "\n",
-					"\t'treatment.1' enriched (adj P-value <= 0.05) =", length( which( p.adjust( 10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n",
-					"\t'treatment.2' enriched (P-value     <= 0.05) =", length( which(result$log10.p.values[,1] > -log10(0.05))), "\n",
-					"\t'treatment.2' enriched (adj P-value <= 0.05) =", length( which( p.adjust( 10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n")
-		}
-	}
-
-	( result )
+	(result)
 }
 
 #' Create bins for a given genome annotation.
@@ -349,9 +229,10 @@ bin.genome <- function(genome, bin.size=300) {
 #' @return a list of length(bam.files) with bamsignals.function results
 processByChromosome <- function(bam.files, gr, procs, bamsignals.function, mapqual, shift=0, paired.end="ignore", verbose=F) {
  	x <- safe_mclapply(as.character(unique(seqnames(gr))), function(chunk) {
-			 	  cat("[", paste(Sys.time()),"] Counting on chromosome", chunk, "\n")
-				  gr.sub <- gr[ seqnames(gr) %in% chunk]
-				  lapply( bam.files, bamsignals.function, gr=gr.sub, mapqual=mapqual, shift=shift, paired.end=paired.end, verbose=verbose)
+											if (verbose)
+												cat("[", paste(Sys.time()),"] Counting on chromosome", chunk, "\n")
+											gr.sub <- gr[ seqnames(gr) %in% chunk]
+											lapply(bam.files, bamsignals.function, gr=gr.sub, mapqual=mapqual, shift=shift, paired.end=paired.end, verbose=F)
  				}, mc.cores=procs)
 	lapply( 1:length(bam.files), function( i ) {
 				unlist(lapply(x, "[[", i)) 
@@ -366,17 +247,3 @@ propagateErrors <- function(l){
     l
 }
 safe_mclapply <- function(...) propagateErrors(mclapply(...))
-
-
-#todelete
-map2uniquepairs <- function(r,s){
-	o <- order(r,s)
-	ov <- cbind(r[o], s[o])
-	iv <- ov[,1] != c(-1, ov[-nrow(ov), 1]) | ov[,2] != c(-1, ov[-nrow(ov), 2])
-	uv = ov[iv,]
-	umap <- integer(length = nrow(ov))
-	umap[ov] = cumsum(iv)
-	list(values = uv, map = umap)
-} 
-
-#EOF

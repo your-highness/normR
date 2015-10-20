@@ -1,15 +1,34 @@
-diffr 0.1
+diffr 0.8.1
 ------------------------------------------------------------------------------
 
-MINOR CHANGES
+* Performance:
+  - huge performance speedup
+	- mapToUniquePairs() saves double computation for same (r,s)-tupels (~10% unique pairs needed for computation only)
+	- OpenMP parallelization of matrix log row sum computation with user 
+     specified number of kernels
+	- Kahan summation for log posterior summation to reduce numerical error
+* Functionality:
+  - fixed tilde bug for bampaths
+	- removed foldchange computation and p-value for now
+	- removed diffcall(): diffR() will do both enrichment and difference calling in the future
+	- src/Makevars added for OpenMP compatibility
+* Documentation:
+  - updated to restructuring
 
-* processByChromosome is now generic for length(bam.files) > 2 
-* em.cpp::em(): returns "qstar" also
-* wrappers.R::normalize() and wrappers.R::diffcall(): 
-    P-value computation is done in R code
-	counts can be given directly or as a bam file to be counted with bamsignals
 
-DEVELOPMENT
+diffr 0.1.2
+------------------------------------------------------------------------------
+
+* Performance:
+  - processByChromosome is now generic for length(bam.files) > 2 
+  - P-value computation and adjustment done in R wrappers
+* Functionality:
+  - em.cpp::em() returns q* = #ChIP-tags/(#Input-tags + #ChIP-tags)
+	- wrappers take counts directly or path to bam file with index
+
+
+diffr 0.1.1
+------------------------------------------------------------------------------
 
 * diffr packaging started with migrating difference calling pipeline scripts
   and C++ code to this packages

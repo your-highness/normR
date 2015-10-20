@@ -10,7 +10,7 @@ experiments via joint multinomial modeling}
 Functions for normalization and difference calling in NGS experiment setups.
 A binomial mixture model with a given number of components is fit and used
 for identifying enriched or depleted regions in two given data tracks.
-Log-space multinomial model is fit by Expectation maximization in C/C++.
+Log-space multinomial model is fit by Expectation maximization in C++.
 }
 \author{
 Johannes Helmuth \email{helmuth@molgen.mpg.de}
