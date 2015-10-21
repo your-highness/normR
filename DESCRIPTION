@@ -23,7 +23,7 @@ Suggests:
 Imports: 
 	methods, 
 	Rcpp (>= 0.10.6), 
-	bamsignals, 
+	bamsignals (>= 1.0.0), 
 	GenomeInfoDb, 
 	GenomicRanges, 
 	IRanges, 
