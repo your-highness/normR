@@ -22,9 +22,11 @@
 #' Log-space multinomial model is fit by Expectation maximization in C++.
 #'
 #' @name diffr
-#' @import Rcpp
-#' @import IRanges
 #' @import GenomicRanges
+#' @import GenomeInfoDb
+#' @import IRanges
+#' @import Rcpp
+#' @import Rsamtools
 #' @import parallel
 #' @import bamsignals
 #' @docType package
@@ -50,9 +52,14 @@ NULL
 #' \link{character} pointing to the control bam file. In the latter case an
 #' \code{control}.bai index file should exist in the same folder. Should be
 #' consistent with treatment.
-#' @param genome A \link{data.frame} consisting of two columns. First column 
-#' gives sequence names. Second column gives chromosome lengths. This 
-#' information can be retrieved via the UCSC chromSizes table.
+#' @param genome Either \code{NULL}, an USCS genome identifier for 
+#' \link{GenomeInfoDb::fetchExtendedChromInfoFromUCSC} (only assembled 
+#' molecules, circular omitted) or a \link{data.frame} consisting of two 
+#' columns(1st column=chromosome names, 2nd column=lengths). Chromosome names 
+#' given should be present in the bam file header. If \code{NULL}, chromosome 
+#' names will be read from treatment bamheader. Please be aware that bamheader 
+#' might contain irregular contigs and chrM which influence the diffR fit. 
+#' (DEFAUlT=NULL).
 #' @param bin.size Width of genomic bins in bp.
 #' @param models Number of model components.
 #' @param eps Threshold for EM convergence.
@@ -75,7 +82,7 @@ NULL
 #' @param verbose A logical value indicating whether verbose output is desired
 #'
 #' @return a \link{list} with the following elements:
-#' 	\item{posterior}{a matrix containing posteriors for model components.}
+#'  \item{posterior}{a matrix containing posteriors for model components.}
 #'  \item{fit}{
 #'    Result of the multinomial fit. \code{qstar} is naive estimate of 
 #'    background intensity. \code{theta} gives binomial mixture model 
@@ -97,17 +104,17 @@ NULL
 #' 
 #' @export
 diffR <- function(treatment, 
-									control,  
-									genome, 
-									bin.size=300, 
-									models=2, 
-									eps=.001,
-									p.values=T,
-									procs=1, 
-									mapqual=20, 
-									shift=0,
-									paired.end="ignore",
-									verbose=T) {
+                  control,  
+                  genome=NULL, 
+                  bin.size=300, 
+                  models=2, 
+                  eps=.001,
+                  p.values=T,
+                  procs=1, 
+                  mapqual=20, 
+                  shift=0,
+                  paired.end="ignore",
+                  verbose=T) {
 
 	# Check if treatment and control give bampaths or counts
 	counts = NULL
@@ -128,17 +135,24 @@ diffR <- function(treatment,
 
 	# count in GRanges with bamsignals::count if necessary
 	if (is.null(counts)) {
-		if(is.null(genome)) 
-			stop("No genome specification given. Please provide chromSizes data frame.\n")
+		if (!class(genome) %in% c("data.frame", "matrix")) { #no chrom lengths given
+			if (is.null(genome)) { #read from bamheader
+				header <- Rsamtools::scanBamHeader(treatment)[[1]][[1]]
+				genome <- cbind(names(header), header)
+			} else { #read from UCSC
+				genome <- fetchExtendedChromInfoFromUCSC(genome)
+				genome <- genome[which(!genome$circular & genome$SequenceRole == "assembled-molecule"),1:2]
+			}
+		}
 		gr <- bin.genome(genome, bin.size)
 		counts <- processByChromosome(bam.files=c(treatment, control), 
-																	gr=gr, 
-																	procs=procs, 
-																	bamsignals.function=bamCount,
-																	mapqual=mapqual,
-																	shift=shift,
-																	paired.end=paired.end,
-																	verbose=verbose)
+		                              gr=gr, 
+		                              procs=procs, 
+		                              bamsignals.function=bamCount,
+		                              mapqual=mapqual,
+		                              shift=shift,
+		                              paired.end=paired.end,
+		                              verbose=verbose)
 	}
 
 	if (length(counts[[1]]) != length(counts[[2]])) 
@@ -150,26 +164,26 @@ diffR <- function(treatment,
 
 	# P-values
 	#if (p.values) {
-	#	if (verbose) {
-	#		cat( "... computing P-values\n" )
-	#	}
-	#	result$log10.p     <- matrix(0, nrow=nrow(result$posterior), ncol=models)
-	#	result$log10.p[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
-	#	#result$log10.adjp
+	#  if (verbose) {
+	#    cat( "... computing P-values\n" )
+	#  }
+	#  result$log10.p     <- matrix(0, nrow=nrow(result$posterior), ncol=models)
+	#  result$log10.p[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
+	#  #result$log10.adjp
 	#} else {
-	#	result$log10.p <- NULL
+	#  result$log10.p <- NULL
 	#}
 
 	# some logging
 	if (verbose) {
 		cat(models , "-component multinomial mixture model for treatment with control:\n",
-				"LogLik =", tail(result$lnL, 1), ", runs =", 10*length(result$lnL), "\n", 
-				"\tq*=",   format( result$qstar, 2, 2), "\n",
-				"\tq =",   format( result$theta, 2, 2), "\n",
-				"\ttransitions =", format( result$prior, 2, 2), "\n")
+		    "LogLik =", tail(result$lnL, 1), ", runs =", 10*length(result$lnL), "\n", 
+		    "\tq*=",   format( result$qstar, 2, 2), "\n",
+		    "\tq =",   format( result$theta, 2, 2), "\n",
+		    "\ttransitions =", format( result$prior, 2, 2), "\n")
 		#if(p.values) {
-		#	cat("\tenriched (P-value     <= 0.05) =", length( which(result$log10.p[,1] > -log10(0.05))), "\n",
-		#			"\tenriched (adj P-value <= 0.05) =", length( which( p.adjust(10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n")
+		#  cat("\tenriched (P-value     <= 0.05) =", length( which(result$log10.p[,1] > -log10(0.05))), "\n",
+		#      "\tenriched (adj P-value <= 0.05) =", length( which( p.adjust(10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n")
 		#}
 	}
 
@@ -188,16 +202,19 @@ diffR <- function(treatment,
 #' 
 #' @export
 bin.genome <- function(genome, bin.size=300) {
-	n <- floor(genome[,2] / bin.size)
+	lens <- as.numeric(genome[,2])
+	n <- floor(lens / bin.size)
 	names(n) <- genome[,1]
 	bin.sizes <- rep(bin.size, dim(genome)[1])
 	names(bin.sizes) <- genome[,1]
 	gr <- GRanges()
-	for (ch in genome[,1]) {
-		gr <- c(gr, GRanges(seqnames=ch, IRanges(start=0:(n[ch] - 1) * bin.sizes[ch] + 1, width=bin.size)))
-	}
+	suppressWarnings( {
+		for (ch in genome[,1]) {
+			gr <- c(gr, GRanges(seqnames=ch, IRanges(start=0:(n[ch] - 1) * bin.sizes[ch] + 1, width=bin.size)))
+		}
+	})
 	gr <- sort( gr )
-	GenomeInfoDb::seqlengths(gr) <- genome[,2]
+	GenomeInfoDb::seqlengths(gr) <- lens
 	(gr) 
 }
 
@@ -229,22 +246,22 @@ bin.genome <- function(genome, bin.size=300) {
 #' @return a list of length(bam.files) with bamsignals.function results
 processByChromosome <- function(bam.files, gr, procs, bamsignals.function, mapqual, shift=0, paired.end="ignore", verbose=F) {
 	bam.files <- path.expand(bam.files)
- 	x <- safe_mclapply(as.character(unique(seqnames(gr))), function(chunk) {
-											if (verbose)
-												cat("[", paste(Sys.time()),"] Counting on chromosome", chunk, "\n")
-											gr.sub <- gr[ seqnames(gr) %in% chunk]
-											lapply(bam.files, bamsignals.function, gr=gr.sub, mapqual=mapqual, shift=shift, paired.end=paired.end, verbose=F)
- 				}, mc.cores=procs)
-	lapply( 1:length(bam.files), function( i ) {
-				unlist(lapply(x, "[[", i)) 
-			}
+	x <- safe_mclapply(as.character(unique(seqnames(gr))), function(chunk) {
+	                   if (verbose)
+	                   	cat("[", paste(Sys.time()),"] Counting on chromosome", chunk, "\n")
+	                   gr.sub <- gr[ seqnames(gr) %in% chunk]
+	                   lapply(bam.files, bamsignals.function, gr=gr.sub, mapqual=mapqual, shift=shift, paired.end=paired.end, verbose=F)
+	}, mc.cores=procs)
+	lapply(1:length(bam.files), function( i ) {
+	       unlist(lapply(x, "[[", i)) 
+	}
 	)
 }
 
 #stolen from epicseg
 #make sure that errors occurring in mclapply get propagated
 propagateErrors <- function(l){
-    for (el in l) if (inherits(el, "try-error")) stop(el)
-    l
+	for (el in l) if (inherits(el, "try-error")) stop(el)
+	l
 }
 safe_mclapply <- function(...) propagateErrors(mclapply(...))
