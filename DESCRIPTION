@@ -2,7 +2,7 @@ Package: diffr
 Type: Package
 Title: Normalization and difference calling for Next Generation Sequencing
     (NGS) data via joint multinomial modeling.
-Version: 0.8.2
+Version: 0.8.3
 Date: 2015-10-22
 Authors@R:c(
 	person(given="Johannes",family="Helmuth", email="helmuth@molgen.mpg.de", role=c("aut", "cre")))
@@ -22,11 +22,12 @@ Suggests:
 	rmarkdown
 Imports: 
 	methods, 
-	Rcpp (>= 0.10.6), 
-	bamsignals (>= 1.0.0), 
 	GenomeInfoDb, 
 	GenomicRanges, 
 	IRanges, 
+	Rcpp (>= 0.10.6), 
+	Rsamtools,
+	bamsignals (>= 1.2.0), 
 	parallel
 LinkingTo: Rcpp
 biocViews: DifferentialPeakCalling, Classification, ChIPSeq, MultipleComparison, Normalization

@@ -289,7 +289,7 @@ Rcpp::List em(Rcpp::IntegerVector& r, Rcpp::IntegerVector& s, int models=2, doub
 	 */
 	Rcpp::LogicalVector idx = (r > 0 & s > 0);
 	if (verbose) {
-		Rcpp::Rcout << "\t... removing (r == 0) or (s == 0) regions." << std::endl;
+		Rcpp::Rcout << "\t... removing (r == 0) or (s == 0) regions [" << logical2Count(idx) << " of " << r.length() << " regions kept]." << std::endl;
 	}
 	Rcpp::List m2u_sub = mapToUniquePairs(r[idx], s[idx]);
 	Rcpp::IntegerVector ur_sub = Rcpp::as<Rcpp::IntegerMatrix>(m2u_sub["values"]).row(0);
