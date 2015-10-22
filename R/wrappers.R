@@ -131,7 +131,7 @@ diffR <- function(treatment,
 		if(is.null(genome)) 
 			stop("No genome specification given. Please provide chromSizes data frame.\n")
 		gr <- bin.genome(genome, bin.size)
-		counts <- processByChromosome(bam.files=path.expand(c(treatment, control)), 
+		counts <- processByChromosome(bam.files=c(treatment, control), 
 																	gr=gr, 
 																	procs=procs, 
 																	bamsignals.function=bamCount,
@@ -228,6 +228,7 @@ bin.genome <- function(genome, bin.size=300) {
 #' @param verbose A logical value indicating whether verbose output is desired
 #' @return a list of length(bam.files) with bamsignals.function results
 processByChromosome <- function(bam.files, gr, procs, bamsignals.function, mapqual, shift=0, paired.end="ignore", verbose=F) {
+	bam.files <- path.expand(bam.files)
  	x <- safe_mclapply(as.character(unique(seqnames(gr))), function(chunk) {
 											if (verbose)
 												cat("[", paste(Sys.time()),"] Counting on chromosome", chunk, "\n")
