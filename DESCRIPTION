@@ -2,8 +2,8 @@ Package: diffr
 Type: Package
 Title: Normalization and difference calling for Next Generation Sequencing
     (NGS) data via joint multinomial modeling.
-Version: 0.8.1
-Date: 2015-10-20
+Version: 0.8.2
+Date: 2015-10-22
 Authors@R:c(
 	person(given="Johannes",family="Helmuth", email="helmuth@molgen.mpg.de", role=c("aut", "cre")))
 Author: Johannes Helmuth [aut, cre]
