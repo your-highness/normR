@@ -238,7 +238,7 @@ Rcpp::List mapToUniquePairs(const Rcpp::IntegerVector& r, const Rcpp::IntegerVec
 			Rcpp::Named("values")=values,
 			Rcpp::Named("amount")=Rcpp::IntegerVector(amount.begin(), amount.end()),
 			Rcpp::Named("map")=Rcpp::IntegerVector(map.begin(), map.end())+1
-			);
+ 			);
 }
 //[[Rcpp::export]]
 Rcpp::NumericVector mapToOriginal(const Rcpp::NumericVector& vec, const Rcpp::IntegerVector& map) {
@@ -247,6 +247,138 @@ Rcpp::NumericVector mapToOriginal(const Rcpp::NumericVector& vec, const Rcpp::In
 		out[i] = vec[map[i]-1];
 	}
 	return out;
+}
+
+/*
+ * diffr_core() AND em_core() HELPERS
+ */
+static inline void calculatePost(Rcpp::NumericMatrix& lnPost, Rcpp::NumericVector& lnZ, const Rcpp::NumericVector& r, const Rcpp::NumericVector& s, const Rcpp::NumericVector& lnprior, const Rcpp::NumericVector& lntheta, const Rcpp::NumericVector& lnftheta, const int nthreads=1) {
+		int models = lnprior.length();
+		for (int k = 0; k < models; ++k) { 
+			lnPost(Rcpp::_,k) = r * lnftheta[k] + s * lntheta[k] + lnprior[k];
+		}
+		lnZ = logRowSum(lnPost, nthreads);
+		for (int k = 0; k < models; ++k) {
+			lnPost(Rcpp::_,k) = lnPost(Rcpp::_, k) - lnZ;
+		}
+}
+
+/*
+ * diffr_core() EXPECTATION MAXIMIZATION
+ */
+Rcpp::List em_core(const Rcpp::List m2u_sub, const int models=2, const double eps=.0001, const bool verbose=false, const int nthreads=1) {
+	/* 
+	 * Get values from mapToUniquePairs structure
+	 */
+	Rcpp::IntegerVector ur_sub = Rcpp::as<Rcpp::IntegerMatrix>(m2u_sub["values"]).row(0);
+	Rcpp::IntegerVector us_sub = Rcpp::as<Rcpp::IntegerMatrix>(m2u_sub["values"]).row(1);
+	Rcpp::IntegerVector uamount_sub = Rcpp::as<Rcpp::IntegerVector>(m2u_sub["amount"]); 
+	Rcpp::IntegerVector map_sub = Rcpp::as<Rcpp::IntegerVector>(m2u_sub["map"]); 
+
+	/*
+	 * Initialization of Mixture Parameters
+	 */
+	Rcpp::NumericVector lnprior(models), lntheta(models), lnftheta(models);
+	if (verbose) {
+		Rcpp::Rcout << "\t... initiatilizing prior and theta" << std::endl;
+	}
+	lnprior = Rcpp::runif(models, 0, 1);
+	lnprior = log(lnprior / sum(lnprior));
+	//Casting necessary otherwise integer division is performed
+	double qstar = ((double) sum(us_sub * uamount_sub)) / ((double) sum(ur_sub * uamount_sub + us_sub * uamount_sub));
+	lntheta = log(Rcpp::rep(qstar, models) + Rcpp::runif(models, 0, .01));
+	lnftheta = log(1 - exp(lntheta));
+	if (verbose) {
+		Rcpp::Rcout << "\t... q* = " << qstar << std::endl;
+	}
+
+	if (verbose) {
+		Rcpp::Rcout << "\t... starting Expectation Maximization" << std::endl;
+	}
+	int runs = 0, lsub = ur_sub.size();
+
+	Rcpp::NumericVector lnL(1, -DBL_MAX), lnZ(lsub);
+
+	/*
+	 * Variables only locally allocated
+	 */
+	bool notConverged = true;
+	double lnPostSum = 0;
+	Rcpp::NumericMatrix lnPost(lsub, models);
+	Rcpp::NumericVector lnPost_us_sub_log(lsub), lnPost_un_sub_log(lsub);
+	//for correct computation I need to convert IntegerVector to NumericVector
+	Rcpp::NumericVector ur_sub_numeric(ur_sub); 
+	Rcpp::NumericVector us_sub_numeric(us_sub); 
+	Rcpp::NumericVector uamount_sub_numeric(uamount_sub); 
+	//Compute log counts, s.t. we don't have to do it again all the time
+	Rcpp::NumericVector ur_sub_log = log(ur_sub_numeric);
+	Rcpp::NumericVector us_sub_log = log(us_sub_numeric);
+	Rcpp::NumericVector un_sub_log = log(ur_sub_numeric + us_sub_numeric);
+	Rcpp::NumericVector uamount_sub_log = log(uamount_sub_numeric);
+
+	while ((runs < 25) | notConverged) { // run at least 50 times for burn in
+		/*
+		 * Expectation. Works only on unique values and uses indexes of logRowSum result to restore original matrix
+		 */
+		calculatePost(lnPost, lnZ, ur_sub_numeric, us_sub_numeric, lnprior, lntheta, lnftheta, nthreads);
+
+		/*
+		 * Maximization (done on map reduced data)
+		 */
+		for (int k = 0; k < models; ++k) {
+			//add quantities of each i from mapping (to get overall model posterior)
+			lnPost(Rcpp::_,k) = lnPost(Rcpp::_, k) + uamount_sub_log;
+		}
+		//Calculation of likelihood and model parameters needs amount information from mapping
+		lnPostSum = logSumVector(lnPost, nthreads);
+		for (int k = 0; k < models; ++k) {
+			lnPost_us_sub_log = lnPost(Rcpp::_, k) + us_sub_log;
+			lnPost_un_sub_log = lnPost(Rcpp::_, k) + un_sub_log;
+			lntheta[k] = logSumVector(lnPost_us_sub_log, nthreads) - logSumVector(lnPost_un_sub_log, nthreads);
+			lnftheta[k] = log(1 - exp(lntheta[k]));
+			lnprior[k] = logSumVector(lnPost(Rcpp::_, k), nthreads) - lnPostSum;
+		}
+
+		/*
+		 * Convergence
+		 */
+		lnZ = lnZ * uamount_sub_numeric;
+		double lnLNew = sum(lnZ); //multiply by amount of unique
+		if (runs > 25 && lnLNew - lnL[lnL.size() - 1] < eps) {
+			notConverged = false;
+		}
+		lnL.push_back(lnLNew);
+
+		/*
+		 * Logging
+		 */
+		runs++;
+		if (verbose && (!notConverged || (runs % 10) == 0)) {
+			Rcpp::Rcout << "Run " << runs << 
+				": lnL=" << lnLNew << 
+				", step=" << (lnLNew - lnL[ lnL.size() - 2]) << 
+				", prior=( ";
+			for (int k = 0; k < models; k++) { //loop over model components
+				Rcpp::Rcout << exp(lnprior[k]) << " ";
+			}
+			Rcpp::Rcout << ") theta=( ";
+			for (int k = 0; k < models; k++) { //loop over model components
+				Rcpp::Rcout << exp(lntheta[k]) << " ";
+			}
+			Rcpp::Rcout << ")" << std::endl;
+		}
+	}
+
+	if (verbose) {
+		Rcpp::Rcout << "\t... finished EM." << std::endl;
+	}
+
+	return Rcpp::List::create(
+			Rcpp::Named("qstar")=qstar,
+			Rcpp::Named("lnprior")=lnprior,
+			Rcpp::Named("lntheta")=lntheta,
+			Rcpp::Named("lnL")=lnL
+ 			);
 }
 
 /*
@@ -273,7 +405,7 @@ Rcpp::NumericVector mapToOriginal(const Rcpp::NumericVector& vec, const Rcpp::In
 //'        \item{lnL}{log likelihood trace}
 //' @export
 //[[Rcpp::export]]
-Rcpp::List em(Rcpp::IntegerVector& r, Rcpp::IntegerVector& s, int models=2, double eps=.0001, bool verbose=false, int nthreads=1) {
+Rcpp::List diffr_core(const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s, const int models=2, const double eps=.0001, const bool verbose=false, const int nthreads=1) {
 	if (verbose) {
 		Rcpp::Rcout << "Starting diffR mixture deconvolution" << std::endl;
 	}
@@ -283,6 +415,8 @@ Rcpp::List em(Rcpp::IntegerVector& r, Rcpp::IntegerVector& s, int models=2, doub
 	}
 
 	/*
+	 * Expectation Maximization on subsetdata
+	 *
 	 * Subset data for excluding zero regions. 
 	 * Uses Rcpp sugar. Therefore ursub and ssub have to be NumericVectors. 
 	 * Recreating a new map for subset is much faster than reorganizing the old one.
@@ -292,116 +426,11 @@ Rcpp::List em(Rcpp::IntegerVector& r, Rcpp::IntegerVector& s, int models=2, doub
 		Rcpp::Rcout << "\t... removing (r == 0) or (s == 0) regions [" << logical2Count(idx) << " of " << r.length() << " regions kept]." << std::endl;
 	}
 	Rcpp::List m2u_sub = mapToUniquePairs(r[idx], s[idx]);
-	Rcpp::IntegerVector ur_sub = Rcpp::as<Rcpp::IntegerMatrix>(m2u_sub["values"]).row(0);
-	Rcpp::IntegerVector us_sub = Rcpp::as<Rcpp::IntegerMatrix>(m2u_sub["values"]).row(1);
-	Rcpp::IntegerVector uamount_sub = Rcpp::as<Rcpp::IntegerVector>(m2u_sub["amount"]); 
-	Rcpp::IntegerVector map_sub = Rcpp::as<Rcpp::IntegerVector>(m2u_sub["map"]); 
-
-	/*
-	 * Initialization of Mixture Parameters
-	 */
-	Rcpp::NumericVector lnprior(models), lntheta(models), lnftheta(models);
-	if (verbose) {
-		Rcpp::Rcout << "\t... initiatilizing prior and theta" << std::endl;
-	}
-	lnprior = Rcpp::runif(models, 0, 1);
-	lnprior = log(lnprior / sum(lnprior));
-	//Casting necessary otherwise integer division is performed
-	double qstar = ((double) sum(us_sub * uamount_sub)) / ((double) sum(ur_sub * uamount_sub + us_sub * uamount_sub));
-	lntheta = log(Rcpp::rep(qstar, models) + Rcpp::runif(models, 0, .01));
-	lnftheta = log(1 - exp(lntheta));
-	if (verbose) {
-		Rcpp::Rcout << "\t... q* = " << qstar << std::endl;
-	}
-
-	/*
-	 * Expectation Maximization Algorithm 
-	 */
-	if (verbose) {
-		Rcpp::Rcout << "\t... starting Expectation Maximization" << std::endl;
-	}
-	int runs = 0, lsub = ur_sub.size();
-	 //we use that memory later again
-	Rcpp::NumericVector lnL(1, -DBL_MAX), lnZ(lsub);
-	{
-		/*
-		 * Variables only locally allocated
-		 */
-		bool notConverged = true;
-		double lnPostSum = 0;
-		Rcpp::NumericMatrix lnPost(lsub, models);
-		Rcpp::NumericVector lnPost_us_sub_log(lsub), lnPost_un_sub_log(lsub);
-		//for correct computation I need to convert IntegerVector to NumericVector
-		Rcpp::NumericVector ur_sub_numeric(ur_sub); 
-		Rcpp::NumericVector us_sub_numeric(us_sub); 
-		Rcpp::NumericVector uamount_sub_numeric(uamount_sub); 
-		//Compute log counts, s.t. we don't have to do it again all the time
-		Rcpp::NumericVector ur_sub_log = log(ur_sub_numeric);
-		Rcpp::NumericVector us_sub_log = log(us_sub_numeric);
-		Rcpp::NumericVector un_sub_log = log(ur_sub_numeric + us_sub_numeric);
-		Rcpp::NumericVector uamount_sub_log = log(uamount_sub_numeric);
-
-		while ((runs < 25) | notConverged) { // run at least 50 times for burn in
-			/*
-			 * Expectation. Works only on unique values and uses indexes of logRowSum result to restore original matrix
-			 */
-			for (int k = 0; k < models; ++k) { 
-				lnPost(Rcpp::_,k) = ur_sub_numeric * lnftheta[k] + us_sub_numeric * lntheta[k] + lnprior[k];
-			}
-			lnZ = logRowSum(lnPost, nthreads);
-
-			/*
-			 * Maximization
-			 */
-			for (int k = 0; k < models; ++k) {
-				lnPost(Rcpp::_,k) = lnPost(Rcpp::_, k) - lnZ;
-				//add quantities of each i from mapping (to get overall model posterior)
-				lnPost(Rcpp::_,k) = lnPost(Rcpp::_, k) + uamount_sub_log;
-			}
-			//Calculation of likelihood and model parameters needs amount information from mapping
-			lnPostSum = logSumVector(lnPost, nthreads);
-
-			for (int k = 0; k < models; ++k) {
-				lnPost_us_sub_log = lnPost(Rcpp::_, k) + us_sub_log;
-				lnPost_un_sub_log = lnPost(Rcpp::_, k) + un_sub_log;
-				lntheta[k] = logSumVector(lnPost_us_sub_log, nthreads) - logSumVector(lnPost_un_sub_log, nthreads);
-				lnftheta[k] = log(1 - exp(lntheta[k]));
-				lnprior[k] = logSumVector(lnPost(Rcpp::_, k), nthreads) - lnPostSum;
-			}
-
-			/*
-			 * Convergence
-			 */
-			lnZ = lnZ * uamount_sub_numeric;
-			double lnLNew = sum(lnZ); //multiply by amount of unique
-			if (runs > 25 && lnLNew - lnL[lnL.size() - 1] < eps) {
-				notConverged = false;
-			}
-			lnL.push_back(lnLNew);
-
-			/*
-			 * Logging
-			 */
-			runs++;
-			if (verbose && (!notConverged || (runs % 10) == 0)) {
-				Rcpp::Rcout << "Run " << runs << 
-					": lnL=" << lnLNew << 
-					", step=" << (lnLNew - lnL[ lnL.size() - 2]) << 
-					", prior=( ";
-				for (int k = 0; k < models; k++) { //loop over model components
-					Rcpp::Rcout << exp(lnprior[k]) << " ";
-				}
-				Rcpp::Rcout << ") theta=( ";
-				for (int k = 0; k < models; k++) { //loop over model components
-					Rcpp::Rcout << exp(lntheta[k]) << " ";
-				}
-				Rcpp::Rcout << ")" << std::endl;
-			}
-		}
-	}
-	if (verbose) {
-		Rcpp::Rcout << "\t... finished EM." << std::endl;
-	}
+	Rcpp::List fit = em_core(m2u_sub, models, eps, verbose, nthreads);
+	Rcpp::NumericVector qstar = Rcpp::as<Rcpp::NumericVector>(fit["qstar"]);
+	Rcpp::NumericVector lnprior = Rcpp::as<Rcpp::NumericVector>(fit["lnprior"]);
+	Rcpp::NumericVector lntheta = Rcpp::as<Rcpp::NumericVector>(fit["lntheta"]);
+	Rcpp::NumericVector lnL = Rcpp::as<Rcpp::NumericVector>(fit["lnL"]);
 
 	/*
 	 * Map2UniquePairs. This is the data to do computation on and reference computed values by m2u$map.
@@ -414,22 +443,17 @@ Rcpp::List em(Rcpp::IntegerVector& r, Rcpp::IntegerVector& s, int models=2, doub
 	/*
 	 * Compute whole posterior matrix
 	 */ 
-		Rcpp::NumericMatrix lnPost(ur.length(), models);
 	if (verbose) {
 		Rcpp::Rcout << "\t... computing Posterior for all bins." << std::endl;
 	}
-	for (int k = 0; k < models; ++k) { //loop over model components
-		lnPost(Rcpp::_,k) = ur * lnftheta[k] + us * lntheta[k] + lnprior[k];
-	}
-	lnZ = logRowSum(lnPost, nthreads);
-	for (int k = 0; k < models; k++) { //loop over model components
-		lnPost(Rcpp::_,k) = lnPost(Rcpp::_,k) - lnZ; //Rcpp sugar 
-	}
+	Rcpp::NumericMatrix lnPost(ur.length(), models);
+	Rcpp::NumericVector lnZ(ur.length());
+	Rcpp::NumericVector lnftheta = log(1 - exp(lntheta));
+	calculatePost(lnPost, lnZ, ur, us, lnprior, lntheta, lnftheta, nthreads);
 
 	/*
 	 * Sort theta by value and also corresponding prior and posteriors.
 	 */
-	//sort theta, prior and posterior matrix in same order
 	std::vector<unsigned int> o = indexSort(Rcpp::as<std::vector<double> >(lntheta));
 	Rcpp::NumericMatrix post(r.length(), models);
 	Rcpp::NumericVector prior(models), theta(models);
@@ -440,29 +464,6 @@ Rcpp::List em(Rcpp::IntegerVector& r, Rcpp::IntegerVector& s, int models=2, doub
 		theta[k] = exp(lntheta(o[k]));
 	}
 
-
-	/*
-	 * Foldchange Calculation
-	 */
-	/* skipped for now -> better give normalized enrichment with pseudocount technique
-	if ( verbose ) {
-		Rcout << "\t... computing Foldchange" << std::endl;
-	}
-	std::vector< unsigned int > o = indexSort( as<std::vector<double> >( lntheta ) );
-	NumericMatrix fc( r.length(), models-1 );
-
-	for (int k = 1; k < models; ++k) {
-
-		//foldchange for k against all other components
-		if (models == 2) {
-			fc(_,0) = lnPost2(_, o[1] ) - lnPost2(_, o[0]);
-		} else {
-			fc(_,k-1) = lnPost2(_, o[ k ] ) - logSum( subMatrix( lnPost2, k ) );
-		}
-	}
-	*/
-	
-
 	/*
 	 * Return result
 	 */
@@ -470,11 +471,11 @@ Rcpp::List em(Rcpp::IntegerVector& r, Rcpp::IntegerVector& s, int models=2, doub
 		Rcpp::Rcout << "Finished Expectation maximization em()." << std::endl;
 	}
 	return Rcpp::List::create(
-				Rcpp::_("qstar")=qstar,
-				Rcpp::_("theta")=theta,
-				Rcpp::_("prior")=prior,
-				Rcpp::_("posterior")=post,
-				Rcpp::_("lnL")=lnL
+				Rcpp::Named("qstar")=qstar,
+				Rcpp::Named("theta")=theta,
+				Rcpp::Named("prior")=prior,
+				Rcpp::Named("posterior")=post,
+				Rcpp::Named("lnL")=lnL
 	);
 }
 
@@ -497,55 +498,3 @@ double binomialCoeff(double n, double k) {
     return res;
 }
 */
-
-/* 
- * UNUSED
- *
-//THIS METHOD IS SLOW AS FUCK. SIMPLY CREATE A NEW MAP WITH SUBSETTED R AND S
-//' Subset a map based on a Rcpp::LogicalVector.
-//'
-//' @param m2u \code{list} containing a map generated with \code{mapToUniquePairs}
-//' @param idx \code{integer vector} specifying which \code{m2u$values} to subset. Should be sorted.
-//' @return a list with the following items:
-//'        \item{values}{m2u$values[idx]}
-//'        \item{map}{an updated map for m2u$values[idx]}
-//' @export
-//[[Rcpp::export]]
-Rcpp::List subMapIndex(const Rcpp::List& m2u, const Rcpp::IntegerVector& idx) {
-	if (idx.length() == 0 || m2u.length() == 0)
-		return NULL;
-
-	//sort indexes
-	//std::sort(idx.begin(), idx.end());
-
-	//create new values
-	Rcpp::IntegerMatrix values_old = Rcpp::as<Rcpp::IntegerMatrix>(m2u["values"]);
-	Rcpp::IntegerMatrix values_new(2,idx.length());
-	for (int i = 0; i < idx.length(); ++i) {
-		values_new(Rcpp::_,i) = values_old(Rcpp::_,idx[i]);
-	}
-
-	//create new map
-	Rcpp::IntegerVector map_old = Rcpp::as<Rcpp::IntegerVector>(m2u["map"]);
-	std::vector<int> map_new(map_old.length());//allocate enough space
-	for (int pos = 0; pos < map_old.length(); ++pos) {
-		for (int i = 0; i < idx.length(); ++i) {
-			if (map_old[pos] == idx[i]) {
-				map_new.push_back(i);
-				break;
-			}
-		}
-	}
-	map_new.shrink_to_fit();//shrink allocation to content
-
-	return Rcpp::List::create(
-			Rcpp::Named("values")=values_new,
-			Rcpp::Named("map")=Rcpp::IntegerVector(map_new.begin(), map_new.end())
- 			);
-}
-//[[Rcpp::export]]
-Rcpp::List subMapLogical(const Rcpp::List& m2u, const Rcpp::LogicalVector& idx) {
-	return subMapIndex(m2u, logical2Int(idx));
-}
-*/
-

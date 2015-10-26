@@ -55,7 +55,7 @@ mapToOriginal <- function(vec, map) {
 #'        \item{posterior}{Posteriormatrix over all bins for \code{models} binomial distributiions}
 #'        \item{lnL}{log likelihood trace}
 #' @export
-em <- function(r, s, models = 2L, eps = .0001, verbose = FALSE, nthreads = 1L) {
-    .Call('diffr_em', PACKAGE = 'diffr', r, s, models, eps, verbose, nthreads)
+diffr_core <- function(r, s, models = 2L, eps = .0001, verbose = FALSE, nthreads = 1L) {
+    .Call('diffr_diffr_core', PACKAGE = 'diffr', r, s, models, eps, verbose, nthreads)
 }
 

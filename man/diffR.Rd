@@ -4,8 +4,8 @@
 \alias{diffR}
 \title{Normalize a NGS experiment with given background data.}
 \usage{
-diffR(treatment, control, genome, bin.size = 300, models = 2, eps = 0.001,
-  p.values = T, procs = 1, mapqual = 20, shift = 0,
+diffR(treatment, control, genome = NULL, bin.size = 300, models = 2,
+  eps = 0.001, p.values = T, procs = 1, mapqual = 20, shift = 0,
   paired.end = "ignore", verbose = T)
 }
 \arguments{
@@ -19,9 +19,14 @@ consistent with control.}
 \code{control}.bai index file should exist in the same folder. Should be
 consistent with treatment.}
 
-\item{genome}{A \link{data.frame} consisting of two columns. First column
-gives sequence names. Second column gives chromosome lengths. This
-information can be retrieved via the UCSC chromSizes table.}
+\item{genome}{Either \code{NULL}, an USCS genome identifier for
+\link{GenomeInfoDb::fetchExtendedChromInfoFromUCSC} (only assembled
+molecules, circular omitted) or a \link{data.frame} consisting of two
+columns(1st column=chromosome names, 2nd column=lengths). Chromosome names
+given should be present in the bam file header. If \code{NULL}, chromosome
+names will be read from treatment bamheader. Please be aware that bamheader
+might contain irregular contigs and chrM which influence the diffR fit.
+(DEFAUlT=NULL).}
 
 \item{bin.size}{Width of genomic bins in bp.}
 
@@ -54,7 +59,7 @@ as a single read.}
 }
 \value{
 a \link{list} with the following elements:
-	\item{posterior}{a matrix containing posteriors for model components.}
+ \item{posterior}{a matrix containing posteriors for model components.}
  \item{fit}{
    Result of the multinomial fit. \code{qstar} is naive estimate of
    background intensity. \code{theta} gives binomial mixture model

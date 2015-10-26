@@ -9,7 +9,7 @@ SEXP diffr_logRowSum(SEXP matSEXP, SEXP nthreadsSEXP);
 SEXP diffr_logSumVector(SEXP vecSEXP, SEXP nthreadsSEXP);
 SEXP diffr_mapToUniquePairs(SEXP rSEXP, SEXP sSEXP);
 SEXP diffr_mapToOriginal(SEXP vecSEXP, SEXP mapSEXP);
-SEXP diffr_em(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP);
+SEXP diffr_diffr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP);
 
 R_CallMethodDef callMethods[]  = {
   {"Cdiffr_logical2Int", (DL_FUNC) &diffr_logical2Int, 1},
@@ -18,7 +18,7 @@ R_CallMethodDef callMethods[]  = {
   {"Cdiffr_logSumVector", (DL_FUNC) &diffr_logSumVector, 2},
   {"Cdiffr_mapToUniquePairs", (DL_FUNC) &diffr_mapToUniquePairs, 2},
   {"Cdiffr_mapToOriginal", (DL_FUNC) &diffr_mapToOriginal, 2},
-  {"Cdiffr_em", (DL_FUNC) &diffr_em, 6},
+  {"Cdiffr_diffr_core", (DL_FUNC) &diffr_diffr_core, 6},
   {NULL, NULL, 0}
 };
 

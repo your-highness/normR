@@ -76,19 +76,19 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// em
-Rcpp::List em(Rcpp::IntegerVector& r, Rcpp::IntegerVector& s, int models, double eps, bool verbose, int nthreads);
-RcppExport SEXP diffr_em(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
+// diffr_core
+Rcpp::List diffr_core(const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s, const int models, const double eps, const bool verbose, const int nthreads);
+RcppExport SEXP diffr_diffr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type r(rSEXP);
-    Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type s(sSEXP);
-    Rcpp::traits::input_parameter< int >::type models(modelsSEXP);
-    Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
-    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
-    __result = Rcpp::wrap(em(r, s, models, eps, verbose, nthreads));
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const int >::type models(modelsSEXP);
+    Rcpp::traits::input_parameter< const double >::type eps(epsSEXP);
+    Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
+    __result = Rcpp::wrap(diffr_core(r, s, models, eps, verbose, nthreads));
     return __result;
 END_RCPP
 }
