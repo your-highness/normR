@@ -160,7 +160,7 @@ diffR <- function(treatment,
 
 	# fit multinomial model
 	result <- list("ranges"=gr, "control"=counts[[2]], "treatment"=counts[[1]])
-	result <- c(result, em(counts[[2]], counts[[1]], models, eps, verbose, procs))
+	result <- c(result, diffr_core(counts[[2]], counts[[1]], models, eps, verbose, procs))
 
 	# P-values
 	#if (p.values) {
