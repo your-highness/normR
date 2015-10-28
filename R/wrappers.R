@@ -133,7 +133,8 @@ diffR <- function(treatment,
 		counts[[2]] = control
 	}
 
-	# count in GRanges with bamsignals::count if necessary
+	# count in GRanges with bamsignals::bamCount if necessary
+	counting <- list()
 	if (is.null(counts)) {
 		if (!class(genome) %in% c("data.frame", "matrix")) { #no chrom lengths given
 			if (is.null(genome)) { #read from bamheader
@@ -145,6 +146,7 @@ diffR <- function(treatment,
 			}
 		}
 		gr <- bin.genome(genome, bin.size)
+		counting[["ranges"]] <- gr
 		counts <- processByChromosome(bam.files=c(treatment, control), 
 		                              gr=gr, 
 		                              procs=procs, 
@@ -153,14 +155,17 @@ diffR <- function(treatment,
 		                              shift=shift,
 		                              paired.end=paired.end,
 		                              verbose=verbose)
+		counting[["control"]] <-  counts[[2]]
+		counting[["treatment"]] <- counts[[1]]
 	}
 
 	if (length(counts[[1]]) != length(counts[[2]])) 
 		stop("Incompatible lengths of treatment and control. Please provide compatible numeric arrays.\n")
 
-	# fit multinomial model
-	result <- list("ranges"=gr, "control"=counts[[2]], "treatment"=counts[[1]])
-	result <- c(result, diffr_core(counts[[2]], counts[[1]], models, eps, verbose, procs))
+	###
+	# Fit binomial mixture model
+	###
+	result <- c(diffr_core(counts[[2]], counts[[1]], models, eps, verbose, procs), counting)
 
 	# P-values
 	#if (p.values) {
