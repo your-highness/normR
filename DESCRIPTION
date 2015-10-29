@@ -27,7 +27,7 @@ Imports:
 	IRanges, 
 	Rcpp (>= 0.10.6), 
 	Rsamtools,
-	bamsignals (>= 1.2.0), 
+	bamsignals (>= 1.1.0), 
 	parallel
 LinkingTo: Rcpp
 biocViews: DifferentialPeakCalling, Classification, ChIPSeq, MultipleComparison, Normalization
