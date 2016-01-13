@@ -18,6 +18,27 @@
 #include <algorithm>
 #include <Rcpp.h>
 
+#ifndef MY_OMP_H_
+#define MY_OMP_H_
+
+#ifdef _OPENMP
+#include <omp.h>
+#if _OPENMP >= 201307
+#define OMP_VER_4
+#endif
+#endif
+
+// Insert SIMD pragma if supported
+#ifdef OMP_VER_4
+#define SAFE_SIMD _Pragma("omp simd")
+#define SAFE_FOR_SIMD _Pragma("omp for simd")
+#else
+#define SAFE_SIMD 
+#define SAFE_FOR_SIMD
+#endif
+
+#endif
+
 /*
  * USE C++ TYPE FOR ACCESSING R DATA
  */
@@ -35,10 +56,14 @@ std::vector<double> asVector(const Rcpp::NumericVector& x) {
 //[[Rcpp::export]]
 Rcpp::IntegerVector logical2Int(const Rcpp::LogicalVector& idx) {
 	std::vector<int> index(idx.length());//allocate enough space
+	int counter = 0;
 	for (int i = 0; i < idx.length(); ++i) {
-		if (idx[i])
-			index.push_back(idx[i]);
+		if (idx[i]) {
+			index[counter] = idx[i];
+			counter++;
+		}
 	}
+	index.resize(counter+1);
 	index.shrink_to_fit();//shrink vector to content (C++11)
 	return Rcpp::IntegerVector(index.begin(), index.end());
 }
@@ -59,6 +84,17 @@ int logical2Count(const Rcpp::LogicalVector& vec, int nthreads=1) {
 /*
  * MATRIX OPERATIONS
  */
+//returns a Rcpp::NumericMatrix with col columns removed
+Rcpp::NumericMatrix subMatrix(const Rcpp::NumericMatrix& mat, int col) {
+	Rcpp::NumericMatrix matslice (mat.nrow(), mat.ncol()-1);
+	for (int i=0, j=0; i < mat.ncol()-1; i++) {
+		if ( i != col ) {
+			matslice(Rcpp::_,j) = mat(Rcpp::_, i);
+			++j;
+		}
+	}
+	return(matslice);
+}
 //computes logSum for a Rcpp::NumericMatrix
 //[[Rcpp::export]]
 Rcpp::NumericVector logRowSum(const Rcpp::NumericMatrix& mat, int nthreads=1){
@@ -82,11 +118,35 @@ Rcpp::NumericVector logRowSum(const Rcpp::NumericMatrix& mat, int nthreads=1){
 	}
 	return rowSum;
 }
+//Computes maximum value of a Rcpp::NumericVector. Use only for long vectors or a matrix
+double max_parallel(const Rcpp::NumericVector& vec, int nthreads=1) {
+	const int len = vec.size();
+	double max = -DBL_MAX;
+	#pragma omp parallel num_threads(nthreads)
+	{
+		int priv_max;
+		#pragma omp for schedule(static) nowait
+		for (int i = 0; i < len; ++i) {
+			if (vec(i) > priv_max) {
+				max = vec(i);
+			}
+		}
+		#pragma omp flush(max)
+		if (priv_max > max) { //check before entering critical (save time)
+		#pragma omp critical
+			{
+				if (priv_max > max) max = priv_max;
+			}
+		}
+	}
+	return max;
+}
 //computes logSum for Rcpp::NumericVector
 //implements Kahan summation algorithm
 //[[Rcpp::export]]
 double logSumVector(const Rcpp::NumericVector& vec, int nthreads=1) {
 	const int len = vec.size();
+	//better to use unparallized here
 	double max = -DBL_MAX;
 	for (int i = 0; i < len; ++i) {
 		if (vec(i) > max) {
@@ -110,16 +170,24 @@ double logSumVector(const Rcpp::NumericVector& vec, int nthreads=1) {
 	}
 	return max + log(sum-comp);
 }
-//returns a Rcpp::NumericMatrix with col columns removed
-Rcpp::NumericMatrix subMatrix(const Rcpp::NumericMatrix& mat, int col) {
-	Rcpp::NumericMatrix matslice (mat.nrow(), mat.ncol()-1);
-	for (int i=0, j=0; i < mat.ncol()-1; i++) {
-		if ( i != col ) {
-			matslice(Rcpp::_,j) = mat(Rcpp::_, i);
-			++j;
-		}
+//[[Rcpp::export]]
+double sumVector(const Rcpp::NumericVector& vec, int nthreads=1) {
+	const int len = vec.size(); 
+
+	/*
+	 * Implementation of Kahan summation algorithm
+	 *
+	 * The precison is not full but close. Otherwise use http://code.activestate.com/recipes/393090/
+	 */
+	double sum = 0.0, comp = 0.0;
+	#pragma omp parallel for reduction(+:sum,comp) num_threads(nthreads)
+	for (int i = 0; i < len; ++i) {
+		double y = vec(i) - comp;  
+		double t = sum + y;
+		comp = (t-sum) - y;
+		sum = t;
 	}
-	return(matslice);
+	return sum;
 }
 
 
@@ -146,7 +214,6 @@ std::vector<unsigned int> indexSort(std::vector<double> data) {
 /*
  * MAP2UNIQUEPAIRS ROUTINES
  */
-//TODO use pointers to original R workspace data here
 struct Pair {
 	int r;
 	int s;
@@ -253,7 +320,7 @@ Rcpp::NumericVector mapToOriginal(const Rcpp::NumericVector& vec, const Rcpp::In
  * diffr_core() AND em_core() HELPERS
  */
 static inline void calculatePost(Rcpp::NumericMatrix& lnPost, Rcpp::NumericVector& lnZ, const Rcpp::NumericVector& r, const Rcpp::NumericVector& s, const Rcpp::NumericVector& lnprior, const Rcpp::NumericVector& lntheta, const Rcpp::NumericVector& lnftheta, const int nthreads=1) {
-		int models = lnprior.length();
+	 	int models = lnprior.length();
 		for (int k = 0; k < models; ++k) { 
 			lnPost(Rcpp::_,k) = r * lnftheta[k] + s * lntheta[k] + lnprior[k];
 		}
@@ -262,11 +329,38 @@ static inline void calculatePost(Rcpp::NumericMatrix& lnPost, Rcpp::NumericVecto
 			lnPost(Rcpp::_,k) = lnPost(Rcpp::_, k) - lnZ;
 		}
 }
+//' Get normalized enrichment from a diffR fit
+//'
+//' @param posteriors posterior matrix as computed by diffR
+//' @param r vector of counts in control
+//' @param s vector of counts in treatment
+//' @param k column index of background component in posteriors (DEFAULT=1)
+//' @return a numeric with enrichment values in log space
+//' @export
+//[[Rcpp::export]]
+Rcpp::NumericVector getEnrichment(const Rcpp::NumericMatrix& posteriors, const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s, const int k=1) {
+	Rcpp::NumericVector p = posteriors(Rcpp::_,k);
+	double p_sum = sum(p);
+
+	//TODO continue here with enrichment computation
+//	double pseu_ctrl = sum(p * 
+//	
+//
+//pseu_ctrl <- sum(p * count_ctrl) / sum(p)
+//pseu_treat <- sum(p * count_treat) / sum(p) 
+//log( (count_treat + pseu_treat) / (count_ctrl + pseu_ctrl) ) / log(pseu_ctrl / pseu_treat) 
+
+	return p;
+}
+//
+//Rcpp::NumericVector getEnrichmentWithMap(const Rcpp::NumericMatrix& posteriors, const Rcpp::List& m2u, const int k=1) {
+//	//TODO continue here with enrichment computation
+//}
 
 /*
  * diffr_core() EXPECTATION MAXIMIZATION
  */
-Rcpp::List em_core(const Rcpp::List m2u_sub, const int models=2, const double eps=.0001, const bool verbose=false, const int nthreads=1) {
+Rcpp::List em_core(const Rcpp::List& m2u_sub, const int models=2, const double eps=.0001, const bool verbose=false, const int nthreads=1) {
 	/* 
 	 * Get values from mapToUniquePairs structure
 	 */
@@ -464,6 +558,34 @@ Rcpp::List diffr_core(const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s
 		theta[k] = exp(lntheta(o[k]));
 	}
 
+
+	/*
+	 * Enrichment calculation
+	 */
+	//TODO
+	/* skipped for now -> better give normalized enrichment with pseudocount technique
+	if ( verbose ) {
+		Rcout << "\t... computing Foldchange" << std::endl;
+	}
+	std::vector< unsigned int > o = indexSort( as<std::vector<double> >( lntheta ) );
+	NumericMatrix fc( r.length(), models-1 );
+
+	for (int k = 1; k < models; ++k) {
+
+		//foldchange for k against all other components
+		if (models == 2) {
+			fc(_,0) = lnPost2(_, o[1] ) - lnPost2(_, o[0]);
+		} else {
+			fc(_,k-1) = lnPost2(_, o[ k ] ) - logSum( subMatrix( lnPost2, k ) );
+		}
+	}
+	*/
+
+	/*
+	 * P value calculation
+	 */
+	//TODO
+	
 	/*
 	 * Return result
 	 */
@@ -498,3 +620,4 @@ double binomialCoeff(double n, double k) {
     return res;
 }
 */
+

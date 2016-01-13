@@ -52,6 +52,18 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// sumVector
+double sumVector(const Rcpp::NumericVector& vec, int nthreads);
+RcppExport SEXP diffr_sumVector(SEXP vecSEXP, SEXP nthreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type vec(vecSEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    __result = Rcpp::wrap(sumVector(vec, nthreads));
+    return __result;
+END_RCPP
+}
 // mapToUniquePairs
 Rcpp::List mapToUniquePairs(const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s);
 RcppExport SEXP diffr_mapToUniquePairs(SEXP rSEXP, SEXP sSEXP) {
@@ -73,6 +85,20 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type vec(vecSEXP);
     Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type map(mapSEXP);
     __result = Rcpp::wrap(mapToOriginal(vec, map));
+    return __result;
+END_RCPP
+}
+// getEnrichment
+Rcpp::NumericVector getEnrichment(const Rcpp::NumericMatrix& posteriors, const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s, const int k);
+RcppExport SEXP diffr_getEnrichment(SEXP posteriorsSEXP, SEXP rSEXP, SEXP sSEXP, SEXP kSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type posteriors(posteriorsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const int >::type k(kSEXP);
+    __result = Rcpp::wrap(getEnrichment(posteriors, r, s, k));
     return __result;
 END_RCPP
 }
