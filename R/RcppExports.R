@@ -17,6 +17,10 @@ logSumVector <- function(vec, nthreads = 1L) {
     .Call('diffr_logSumVector', PACKAGE = 'diffr', vec, nthreads)
 }
 
+sumVector <- function(vec, nthreads = 1L) {
+    .Call('diffr_sumVector', PACKAGE = 'diffr', vec, nthreads)
+}
+
 #' Group unique pairs from two vectors
 #'
 #' @param r first vector of integers. If elements are not integers, they will be
@@ -33,6 +37,18 @@ mapToUniquePairs <- function(r, s) {
 
 mapToOriginal <- function(vec, map) {
     .Call('diffr_mapToOriginal', PACKAGE = 'diffr', vec, map)
+}
+
+#' Get normalized enrichment from a diffR fit
+#'
+#' @param posteriors posterior matrix as computed by diffR
+#' @param r vector of counts in control
+#' @param s vector of counts in treatment
+#' @param k column index of background component in posteriors (DEFAULT=1)
+#' @return a numeric with enrichment values in log space
+#' @export
+getEnrichment <- function(posteriors, r, s, k = 1L) {
+    .Call('diffr_getEnrichment', PACKAGE = 'diffr', posteriors, r, s, k)
 }
 
 #' Deconvolute bivariate count data in multiple enrichment regimes. Bivariate

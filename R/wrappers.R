@@ -182,7 +182,7 @@ diffR <- function(treatment,
 	# some logging
 	if (verbose) {
 		cat(models , "-component multinomial mixture model for treatment with control:\n",
-		    "LogLik =", tail(result$lnL, 1), ", runs =", 10*length(result$lnL), "\n", 
+		    "LogLik =", tail(result$lnL, 1), ", runs =", length(result$lnL), "\n", 
 		    "\tq*=",   format( result$qstar, 2, 2), "\n",
 		    "\tq =",   format( result$theta, 2, 2), "\n",
 		    "\ttransitions =", format( result$prior, 2, 2), "\n")
@@ -208,7 +208,7 @@ diffR <- function(treatment,
 #' @export
 bin.genome <- function(genome, bin.size=300) {
 	lens <- as.numeric(genome[,2])
-	n <- floor(lens / bin.size)
+	n <- ceiling(lens / bin.size)
 	names(n) <- genome[,1]
 	bin.sizes <- rep(bin.size, dim(genome)[1])
 	names(bin.sizes) <- genome[,1]
