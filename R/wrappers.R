@@ -1,4 +1,4 @@
-# Copyright (C) 2015 Johannes Helmuth
+# Copyright (C) 2016 Johannes Helmuth
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,15 +13,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#' Normalization and difference calling for Next Generation Sequencing (NGS)
-#' experiments via joint multinomial modeling
+#' Normalization and difference calling in ChIP-seq data
 #'
-#' Functions for normalization and difference calling in NGS experiment setups.
+#' Robust normalization and difference calling procedures for ChIP-seq and
+#' alike data. Count vectors can be obtained from experiment bam files in two
+#' experiments. Counts are jointly modeled as a multinomial sampling trial.
 #' A binomial mixture model with a given number of components is fit and used 
 #' for identifying enriched or depleted regions in two given data tracks.
 #' Log-space multinomial model is fit by Expectation maximization in C++.
 #'
-#' @name diffr
+#' @name normr
+#' @aliases normR
+#' @aliases diffR
+#' @aliases enrichR
+#' @aliases PeakCalling
+#' @aliases DifferentialPeakCalling
+#' @aliases EnrichmentCalling
 #' @import GenomicRanges
 #' @import GenomeInfoDb
 #' @import IRanges
@@ -31,8 +38,10 @@
 #' @import bamsignals
 #' @docType package
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
-#' @useDynLib diffr, .registration=TRUE
+#' @seealso \code{\link{normr-methods}} for available functions
+#' @useDynLib normr, .registration=TRUE
 NULL
+
 #' Normalize a NGS experiment with given background data.
 #'
 #' This function implements the normalization of a treatment track with its 
@@ -90,183 +99,124 @@ NULL
 #'    gives lLn Likelihood trace.
 #'  }
 #'
-#' @examples
-#' \dontrun{
-#' #bam file input
-#' diffr("H3K4me3.bam", "Input.bam")
-#' #count vector input
-#' diffr(H3K4me3.counts, Input.counts)
-#' #Normalize a H3K4me3 experiment from bam input with 2 enrichment regimes
-#' diffr("H3K4me3.bam", "Input.bam", bin.size=150, models=3)
-#' #Difference Calling
-#' diffr("H3K4me3.bam", "H3K4me2.bam", bin.size=150, models=3)
-#' }
-#' 
+#' @example inst/examples/methods_example.R
+
 #' @export
-diffR <- function(treatment, 
-                  control,  
-                  genome=NULL, 
-                  bin.size=300, 
-                  models=2, 
-                  eps=.001,
-                  p.values=T,
-                  procs=1, 
-                  mapqual=20, 
-                  shift=0,
-                  paired.end="ignore",
-                  verbose=T) {
+setGeneric("diffR", 
+           function(condition1, condition2,...)
+           standardGeneric("diffR"))
+#' \code{diffR}: Does a difference call for two conditions. See details.
+#' @aliases differenceCall
+#' @rdname normr-methods
+setMethod("diffR", c("character", "character"),
+          function(condition1, 
+                   condition2,  
+                   genome=NULL, 
+                   bin.size=300, 
+                   models=2, 
+                   eps=.001,
+                   p.values=T,
+                   procs=1, 
+                   mapqual=20, 
+                   shift=0,
+                   paired.end="ignore",
+                   verbose=T) {
 
-	# Check if treatment and control give bampaths or counts
-	counts = NULL
-	bam.files = NULL
-	if (class(treatment) == "character") {
-		if(!file.exists(paste(treatment, ".bai", sep=""))) 
-			stop("No index file for", treatment, "found.\n")
-		bam.files = c(bam.files, treatment)
-	} else if (class(treatment) == "numeric" | class(treatment) == "integer") {
-		counts[[1]] = treatment
-	}
-	if (class(control) == "character") {
-		if(!file.exists(paste(control, ".bai", sep=""))) stop("No index file for", control, "found.\n")
-		bam.files = c(bam.files, control)
-	} else if (class(control) == "numeric" | class(control) == "integer") {
-		counts[[2]] = control
-	}
+            # Check if treatment and control give bampaths or counts
+            counts = NULL
+            bam.files = NULL
+            if (class(treatment) == "character") {
+              if(!file.exists(paste(treatment, ".bai", sep=""))) 
+                stop("No index file for", treatment, "found.\n")
+              bam.files = c(bam.files, treatment)
+            } else if (class(treatment) == "numeric" | class(treatment) == "integer") {
+              counts[[1]] = treatment
+            }
+            if (class(control) == "character") {
+              if(!file.exists(paste(control, ".bai", sep=""))) stop("No index file for", control, "found.\n")
+              bam.files = c(bam.files, control)
+            } else if (class(control) == "numeric" | class(control) == "integer") {
+              counts[[2]] = control
+            }
 
-	# count in GRanges with bamsignals::bamCount if necessary
-	counting <- list()
-	if (is.null(counts)) {
-		if (!class(genome) %in% c("data.frame", "matrix")) { #no chrom lengths given
-			if (is.null(genome)) { #read from bamheader
-				header <- Rsamtools::scanBamHeader(treatment)[[1]][[1]]
-				genome <- cbind(names(header), header)
-			} else { #read from UCSC
-				genome <- fetchExtendedChromInfoFromUCSC(genome)
-				genome <- genome[which(!genome$circular & genome$SequenceRole == "assembled-molecule"),1:2]
-			}
-		}
-		gr <- bin.genome(genome, bin.size)
-		counting[["ranges"]] <- gr
-		counts <- processByChromosome(bam.files=c(treatment, control), 
-		                              gr=gr, 
-		                              procs=procs, 
-		                              bamsignals.function=bamCount,
-		                              mapqual=mapqual,
-		                              shift=shift,
-		                              paired.end=paired.end,
-		                              verbose=verbose)
-		counting[["control"]] <-  counts[[2]]
-		counting[["treatment"]] <- counts[[1]]
-	}
+            # count in GRanges with bamsignals::bamCount if necessary
+            counting <- list()
+            if (is.null(counts)) {
+              if (!class(genome) %in% c("data.frame", "matrix")) { #no chrom lengths given
+                if (is.null(genome)) { #read from bamheader
+                  header <- Rsamtools::scanBamHeader(treatment)[[1]][[1]]
+                  genome <- cbind(names(header), header)
+                } else { #read from UCSC
+                  genome <- fetchExtendedChromInfoFromUCSC(genome)
+                  genome <- genome[which(!genome$circular & genome$SequenceRole == "assembled-molecule"),1:2]
+                }
+              }
+              gr <- bin.genome(genome, bin.size)
+              counting[["ranges"]] <- gr
+              counts <- processByChromosome(bam.files=c(treatment, control), 
+                                            gr=gr, 
+                                            procs=procs, 
+                                            bamsignals.function=bamCount,
+                                            mapqual=mapqual,
+                                            shift=shift,
+                                            paired.end=paired.end,
+                                            verbose=verbose)
+              counting[["control"]] <-  counts[[2]]
+              counting[["treatment"]] <- counts[[1]]
+            }
 
-	if (length(counts[[1]]) != length(counts[[2]])) 
-		stop("Incompatible lengths of treatment and control. Please provide compatible numeric arrays.\n")
+            if (length(counts[[1]]) != length(counts[[2]])) 
+              stop("Incompatible lengths of treatment and control. Please provide compatible numeric arrays.\n")
 
-	###
-	# Fit binomial mixture model
-	###
-	result <- c(diffr_core(counts[[2]], counts[[1]], models, eps, verbose, procs), counting)
+            ###
+            # Fit binomial mixture model
+            ###
+            result <- c(diffr_core(counts[[2]], counts[[1]], models, eps, verbose, procs), counting)
 
-	# P-values
-	#if (p.values) {
-	#  if (verbose) {
-	#    cat( "... computing P-values\n" )
-	#  }
-	#  result$log10.p     <- matrix(0, nrow=nrow(result$posterior), ncol=models)
-	#  result$log10.p[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
-	#  #result$log10.adjp
-	#} else {
-	#  result$log10.p <- NULL
-	#}
+            # P-values
+            #if (p.values) {
+            #  if (verbose) {
+            #    cat( "... computing P-values\n" )
+            #  }
+            #  result$log10.p     <- matrix(0, nrow=nrow(result$posterior), ncol=models)
+            #  result$log10.p[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
+            #  #result$log10.adjp
+            #} else {
+            #  result$log10.p <- NULL
+            #}
 
-	# some logging
-	if (verbose) {
-		cat(models , "-component multinomial mixture model for treatment with control:\n",
-		    "LogLik =", tail(result$lnL, 1), ", runs =", length(result$lnL), "\n", 
-		    "\tq*=",   format( result$qstar, 2, 2), "\n",
-		    "\tq =",   format( result$theta, 2, 2), "\n",
-		    "\ttransitions =", format( result$prior, 2, 2), "\n")
-		#if(p.values) {
-		#  cat("\tenriched (P-value     <= 0.05) =", length( which(result$log10.p[,1] > -log10(0.05))), "\n",
-		#      "\tenriched (adj P-value <= 0.05) =", length( which( p.adjust(10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n")
-		#}
-	}
+            # some logging
+            if (verbose) {
+              cat(models , "-component multinomial mixture model for treatment with control:\n",
+                  "LogLik =", tail(result$lnL, 1), ", runs =", length(result$lnL), "\n", 
+                  "\tq*=",   format( result$qstar, 2, 2), "\n",
+                  "\tq =",   format( result$theta, 2, 2), "\n",
+                  "\ttransitions =", format( result$prior, 2, 2), "\n")
+              #if(p.values) {
+              #  cat("\tenriched (P-value     <= 0.05) =", length( which(result$log10.p[,1] > -log10(0.05))), "\n",
+              #      "\tenriched (adj P-value <= 0.05) =", length( which( p.adjust(10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n")
+              #}
+            }
 
-	(result)
-}
+            return(result)
+          })
 
-#' Create bins for a given genome annotation.
-#' 
-#' Computes non-overlapping bins for given chromosome names and lengths.
-#'
-#' @param genome A \link{data.frame} consisting of two columns. First column 
-#' gives sequence names. Second column gives chromosome lengths. This 
-#' information can be retrieved via the UCSC chromSizes table.
-#' @param bin.size The size of the bins in bp.
-#' @return \link{GenomicRanges}-object specifying bins for genome
-#' 
-#' @export
-bin.genome <- function(genome, bin.size=300) {
-	lens <- as.numeric(genome[,2])
-	n <- ceiling(lens / bin.size)
-	names(n) <- genome[,1]
-	bin.sizes <- rep(bin.size, dim(genome)[1])
-	names(bin.sizes) <- genome[,1]
-	gr <- GRanges()
-	suppressWarnings( {
-		for (ch in genome[,1]) {
-			gr <- c(gr, GRanges(seqnames=ch, IRanges(start=0:(n[ch] - 1) * bin.sizes[ch] + 1, width=bin.size)))
-		}
-	})
-	gr <- sort( gr )
-	GenomeInfoDb::seqlengths(gr) <- lens
-	(gr) 
-}
+#' \code{diffR}: 
+#' @aliases differenceCall
+#' @rdname normr-methods
+setMethod("diffR", c("numeric", "numeric"),
+          function(condition1, 
+                   condition2,  
+                   genome=NULL, 
+                   bin.size=300, 
+                   models=2, 
+                   eps=.001,
+                   p.values=T,
+                   procs=1, 
+                   mapqual=20, 
+                   shift=0,
+                   paired.end="ignore",
+                   verbose=T) {
+#TODO
+          })
 
-#' Process a list of bam files with a number of processes.
-#'
-#'
-#' @param bam.files A list of strings specifying file system locations for bam 
-#' files to count.
-#' @param gr A\link{GenomicRanges}-object giving the genomic intervals to count
-#' in.
-#' @param procs Number of threads to use in parallel::mclapply()
-#' @param bamsignals.function The corresponding counting function in bamsignals
-#' to call.
-#' @param mapqual discard reads with mapping quality strictly lower than this 
-#' parameter. The value 0 ensures that no read will be discarded, the value 254
-#' that only reads with the highest possible mapping quality will be considered.
-#' @param shift shift the read position by a user-defined number of basepairs. 
-#' This can be handy in the analysis of chip-seq data.
-#' @param paired.end a character string indicating how to handle paired-end 
-#' reads. If \code{paired.end!="ignore"} then only first reads in proper mapped
-#' pairs will be consider (i.e. in the flag of the read, the bits in the mask 
-#' 66 must be all ones). If \code{paired.end=="midpoint"} then the midpoint of a
-#' fragment is considered, where \code{mid = fragment_start + int(abs(tlen)/2)},
-#' and where tlen is the template length stored in the bam file. For even tlen,
-#' the given midpoint will be moved of 0.5 basepairs in the 3' direction. 
-#' If \code{paired.end=="extend"} then the whole fragment is treated 
-#' as a single read.
-#' @param verbose A logical value indicating whether verbose output is desired
-#' @return a list of length(bam.files) with bamsignals.function results
-processByChromosome <- function(bam.files, gr, procs, bamsignals.function, mapqual, shift=0, paired.end="ignore", verbose=F) {
-	bam.files <- path.expand(bam.files)
-	x <- safe_mclapply(as.character(unique(seqnames(gr))), function(chunk) {
-	                   if (verbose)
-	                   	cat("[", paste(Sys.time()),"] Counting on chromosome", chunk, "\n")
-	                   gr.sub <- gr[ seqnames(gr) %in% chunk]
-	                   lapply(bam.files, bamsignals.function, gr=gr.sub, mapqual=mapqual, shift=shift, paired.end=paired.end, verbose=F)
-	}, mc.cores=procs)
-	lapply(1:length(bam.files), function( i ) {
-	       unlist(lapply(x, "[[", i)) 
-	}
-	)
-}
-
-#stolen from epicseg
-#make sure that errors occurring in mclapply get propagated
-propagateErrors <- function(l){
-	for (el in l) if (inherits(el, "try-error")) stop(el)
-	l
-}
-safe_mclapply <- function(...) propagateErrors(mclapply(...))

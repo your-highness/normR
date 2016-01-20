@@ -1,4 +1,4 @@
 library(testthat)
-library(diffr)
+library(normr)
 
-test_check("diffr")
+test_check("normr")

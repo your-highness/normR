@@ -1,35 +1,37 @@
-Package: diffr
+Package: normr
 Type: Package
-Title: Normalization and difference calling for Next Generation Sequencing
-    (NGS) data via joint multinomial modeling.
-Version: 0.8.5
-Date: 2015-11-05
+Title: Normalization and difference calling in ChIP-seq data
+Version: 0.1.0
 Authors@R:c(
-	person(given="Johannes",family="Helmuth", email="helmuth@molgen.mpg.de", role=c("aut", "cre")))
+    person(given="Johannes",family="Helmuth", email="helmuth@molgen.mpg.de",
+    role=c("aut", "cre")))
 Author: Johannes Helmuth [aut, cre]
 Maintainer: Johannes Helmuth <helmuth@molgen.mpg.de>
-Description: diffr implements normalization and diff calling procedures for NGS
-    data. Two NGS experiments are jointly modeled as a multinomial sampling
-    trial.
+Description: 
+    Robust normalization and difference calling procedures for ChIP-seq and
+    alike data. Count vectors can be obtained from experiment bam files in two
+    experiments. Counts are jointly modeled as a multinomial sampling trial with
+    a user-specified number of components.
 License: GPL-2
-SystemRequirements: C++11
-Depends: R (>= 3.0.0)
-Suggests: 
-	ggplot2, 
-	optparse, 
-	testthat (>= 0.9), 
-	knitr, 
-	rmarkdown
-Imports: 
-	methods, 
-	GenomeInfoDb, 
-	GenomicRanges, 
-	IRanges, 
-	Rcpp (>= 0.10.6), 
-	Rsamtools,
-	bamsignals (>= 1.1.0), 
-	parallel
+Depends: 
+    R (>= 3.0.0)
 LinkingTo: Rcpp
-biocViews: DifferentialPeakCalling, Classification, ChIPSeq, MultipleComparison, Normalization
+SystemRequirements: C++11
+Imports: 
+    GenomeInfoDb, 
+    GenomicRanges, 
+    IRanges, 
+    Rcpp (>= 0.11), 
+    Rsamtools,
+    bamsignals (>= 1.2.0)
+Suggests: 
+    testthat (>= 0.9), 
+    knitr, 
+    rmarkdown
+Enhances: BiocParallel
+biocViews: 
+    Bayesian, DifferentialPeakCalling, Classification, DataImport, ChIPSeq,
+    RIPSeq, FunctionalGenomics, Genetics, MultipleComparison, Normalization,
+    PeakDetection, Preprocessing
 VignetteBuilder: knitr
 NeedsCompilation: yes
