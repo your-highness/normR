@@ -2,23 +2,23 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 logical2Int <- function(idx) {
-    .Call('diffr_logical2Int', PACKAGE = 'diffr', idx)
+    .Call('normr_logical2Int', PACKAGE = 'normr', idx)
 }
 
 logical2Count <- function(vec, nthreads = 1L) {
-    .Call('diffr_logical2Count', PACKAGE = 'diffr', vec, nthreads)
+    .Call('normr_logical2Count', PACKAGE = 'normr', vec, nthreads)
 }
 
 logRowSum <- function(mat, nthreads = 1L) {
-    .Call('diffr_logRowSum', PACKAGE = 'diffr', mat, nthreads)
+    .Call('normr_logRowSum', PACKAGE = 'normr', mat, nthreads)
 }
 
 logSumVector <- function(vec, nthreads = 1L) {
-    .Call('diffr_logSumVector', PACKAGE = 'diffr', vec, nthreads)
+    .Call('normr_logSumVector', PACKAGE = 'normr', vec, nthreads)
 }
 
 sumVector <- function(vec, nthreads = 1L) {
-    .Call('diffr_sumVector', PACKAGE = 'diffr', vec, nthreads)
+    .Call('normr_sumVector', PACKAGE = 'normr', vec, nthreads)
 }
 
 #' Group unique pairs from two vectors
@@ -32,11 +32,11 @@ sumVector <- function(vec, nthreads = 1L) {
 #'        \item{map}{a vector such that \code{cbind(r,s)[i,] = values[,map[i]]} for every i}
 #' @export
 mapToUniquePairs <- function(r, s) {
-    .Call('diffr_mapToUniquePairs', PACKAGE = 'diffr', r, s)
+    .Call('normr_mapToUniquePairs', PACKAGE = 'normr', r, s)
 }
 
 mapToOriginal <- function(vec, map) {
-    .Call('diffr_mapToOriginal', PACKAGE = 'diffr', vec, map)
+    .Call('normr_mapToOriginal', PACKAGE = 'normr', vec, map)
 }
 
 #' Get normalized enrichment from a diffR fit
@@ -48,7 +48,7 @@ mapToOriginal <- function(vec, map) {
 #' @return a numeric with enrichment values in log space
 #' @export
 getEnrichment <- function(posteriors, r, s, k = 1L) {
-    .Call('diffr_getEnrichment', PACKAGE = 'diffr', posteriors, r, s, k)
+    .Call('normr_getEnrichment', PACKAGE = 'normr', posteriors, r, s, k)
 }
 
 #' Deconvolute bivariate count data in multiple enrichment regimes. Bivariate
@@ -72,6 +72,6 @@ getEnrichment <- function(posteriors, r, s, k = 1L) {
 #'        \item{lnL}{log likelihood trace}
 #' @export
 diffr_core <- function(r, s, models = 2L, eps = .0001, verbose = FALSE, nthreads = 1L) {
-    .Call('diffr_diffr_core', PACKAGE = 'diffr', r, s, models, eps, verbose, nthreads)
+    .Call('normr_diffr_core', PACKAGE = 'normr', r, s, models, eps, verbose, nthreads)
 }
 

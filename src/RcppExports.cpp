@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // logical2Int
 Rcpp::IntegerVector logical2Int(const Rcpp::LogicalVector& idx);
-RcppExport SEXP diffr_logical2Int(SEXP idxSEXP) {
+RcppExport SEXP normr_logical2Int(SEXP idxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -18,7 +18,7 @@ END_RCPP
 }
 // logical2Count
 int logical2Count(const Rcpp::LogicalVector& vec, int nthreads);
-RcppExport SEXP diffr_logical2Count(SEXP vecSEXP, SEXP nthreadsSEXP) {
+RcppExport SEXP normr_logical2Count(SEXP vecSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -30,7 +30,7 @@ END_RCPP
 }
 // logRowSum
 Rcpp::NumericVector logRowSum(const Rcpp::NumericMatrix& mat, int nthreads);
-RcppExport SEXP diffr_logRowSum(SEXP matSEXP, SEXP nthreadsSEXP) {
+RcppExport SEXP normr_logRowSum(SEXP matSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -42,7 +42,7 @@ END_RCPP
 }
 // logSumVector
 double logSumVector(const Rcpp::NumericVector& vec, int nthreads);
-RcppExport SEXP diffr_logSumVector(SEXP vecSEXP, SEXP nthreadsSEXP) {
+RcppExport SEXP normr_logSumVector(SEXP vecSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -54,7 +54,7 @@ END_RCPP
 }
 // sumVector
 double sumVector(const Rcpp::NumericVector& vec, int nthreads);
-RcppExport SEXP diffr_sumVector(SEXP vecSEXP, SEXP nthreadsSEXP) {
+RcppExport SEXP normr_sumVector(SEXP vecSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -66,7 +66,7 @@ END_RCPP
 }
 // mapToUniquePairs
 Rcpp::List mapToUniquePairs(const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s);
-RcppExport SEXP diffr_mapToUniquePairs(SEXP rSEXP, SEXP sSEXP) {
+RcppExport SEXP normr_mapToUniquePairs(SEXP rSEXP, SEXP sSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -78,7 +78,7 @@ END_RCPP
 }
 // mapToOriginal
 Rcpp::NumericVector mapToOriginal(const Rcpp::NumericVector& vec, const Rcpp::IntegerVector& map);
-RcppExport SEXP diffr_mapToOriginal(SEXP vecSEXP, SEXP mapSEXP) {
+RcppExport SEXP normr_mapToOriginal(SEXP vecSEXP, SEXP mapSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -90,7 +90,7 @@ END_RCPP
 }
 // getEnrichment
 Rcpp::NumericVector getEnrichment(const Rcpp::NumericMatrix& posteriors, const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s, const int k);
-RcppExport SEXP diffr_getEnrichment(SEXP posteriorsSEXP, SEXP rSEXP, SEXP sSEXP, SEXP kSEXP) {
+RcppExport SEXP normr_getEnrichment(SEXP posteriorsSEXP, SEXP rSEXP, SEXP sSEXP, SEXP kSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -104,7 +104,7 @@ END_RCPP
 }
 // diffr_core
 Rcpp::List diffr_core(const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s, const int models, const double eps, const bool verbose, const int nthreads);
-RcppExport SEXP diffr_diffr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
+RcppExport SEXP normr_diffr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;

@@ -4,9 +4,7 @@
 \alias{diffR}
 \title{Normalize a NGS experiment with given background data.}
 \usage{
-diffR(treatment, control, genome = NULL, bin.size = 300, models = 2,
-  eps = 0.001, p.values = T, procs = 1, mapqual = 20, shift = 0,
-  paired.end = "ignore", verbose = T)
+diffR(condition1, condition2, ...)
 }
 \arguments{
 \item{treatment}{A \link{integer} vector of treatment counts or a
@@ -78,15 +76,6 @@ to compute treatment fold change and P-Values for statistical significance
 of enrichment.
 }
 \examples{
-\dontrun{
-#bam file input
-diffr("H3K4me3.bam", "Input.bam")
-#count vector input
-diffr(H3K4me3.counts, Input.counts)
-#Normalize a H3K4me3 experiment from bam input with 2 enrichment regimes
-diffr("H3K4me3.bam", "Input.bam", bin.size=150, models=3)
-#Difference Calling
-diffr("H3K4me3.bam", "H3K4me2.bam", bin.size=150, models=3)
-}
+
 }
 
