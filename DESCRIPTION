@@ -2,36 +2,40 @@ Package: normr
 Type: Package
 Title: Normalization and difference calling in ChIP-seq data
 Version: 0.1.0
-Authors@R:c(
+Authors@R: c(
     person(given="Johannes",family="Helmuth", email="helmuth@molgen.mpg.de",
     role=c("aut", "cre")))
 Author: Johannes Helmuth [aut, cre]
 Maintainer: Johannes Helmuth <helmuth@molgen.mpg.de>
-Description: 
-    Robust normalization and difference calling procedures for ChIP-seq and
-    alike data. Count vectors can be obtained from experiment bam files in two
-    experiments. Counts are jointly modeled as a multinomial sampling trial with
-    a user-specified number of components.
+Description: Robust normalization and difference calling procedures for ChIP-seq
+    and alike data. Count vectors can be obtained from experiment bam files in two
+    experiments. Counts are jointly modeled as a multinomial sampling trial with a
+    user-specified number of components.
 License: GPL-2
-Depends: 
+Depends:
     R (>= 3.0.0)
 LinkingTo: Rcpp
 SystemRequirements: C++11
-Imports: 
-    GenomeInfoDb, 
-    GenomicRanges, 
-    IRanges, 
-    Rcpp (>= 0.11), 
+Imports:
+    methods,
+    BiocGenerics,
+    GenomeInfoDb,
+    GenomicRanges,
+    IRanges,
+    Rcpp (>= 0.11),
     Rsamtools,
     bamsignals (>= 1.2.0)
-Suggests: 
-    testthat (>= 0.9), 
-    knitr, 
+Suggests:
+    testthat (>= 0.9),
+    knitr,
     rmarkdown
 Enhances: BiocParallel
-biocViews: 
-    Bayesian, DifferentialPeakCalling, Classification, DataImport, ChIPSeq,
-    RIPSeq, FunctionalGenomics, Genetics, MultipleComparison, Normalization,
-    PeakDetection, Preprocessing
+biocViews: Bayesian, DifferentialPeakCalling, Classification, DataImport,
+    ChIPSeq, RIPSeq, FunctionalGenomics, Genetics, MultipleComparison,
+    Normalization, PeakDetection, Preprocessing
 VignetteBuilder: knitr
 NeedsCompilation: yes
+Collate:
+    'NormRFit.R'
+    'RcppExports.R'
+    'methods.R'
