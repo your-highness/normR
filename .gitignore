@@ -2,13 +2,9 @@
 *.o
 *.so
 
-#test data
-tests/testthat/data
-
 #TODO list
-TODO
+#TODO
 
 #Package development
 Makefile
-test.*
 sandbox/

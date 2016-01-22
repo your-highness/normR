@@ -1,0 +1,84 @@
+TODO
+##############################################################################
+
+
+FUNCTIONALITY/ENHANCEMENTS
+##########################
+DONE  -link to new bamsignals
+DONE  -if counting done, ask for giving counts
+DONE  -correct removing strategy 
+      -> bin where either is 0 bc no support for model
+DONE remove double computing with index structure or map
+DONE logSumVector with nthreads > 1 gives wrong result 
+      -> summation of alot of values in imprecise
+			-> used that algorithm (https://en.wikipedia.org/wiki/Kahan_summation_algorithm)
+      -> filed an issue about that
+DONE removed difference call function (use only one function for all)
+DONE check posterior distribution (benchmark) bc sometimes the results are different (if low number of enriched bins are present)
+      -> no problem!
+
+-put normR back in
+-put normR & diffR wrappers for counts directly
+-summary function for NormRFit
+-plotting function for NormRFit
+-give pval for > 2 models (1-class(P-value)) (in C++; R is very slow)
+-give adjusted p-values (in C++)
+-merge adjacent bins to one (with argument) -> combined fisher p-value as score
+-improve logging of Fit (ProcessID or ID (filenames...))
+-output function for bigWig/bedGraph files (bigWigs with rtracklayer are huge! Bases covered is 6 times convential bigWig!)
+ -> write only regions where s > 0 and/or r > 0 (Can I use these regions to center enrichment distribution?)
+
+-rational binomial modeling
+-attach PeakHunter routine
+-attach bamsignals mononucleosomal options (need to update bamsignals for this, also parallel computation needed)
+
+
+PERFORMANCE
+#############
+DONE use reference to R objects wherever possible
+
+
+-use bamProfile for counting (Do I still give a GRanges for convenience?) & remove mclapply counting
+- READ: Question: Why does code in mclapply not allow for parallel execution? 
+  http://wrathematics.github.io/RparallelGuide/
+  http://stats.blogoverflow.com/2011/08/using-openmp-ized-c-code-with-r/
+
+- C++: pvalue computation in R takes ages
+-look for arguments in function which could be called by reference
+-parallel sort (compile with -D_GLIBCXX_PARALLEL -fopenmp)
+-after em fit it takes a long time to end the call (Is it the generation of the posterior matrix or P values?)
+-use a capsulated m2u structure for S4 object accessors!
+- C++: replace all NumericVector/NumericMatrix types with appropriate std::vectors
+- C++: look for places where references or pointers are possible
+- C++: link against bamsignals for chromosomwise parallel counting
+
+
+STRUCTURE
+#############
+
+DONE rename normalize() to diffr()
+
+- READ: http://adv-r.had.co.nz/Environments.html
+
+- C++: consider using long double for lik
+- C++: flagged potential CORE module candidates with "CORE candidate" (should use only C++ types)
+- R: suppressWarnings for bin.genome or use GenomeInfoDB for size retrieval
+- R: labels for identified components
+- R: think about a nice output structure (S4 objects?)
+	* when suppling bamfile paths give counts and gr object
+	* when suppling counts give gr object
+	* gr object with values: posterior, foldchange, p.value?
+- R: 
+- R: S4 functions on DiffR (plotting, summary, print, ...)
+
+
+DEPLOYMENT
+#############
+DONE writing DESCRIPTION
+
+-write tests (random bam generator from bamsignals with multiple poisson mixtures)
+-update dates in sourcefiles
+-write vignette (normalization, diff-calling seperately on minimal test set or
+ public data)
+
+
