@@ -43,7 +43,10 @@ We have load some libraries
 
 ### Writing output
 
+
 ## Identify Regimes of Enrichment
+
+Use counts from normr object in Enrichment Call
 
 ### Writing output
 
