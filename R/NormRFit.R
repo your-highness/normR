@@ -35,6 +35,7 @@
 #' @slot B The index of the background component.
 #' @slot counts A two-dimensional \code{list()} containing to \code{n}-length
 #' \code{integer()}-vectors of count data used for the NormR fit.
+#' @slot n Number of regions analyzed.
 #' @slot thetaStar A \code{numeric()} representing a naive background 
 #' estimation, i.e. \code{sum(counts[[2]])/sum(counts[[1]]+counts[[2]])}
 #' @slot theta A \code{k}-length \code{numeric()}-vector representing 
@@ -70,7 +71,8 @@ setClass("NormRFit",
     representation = representation(type = "character",
                                     k = "integer",
                                     B = "integer",
-                                    counts = "list", 
+                                    counts = "list",
+                                    n = "integer",
                                     thetastar = "numeric",
                                     theta = "numeric",
                                     mixtures = "numeric",
@@ -105,7 +107,7 @@ setValidity("NormRFit",
           NROW(obj@posteriors) != n) {
         return("invald posterios slot")
       }
-      if (length(obj@enrichment) != n) return("invaled enrichment slot")
+      #if (length(obj@enrichment) != n) return("invaled enrichment slot")
       if (length(obj@p.vals) != n) return("invaled p.vals slot")
       if (max(obj@filteredT) > n) return("invaled filteredT slot")
       if (length(obj@q.vals) != length(obj@filteredT)) {
@@ -119,6 +121,60 @@ setValidity("NormRFit",
 #' @aliases length
 #' @export
 setMethod("length", "NormRFit", function(obj) length(obj@counts[[1]]))
+
+#' @describeIn NormRFit Prints a summary of the NormRFit object.
+#' @param obj A NormRFit object
+#' @param ... Not used
+#' @return NULL
+#' @export
+setMethod("summary", "NormRFit", 
+    function(obj, ...) {
+      
+
+    }
+)
+
+setMethod("print", "NormRFit",
+    function(obj) {
+      summary(obj)
+  }
+)
+
+#'@export
+setGeneric("getEnrichment", function(obj) standardGeneric("getEnrichment"))
+#' @describeIn NormRFit
+#' @aliases getEnrichment
+#' @export
+setMethod("getEnrichment", "NormRFit",
+    function(obj) {
+      if (is.null(obj@enrichment))
+        obj
+    }
+)
+
+#' @export
+setGeneric("writeEnrichment", function(obj) standardGeneric("writeEnrichment"))
+#' describeIn NormRFit Writes the calculated enrichment of a NormRFit to disk.
+#' @param obj A NormRFit object
+#' 
+#' @aliases writeEnrichment
+#' @export
+setMethod("writeEnrichment", "NormRFit",
+          function(obj, gr, filename=NULL) {
+            if (length(gr) != obj@n) stop("gr not corresponding to obj")
+            enr <- obj@enrichment
+            if (is.null(enr)) enr <- getEnrichment(obj)
+
+            require(rtracklayer)
+            gr$score <- enr
+            file <- filename
+            if (grep('.bw$|.bigWig$', file, perl=T)) file.type="bigwig"
+            else if (grep('.bg|bedGraph', file, perl=T)) file.type="bedGraph"
+            else stop("filetype could not be determined by filename suffix")
+          }
+)
+
+
 
 
 

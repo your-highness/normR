@@ -11,7 +11,7 @@ DONE  -correct removing strategy
 DONE remove double computing with index structure or map
 DONE logSumVector with nthreads > 1 gives wrong result 
       -> summation of alot of values in imprecise
-			-> used that algorithm (https://en.wikipedia.org/wiki/Kahan_summation_algorithm)
+            -> used that algorithm (https://en.wikipedia.org/wiki/Kahan_summation_algorithm)
       -> filed an issue about that
 DONE removed difference call function (use only one function for all)
 DONE check posterior distribution (benchmark) bc sometimes the results are different (if low number of enriched bins are present)
@@ -65,9 +65,9 @@ DONE rename normalize() to diffr()
 - R: suppressWarnings for bin.genome or use GenomeInfoDB for size retrieval
 - R: labels for identified components
 - R: think about a nice output structure (S4 objects?)
-	* when suppling bamfile paths give counts and gr object
-	* when suppling counts give gr object
-	* gr object with values: posterior, foldchange, p.value?
+    * when suppling bamfile paths give counts and gr object
+    * when suppling counts give gr object
+    * gr object with values: posterior, foldchange, p.value?
 - R: 
 - R: S4 functions on DiffR (plotting, summary, print, ...)
 
