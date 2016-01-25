@@ -33,9 +33,11 @@
 #' @slot k An \code{integer()} giving the number of binomial mixture 
 #' components to  befit to the data.
 #' @slot B The index of the background component.
+#' @slot names The corresponding names for counts.
 #' @slot counts A two-dimensional \code{list()} containing to \code{n}-length
 #' \code{integer()}-vectors of count data used for the NormR fit.
 #' @slot n Number of regions analyzed.
+#' @slot ranges A \code{GenomicRanges}-object specifying the analysed regions.
 #' @slot thetaStar A \code{numeric()} representing a naive background 
 #' estimation, i.e. \code{sum(counts[[2]])/sum(counts[[1]]+counts[[2]])}
 #' @slot theta A \code{k}-length \code{numeric()}-vector representing 
@@ -71,8 +73,10 @@ setClass("NormRFit",
     representation = representation(type = "character",
                                     k = "integer",
                                     B = "integer",
+                                    names = "character",
                                     counts = "list",
                                     n = "integer",
+                                    ranges = "GenomicRanges",
                                     thetastar = "numeric",
                                     theta = "numeric",
                                     mixtures = "numeric",
@@ -82,7 +86,7 @@ setClass("NormRFit",
                                     enrichment = "numeric",
                                     p.vals = "numeric",
                                     filteredT = "numeric",
-                                    q.vals = "numeric" )
+                                     q.vals = "numeric" )
 )
 
 setValidity("NormRFit",
@@ -117,6 +121,27 @@ setValidity("NormRFit",
     }
 )
 
+setMethod("print", "NormRFit",
+     function(obj, digits = max(3L, getOption("digits") - 3L), ...) {
+      cat("NormRFit-class object\n\n",
+          "Type:\t\t'", obj@type, "'\n",
+          "Number of Regions:\t", obj@n, "\n",
+          "Theta* (naive bg):\t", obj@thetastar, "\n\n")
+      if (length(obj@theta)) {
+        cat("Results of fit\n", 
+            "Mixture Proporitons:\n")
+        print.default(format(obj@mixtures,digits=digits), print.gap=2L, quote=F)
+        cat("Theta:\n")
+        print.default(format(obj@theta,digits=digits), print.gap=2L, quote=F)
+      } else {
+        cat("No results of fit.")
+      }
+      cat("\n")
+      invisible(obj)
+   }
+) 
+setMethod("show", "NormRFit", function(obj) print(obj))
+
 #' @describeIn NormRFit Number of regions analyzed.
 #' @aliases length
 #' @export
@@ -129,28 +154,58 @@ setMethod("length", "NormRFit", function(obj) length(obj@counts[[1]]))
 #' @export
 setMethod("summary", "NormRFit", 
     function(obj, ...) {
-      
-
+      cat("NormRFit-class object\n\n",
+          "Type:\t\t'", obj@type, "'\n",
+          "Number of Regions:\t", obj@n, "\n",
+          "Number of components:\t", obj@k, "\n",
+          "Theta* (naive bg):\t", obj@thetastar, "\n",
+          "Backgroundcomponent B:\t", obj@B, "\n\n")
+      if (length(obj@theta)) {
+        cat("Results of fit\n", 
+            "Mixture Proporitons:\n")
+        print.default(format(obj@mixtures,digits=digits), print.gap=2L, quote=F)
+        cat("Theta:\n")
+        print.default(format(obj@theta,digits=digits), print.gap=2L, quote=F)
+        cat("Bayesian Information Criterion:\n")
+        print.default(format(
+            (-2 * obj@lnL[length(obj@lnL)] + length(obj@theta) * log(obj@n)),
+            quote=F))
+        cat("Significantly different from background B:\n")
+        cts <- c("***"=length(which(obj@q.vals <= log(0))),
+                 "*****" =length(which(obj@q.vals <= log(0.001))),
+                 "*"  =length(which(obj@q.vals <= log(0.01))),
+                 "."  =length(which(obj@q.vals <= log(0.05))),
+                 " "  =length(which(obj@q.vals <= log(0.1))))
+        print.default(format(cts, digits=digits), print.gap=2L, quote=F)
+        cat("---\nSignif. codes:  ", sleg, sep = "", fill = w + 
+            4 + max(nchar(sleg, "bytes") - nchar(sleg)))
+      } else {
+        cat("No results of fit.")
+      }
+      cat("\n")
     }
-)
-
-setMethod("print", "NormRFit",
-    function(obj) {
-      summary(obj)
-  }
 )
 
 #'@export
+setGeneric("getCounts", function(obj) standardGeneric("getCounts"))
+#' @describeIn NormRFit Retrieve used counts.
+#' @aliases getCounts
+#' @export
+setMethod("getCounts", "NormRFit", function(obj) obj@counts)
+
+#'@export
 setGeneric("getEnrichment", function(obj) standardGeneric("getEnrichment"))
-#' @describeIn NormRFit
+#' @describeIn NormRFit Retrieve NormR calculated enrichment.
 #' @aliases getEnrichment
 #' @export
-setMethod("getEnrichment", "NormRFit",
-    function(obj) {
-      if (is.null(obj@enrichment))
-        obj
-    }
-)
+setMethod("getEnrichment", "NormRFit", function(obj) obj@enrichment)
+
+#'@export
+setGeneric("getPosteriors", function(obj) standardGeneric("getPosterior"))
+#' @describeIn NormRFit Retrieve computed posteriors.
+#' @aliases getPosterior
+#' @export
+setMethod("getPosteriors", "NormRFit", function(obj) obj@posteriors)
 
 #' @export
 setGeneric("writeEnrichment", function(obj) standardGeneric("writeEnrichment"))
@@ -160,21 +215,19 @@ setGeneric("writeEnrichment", function(obj) standardGeneric("writeEnrichment"))
 #' @aliases writeEnrichment
 #' @export
 setMethod("writeEnrichment", "NormRFit",
-          function(obj, gr, filename=NULL) {
+          function(obj, gr=NULL, filename=NULL) {
+            if (is.null(gr) & is.null(obj@gr)) stop("no ranges stored in obj")
+            if (is.null(gr)) gr <- obj@gr
             if (length(gr) != obj@n) stop("gr not corresponding to obj")
             enr <- obj@enrichment
             if (is.null(enr)) enr <- getEnrichment(obj)
-
             require(rtracklayer)
             gr$score <- enr
             file <- filename
-            if (grep('.bw$|.bigWig$', file, perl=T)) file.type="bigwig"
+            if (grep('.bw$|.bigWig$', file, perl=T)) file.type="BigWig"
             else if (grep('.bg|bedGraph', file, perl=T)) file.type="bedGraph"
             else stop("filetype could not be determined by filename suffix")
+            export(gr, filename, con=file.type)
           }
 )
-
-
-
-
 
