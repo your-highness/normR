@@ -17,9 +17,9 @@ DONE removed difference call function (use only one function for all)
 DONE check posterior distribution (benchmark) bc sometimes the results are
       different (if low number of enriched bins are present) 
       -> no problem!
+DONE summary function for NormRFit
+DONE attach bamsignals mononucleosomal options
 
--attach bamsignals mononucleosomal options (need to update bamsignals for this, also parallel computation needed)
--summary function for NormRFit
 -plotting function for NormRFit
 
 -put normR & diffR wrappers for counts directly
@@ -73,6 +73,7 @@ DEPLOYMENT
 #############
 DONE writing DESCRIPTION
 
+-remove tlen.filter until propagated to Bioconductor
 -write tests for NormRFit.R
 -write tests for methods.R 
   (random generator with multiple poisson mixtures OR small toy data)

@@ -40,7 +40,7 @@
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #' @seealso \code{\link{normr-methods}} for available functions
 #' @useDynLib normr, .registration=TRUE
-#' @include NormRFit.R
+#' @include NormRFit.R, BamCountConfig.R
 NULL
 
 #' Normalize a NGS experiment with given background data.
@@ -73,7 +73,6 @@ NULL
 #' @param bin.size Width of genomic bins in bp.
 #' @param models Number of model components.
 #' @param eps Threshold for EM convergence.
-#' @param p.values Flag for P value computation (not implemented)
 #' @param procs Number of threads to use
 #' @param mapqual discard reads with mapping quality strictly lower than this
 #' parameter. The value 0 ensures that no read will be discarded, the value 254
@@ -104,96 +103,80 @@ NULL
 
 #' @export
 setGeneric("enrichR",
-           function(condition1, condition2, genome, ...)
+           function(treatment, control, ...)
            standardGeneric("enrichR"))
-#' \code{enrichR}: Does a difference call for two conditions. See details.
+#' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
+#' control (Input) for two given bam files and a genome data.frame
+#' @aliases enrichR
 #' @aliases enrichmentCall
 #' @rdname normr-methods
-setMethod("enrichR", signature("character", "character", "data.frame"),
-    function(condition1, condition2, genome, bin.size=300, models=2, eps=.001,
-             procs=1, countConfig=NULL, verbose=T) {
-      if(!file.exists(paste(condition1, ".bai", sep=""))) {
-        stop("No index file for", condition1, ".\n")
-      }
-      if(!file.exists(paste(condition2, ".bai", sep=""))) {
-        stop("No index file for", condition2, ".\n")
+#' @export
+setMethod("enrichR", signature("integer", "integer", "character"),
+    function(treatment, control, genome="", countConfig=countConfigSingleEnd(), 
+             eps=1e-5, procs=1, verbose=TRUE) {
+      if (length(treatment) != length(control)) {
+        stop("invalid treatment and control")
       }
 
-      bam.files = c(bam.files, treatment)
-          } else if (class(treatment) == "numeric" | class(treatment) == "integer") {
-            counts[[1]] = treatment
-          }
-          if (class(control) == "character") {
-            if(!file.exists(paste(control, ".bai", sep=""))) stop("No index file for", control, "found.\n")
-            bam.files = c(bam.files, control)
-          } else if (class(control) == "numeric" | class(control) == "integer") {
-            counts[[2]] = control
-          }
+      # Fit binomial 2-mixture model
+      result <- diffr_core(counts[[2]], counts[[1]], 2, eps, verbose, procs)
 
-          # count in GRanges with bamsignals::bamCount if necessary
-          counting <- list()
-          if (is.null(counts)) {
-            if (!class(genome) %in% c("data.frame", "matrix")) { #no chrom lengths given
-              if (is.null(genome)) { #read from bamheader
-                header <- Rsamtools::scanBamHeader(treatment)[[1]][[1]]
-                genome <- cbind(names(header), header)
-              } else { #read from UCSC
-                genome <- fetchExtendedChromInfoFromUCSC(genome)
-                genome <- genome[which(!genome$circular & genome$SequenceRole == "assembled-molecule"),1:2]
-              }
-            }
-            gr <- bin.genome(genome, bin.size)
-            counting[["ranges"]] <- gr
-            counts <- processByChromosome(bam.files=c(treatment, control),
-                                          gr=gr,
-                                          procs=procs,
-                                          bamsignals.function=bamCount,
-                                          mapqual=mapqual,
-                                          shift=shift,
-                                          paired.end=paired.end,
-                                          verbose=verbose)
-            counting[["control"]] <-  counts[[2]]
-            counting[["treatment"]] <- counts[[1]]
-          }
+      obj <- new("NormRFit", type="enrichR", k=2, B=1, 
+                 names=c(names(treatment), names(control)),
+                 counts=list("Input"=control, "Treatment"=treatment)),
+                 n=length(treatment), ranges=NULL, thetastar=result$fit
+                 #TODO continue here
 
-          if (length(counts[[1]]) != length(counts[[2]]))
-            stop("Incompatible lengths of treatment and control. Please provide compatible numeric arrays.\n")
-
-          ###
-          # Fit binomial mixture model
-          ###
-          result <- c(diffr_core(counts[[2]], counts[[1]], models, eps, verbose, procs), counting)
-
-          # P-values
-          #if (p.values) {
-          #  if (verbose) {
-          #    cat( "... computing P-values\n" )
-          #  }
-          #  result$log10.p     <- matrix(0, nrow=nrow(result$posterior), ncol=models)
-          #  result$log10.p[,1] <- -logSum( cbind(pbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], lower.tail=F, log.p=T), dbinom( counts[[1]], counts[[1]]+counts[[2]], result$fit$theta[1], log=T)) )/log(10)
-          #  #result$log10.adjp
-          #} else {
-          #  result$log10.p <- NULL
-          #}
-
-          # some logging
-          if (verbose) {
-            cat(models , "-component multinomial mixture model for treatment with control:\n",
-                "LogLik =", tail(result$lnL, 1), ", runs =", length(result$lnL), "\n",
-                "\tq*=",   format( result$qstar, 2, 2), "\n",
-                "\tq =",   format( result$theta, 2, 2), "\n",
-                "\ttransitions =", format( result$prior, 2, 2), "\n")
-            #if(p.values) {
-            #  cat("\tenriched (P-value     <= 0.05) =", length( which(result$log10.p[,1] > -log10(0.05))), "\n",
-            #      "\tenriched (adj P-value <= 0.05) =", length( which( p.adjust(10^(-result$log10.p.values[,1]), method="BH") < 0.05)), "\n")
-            #}
-          }
-
-          new("NormRFit", counts=list("Input"=ctrl, "Treatment"=treat),
-                          
+                 
+      if (verbose) message(summary(obj, print=F))
+      obj
 })
+#' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
+#' control (Input) for two given bam files and a genome data.frame
+#' @aliases enrichR
+#' @aliases enrichmentCall
+#' @rdname normr-methods
+#' @export
+setMethod("enrichR", signature("character", "character", "data.frame"),
+    function(treatment, control, genome, countConfig=countConfigSingleEnd(), 
+             eps=1e-5, procs=1, verbose=TRUE) {
+      if(!file.exists(paste(treatment, ".bai", sep=""))) {
+        stop("No index file for", treatment, ".\n")
+      }
+      if(!file.exists(paste(control, ".bai", sep=""))) {
+        stop("No index file for", control, ".\n")
+      }
+      if (NCOL(genome) != 2) stop("invalid genome data.frame")
+
+      require(parallel)
+      counts <- mcmapply(bamsignals::bamProfile, bampath=c(treatment, control),
+                    MoreArgs=list(gr=GRanges(genome[,1], IRanges(1,genome[,2])),
+                                  binsize=countConfig@binsize,
+                                  mapqual=countConfig@mapqual,
+                                  shift=countConfig@shift,
+                                  paired.end=getFilter(countConfig),
+                                  #Tlen.filter not yet in Bioconductor
+                                  #tlen.filter=countConfig@tlenFilter,
+                                  verbose=F),
+                    mc.cores=procs, SIMPLIFY=F)
+
+      enrichR(counts[[1]], counts[[2]], "", countConfig, eps, procs, verbose)
+})
+#' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
+#' control (Input) for two given bam files and a genome data.frame
+#' @aliases enrichR
+#' @aliases enrichmentCall
+#' @rdname
 setMethod("enrichR", signature("character", "character", "character"),
-    function(condition1, condition2, genome, bin.size=300, models=2, eps=.001,
-             procs=1, countConfig=NULL, verbose=T) {
-}
+    function(treatment, control, genome, countConfig=countConfigSingleEnd(), 
+             eps=1e-5, procs=1, verbose=TRUE) {
+      genome <- fetchExtendedChromInfoFromUCSC(genome)
+      idx <- which(!genome$circular & genome$SequenceRole=="assembled-molecule")
+      genome <- genome[idx,1:2]
+      enrichR(treatment, control, genome, countConfig, eps, procs, verbose)
+  }
+)
+
+
+
 

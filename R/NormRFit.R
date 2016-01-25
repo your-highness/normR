@@ -142,6 +142,12 @@ setMethod("print", "NormRFit",
 ) 
 setMethod("show", "NormRFit", function(obj) print(obj))
 
+setMethod("plot", "NormRFit",
+     function(obj, ...) {
+       stop("not implemented yet")
+     }
+)
+
 #' @describeIn NormRFit Number of regions analyzed.
 #' @aliases length
 #' @export
@@ -153,15 +159,16 @@ setMethod("length", "NormRFit", function(obj) length(obj@counts[[1]]))
 #' @return NULL
 #' @export
 setMethod("summary", "NormRFit", 
-    function(obj, ...) {
-      cat("NormRFit-class object\n\n",
+    function(obj, print=T, ...) {
+      ans <- "NormRFit-class object\n\n",
           "Type:\t\t'", obj@type, "'\n",
           "Number of Regions:\t", obj@n, "\n",
           "Number of components:\t", obj@k, "\n",
           "Theta* (naive bg):\t", obj@thetastar, "\n",
-          "Backgroundcomponent B:\t", obj@B, "\n\n")
+          "Backgroundcomponent B:\t", obj@B, "\n\n"
       if (length(obj@theta)) {
-        cat("Results of fit\n", 
+        ans <- paste(ans, 
+                     "Results of fit\n", 
             "Mixture Proporitons:\n")
         print.default(format(obj@mixtures,digits=digits), print.gap=2L, quote=F)
         cat("Theta:\n")
