@@ -223,9 +223,9 @@ setGeneric("writeEnrichment", function(obj) standardGeneric("writeEnrichment"))
 #' @export
 setMethod("writeEnrichment", "NormRFit",
           function(obj, gr=NULL, filename=NULL) {
-            if (is.null(gr) & is.null(obj@gr)) stop("no ranges stored in obj")
-            if (is.null(gr)) gr <- obj@gr
-            if (length(gr) != obj@n) stop("gr not corresponding to obj")
+            if (is.null(gr) & is.null(obj@ranges)) stop("no chromosomes stored in obj")
+            if (is.null(gr)) gr <- obj@ranges
+            if (length(ranges) != obj@n) stop("gr not corresponding to obj")
             enr <- obj@enrichment
             if (is.null(enr)) enr <- getEnrichment(obj)
             require(rtracklayer)
