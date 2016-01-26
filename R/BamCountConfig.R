@@ -16,21 +16,40 @@
 #' Container for counting with bamsignals
 #'
 #' This S4 class is a small wrapper for a configuration on obtaining counts
-#' from bamfiles with bamsignals.
+#' from bamfiles with bamsignals::bamProfile().
 #'
 #' @slot type A \code{character()} representing the type of bamfile 
-#' ("paired.end", "single.end")
-#' @slot binsize An \code{integer()} giving the binsize to count in
+#' ("paired.end", "single.end").
+#' @param chromosomes GenomicRanges object used to specify the chromosomes.
+#' @slot binsize An \code{integer()} giving the binsize to count in (in bp).
+#' @slot mapqual discard reads with mapping quality strictly lower than this 
+#' parameter. The value 0 ensures that no read will be discarded, the value 254 
+#' that only reads with the highest possible mapping quality will be considered.
 #' @slot flag An \code{integer()} to filter for when counting reads (SAMFLAG).
+#' Not used at the moment.
+#' @slot shift shift the read position by a user-defined number of basepairs. 
+#' This can be handy in the analysis of chip-seq data.
+#' @slot midpoint A \code{logical()} indicating whether fragment midpoints 
+#' instead of 5'-ends should be counted in paired end data.
+#' @slot tlen.filter A filter on fragment length as estimated from alignment 
+#' in paired end experiments (TLEN). If set to \code{c(min,max)} only reads are 
+#' considered where \code{min <= TLEN <= max}. If \code{paired.end=="ignore"}, 
+#' this argument is set to \code{NULL} and no filtering is done. If 
+#' \code{paired.end!="ignore"}, this argument defaults to \code{c(0,1000)}.
 #' 
 #' @aliases BamCountConfig
+#' @aliases BamsignalsConfig
+#; @aliases BamsignalsCountConfig
+#' 
+#' @import GenomicRanges
 #' @seealso \code{\link{normr-methods}} for the functions that require this 
-#' object\cr
-#' \code{\link{bamsignals}} for counting in bam files.
+#' object.\cr
+#' See \code{\link{bamsignals}}-package for counting in bam files.
 #' @return return values are described in the Methods section.
 #' @export
 setClass("BamCountConfig", 
     representation = representation(type="character",
+                                    chromosomes="GenomicRanges",
                                     binsize="integer",
                                     mapq="integer",
                                     flag="character",
@@ -41,8 +60,9 @@ setClass("BamCountConfig",
 )
 
 setValidity("BamCountConfig",
-    function(obj) {
+    function(obj) { 
       if (!(obj@type %in% c("single.end", "paired.end"))) stop("invalid type")
+      if (is.null(obj@chromosomes)) stop("invalid chromosomes")
       if (obj@binsize <= 0) stop("invalid binsize")
       if (obj@mapq < 0 | obj@mapq > 255) stop("invalid mapq")
       if (!is.null(obj@flag)) stop("flag filtering not supported yet")
@@ -59,6 +79,7 @@ setMethod("print", "BamCountConfig",
     function(obj) {
       cat("BamCountConfig-class object\n\n",
           "Type:\t\t", obj@type, "\n",
+          "Number of ranges:\t", length(obj@ranges), "\n",
           "Binsize:\t\t", obj@binsize, " bp\n",
           "Minimal MAPQ:\t", obj@mapq, "\n",
           "Filtered SAMFLAG:\t", obj@flag, "\n",
