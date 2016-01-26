@@ -103,7 +103,7 @@ NULL
 
 #' @export
 setGeneric("enrichR",
-           function(treatment, control, ...)
+           function(treatment, control, genome, ...)
            standardGeneric("enrichR"))
 #' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
 #' control (Input) for two given bam files and a genome data.frame
@@ -111,25 +111,25 @@ setGeneric("enrichR",
 #' @aliases enrichmentCall
 #' @rdname normr-methods
 #' @export
-setMethod("enrichR", signature("integer", "integer", "character"),
-    function(treatment, control, genome="", countConfig=countConfigSingleEnd(), 
-             eps=1e-5, procs=1, verbose=TRUE) {
+setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
+    function(treatment, control, genome=NULL, eps=1e-5, procs=1, verbose=TRUE) {
       if (length(treatment) != length(control)) {
         stop("invalid treatment and control")
       }
 
-      # Fit binomial 2-mixture model
-      result <- diffr_core(counts[[2]], counts[[1]], 2, eps, verbose, procs)
+      # C++ does computation & construct NormRFit-class object herein
+      fit <- diffr_core(counts[[2]], counts[[1]], 2, eps, verbose, procs)
+      obj <- new("NormRFit", type="enrichR", k=2, B=1, eps=eps, ranges=genome,
+         names=c(names(treatment), names(control)), thetastar=fit$qstar,
+         counts=list("Input"=control, "Treatment"=treatment),
+         n=length(treatment), theta=fit$theta, mixtures=fit$prior, lnL=fit$lnL,
+         posteriors=fit$post, enrichment=enr, p.vals=fit$p.vals,
+         filteredT=fit$filteredidx, q.vals=fit$q.vals)
 
-      obj <- new("NormRFit", type="enrichR", k=2, B=1, 
-                 names=c(names(treatment), names(control)),
-                 counts=list("Input"=control, "Treatment"=treatment)),
-                 n=length(treatment), ranges=NULL, thetastar=result$fit
-                 #TODO continue here
-
-                 
+      #Print logging information
       if (verbose) message(summary(obj, print=F))
-      obj
+
+      return(obj)
 })
 #' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
 #' control (Input) for two given bam files and a genome data.frame
@@ -138,29 +138,34 @@ setMethod("enrichR", signature("integer", "integer", "character"),
 #' @rdname normr-methods
 #' @export
 setMethod("enrichR", signature("character", "character", "data.frame"),
-    function(treatment, control, genome, countConfig=countConfigSingleEnd(), 
-             eps=1e-5, procs=1, verbose=TRUE) {
-      if(!file.exists(paste(treatment, ".bai", sep=""))) {
-        stop("No index file for", treatment, ".\n")
-      }
-      if(!file.exists(paste(control, ".bai", sep=""))) {
-        stop("No index file for", control, ".\n")
-      }
-      if (NCOL(genome) != 2) stop("invalid genome data.frame")
+          function(treatment, control, genome, countConfig=countConfigSingleEnd(),
+                   eps=1e-5, procs=1, verbose=TRUE) {
+            if(!file.exists(paste(treatment, ".bai", sep=""))) {
+              stop("No index file for", treatment, ".\n")
+            }
+            if(!file.exists(paste(control, ".bai", sep=""))) {
+              stop("No index file for", control, ".\n")
+            }
+            if (NCOL(genome) != 2) stop("invalid genome data.frame")
 
-      require(parallel)
-      counts <- mcmapply(bamsignals::bamProfile, bampath=c(treatment, control),
-                    MoreArgs=list(gr=GRanges(genome[,1], IRanges(1,genome[,2])),
-                                  binsize=countConfig@binsize,
-                                  mapqual=countConfig@mapqual,
-                                  shift=countConfig@shift,
-                                  paired.end=getFilter(countConfig),
-                                  #Tlen.filter not yet in Bioconductor
-                                  #tlen.filter=countConfig@tlenFilter,
-                                  verbose=F),
-                    mc.cores=procs, SIMPLIFY=F)
+            require(GenomicRanges)
+            gr <- GRanges(genome[,1], IRanges(1,genome[,2]))
+            require(parallel)
+            counts <- mcmapply(bamsignals::bamProfile, bampath=c(treatment, control),
+                               MoreArgs=list(gr=gr, binsize=countConfig@binsize,
+                                             mapqual=countConfig@mapqual,
+                                             shift=countConfig@shift,
+                                             paired.end=getFilter(countConfig),
+                                             #Tlen.filter not yet in Bioconductor
+                                             #tlen.filter=countConfig@tlenFilter,
+                                             verbose=F),
+                               mc.cores=procs, SIMPLIFY=F)
 
-      enrichR(counts[[1]], counts[[2]], "", countConfig, eps, procs, verbose)
+            #Give bins across the supplied genome
+            gr <- unlist(tile(gr, countConfig@binsize))
+
+            return(enrichR(counts[[1]], counts[[2]], gr, countConfig, eps, procs,
+                           verbose))
 })
 #' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
 #' control (Input) for two given bam files and a genome data.frame
@@ -168,12 +173,15 @@ setMethod("enrichR", signature("character", "character", "data.frame"),
 #' @aliases enrichmentCall
 #' @rdname
 setMethod("enrichR", signature("character", "character", "character"),
-    function(treatment, control, genome, countConfig=countConfigSingleEnd(), 
+    function(treatment, control, genome, countConfig=countConfigSingleEnd(),
              eps=1e-5, procs=1, verbose=TRUE) {
+      #UseGenomeInfoDb to fetch information on regular, non-circular chroms
       genome <- fetchExtendedChromInfoFromUCSC(genome)
       idx <- which(!genome$circular & genome$SequenceRole=="assembled-molecule")
       genome <- genome[idx,1:2]
-      enrichR(treatment, control, genome, countConfig, eps, procs, verbose)
+
+      return(enrichR(treatment, control, genome, countConfig, eps, procs,
+                     verbose))
   }
 )
 
