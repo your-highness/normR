@@ -18,62 +18,50 @@ DONE check posterior distribution (benchmark) bc sometimes the results are
       different (if low number of enriched bins are present) 
       -> no problem!
 DONE summary function for NormRFit
-DONE attach bamsignals mononucleosomal options
+DONE attach bamsignals mononucleosomal options (unused until bamsignals bioc update)
+DONE use GenomicRanges::tile() function for binning genome
+DONE put normR & diffR wrappers for counts directly
 
 -plotting function for NormRFit
-
--put normR & diffR wrappers for counts directly
 -give pval for > 2 models (1-class(P-value)) (in C++; R is very slow)
--give adjusted p-values (in C++)
--merge adjacent bins to one (with argument) -> combined fisher p-value as score
+-give adjusted p-values (with qvalue package in R)
 -improve logging of Fit (ProcessID or ID (filenames...))
 -output function for bigWig/bedGraph files (bigWigs with rtracklayer are huge! Bases covered is 6 times convential bigWig!)
  -> write only regions where s > 0 and/or r > 0 (Can I use these regions to center enrichment distribution?)
--rational binomial modeling
--attach PeakHunter routine
 
 
 PERFORMANCE
 #############
 DONE use reference to R objects wherever possible
+DONE R: bamProfile for counting & remove mclapply counting
+DONE C++: link against bamsignals for chromosomwise parallel counting
+       -> not needee cuz bamProfile is really fast
+DONE C++: parallel sort (compile with -D_GLIBCXX_PARALLEL -fopenmp)
 
-- R:   bamProfile for counting (Do I still give a GRanges for convenience?) & remove mclapply counting
-- READ: Question: Why does code in mclapply not allow for parallel execution? 
-  http://wrathematics.github.io/RparallelGuide/
-  http://stats.blogoverflow.com/2011/08/using-openmp-ized-c-code-with-r/
 - C++: do fit per chromosome or some fixed number of bins (run multiple
        iterations with differented deviations from thetastar)
-- C++: replace all NumericVector/NumericMatrix types with appropriate std::vectors
 - C++: look for places where references or pointers are possible
-- C++: link against bamsignals for chromosomwise parallel counting
-- C++: parallel sort (compile with -D_GLIBCXX_PARALLEL -fopenmp)
 - C++/R: after em fit it takes a long time to end the call (Is it the generation of the posterior matrix or P values?)
-
 - R:   a capsulated m2u structure for S4 object accessors!
-- C++: look for arguments in function which could be called by reference
 
 
 STRUCTURE
 #############
-DONE rename normalize() to diffr()
+DONE rename: normalize()->enrichR(); difference->diffR();regimecall()->regimeR()
+DONE R: S4 classes NormRFit & BamCountConfig introduced
+DONE R: S4 functions on DiffR (plotting, summary, print, ...)
+DONE R: labels for identified components -> NO!
 
 - READ: http://adv-r.had.co.nz/Environments.html
 - C++: consider using long double for lik
 - C++: flagged potential CORE module candidates with "CORE candidate" (should use only C++ types)
-- R: suppressWarnings for bin.genome or use GenomeInfoDB for size retrieval
-- R: labels for identified components
-- R: think about a nice output structure (S4 objects?)
-    * when suppling bamfile paths give counts and gr object
-    * when suppling counts give gr object
-    * gr object with values: posterior, foldchange, p.value?
-- R: S4 functions on DiffR (plotting, summary, print, ...)
 
 
 DEPLOYMENT
 #############
 DONE writing DESCRIPTION
+DONE remove tlen.filter until propagated to Bioconductor
 
--remove tlen.filter until propagated to Bioconductor
 -write tests for NormRFit.R
 -write tests for methods.R 
   (random generator with multiple poisson mixtures OR small toy data)
@@ -81,5 +69,16 @@ DONE writing DESCRIPTION
 -write vignette (normalization, diff-calling seperately on minimal test set or
  public data)
 -update dates & LICENSE HEADER in sourcefiles
+-update README
+-make release on github
 
 
+ADDITIONAL
+#############
+-rational binomial modeling
+-attach PeakHunter routine
+-C++: replace all NumericVector/NumericMatrix types with appropriate 
+  std::vector
+- READ: Question: Why does code in mclapply not allow for parallel execution? 
+  http://wrathematics.github.io/RparallelGuide/
+  http://stats.blogoverflow.com/2011/08/using-openmp-ized-c-code-with-r/
