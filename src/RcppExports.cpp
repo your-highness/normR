@@ -5,65 +5,6 @@
 
 using namespace Rcpp;
 
-// logical2Int
-Rcpp::IntegerVector logical2Int(const Rcpp::LogicalVector& idx);
-RcppExport SEXP normr_logical2Int(SEXP idxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const Rcpp::LogicalVector& >::type idx(idxSEXP);
-    __result = Rcpp::wrap(logical2Int(idx));
-    return __result;
-END_RCPP
-}
-// logical2Count
-int logical2Count(const Rcpp::LogicalVector& vec, int nthreads);
-RcppExport SEXP normr_logical2Count(SEXP vecSEXP, SEXP nthreadsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const Rcpp::LogicalVector& >::type vec(vecSEXP);
-    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
-    __result = Rcpp::wrap(logical2Count(vec, nthreads));
-    return __result;
-END_RCPP
-}
-// logRowSum
-Rcpp::NumericVector logRowSum(const Rcpp::NumericMatrix& mat, int nthreads);
-RcppExport SEXP normr_logRowSum(SEXP matSEXP, SEXP nthreadsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type mat(matSEXP);
-    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
-    __result = Rcpp::wrap(logRowSum(mat, nthreads));
-    return __result;
-END_RCPP
-}
-// logSumVector
-double logSumVector(const Rcpp::NumericVector& vec, int nthreads);
-RcppExport SEXP normr_logSumVector(SEXP vecSEXP, SEXP nthreadsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type vec(vecSEXP);
-    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
-    __result = Rcpp::wrap(logSumVector(vec, nthreads));
-    return __result;
-END_RCPP
-}
-// sumVector
-double sumVector(const Rcpp::NumericVector& vec, int nthreads);
-RcppExport SEXP normr_sumVector(SEXP vecSEXP, SEXP nthreadsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type vec(vecSEXP);
-    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
-    __result = Rcpp::wrap(sumVector(vec, nthreads));
-    return __result;
-END_RCPP
-}
 // mapToUniquePairs
 Rcpp::List mapToUniquePairs(const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s);
 RcppExport SEXP normr_mapToUniquePairs(SEXP rSEXP, SEXP sSEXP) {
@@ -102,9 +43,9 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// diffr_core
-Rcpp::List diffr_core(const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s, const int models, const double eps, const bool verbose, const int nthreads);
-RcppExport SEXP normr_diffr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
+// normr_core
+Rcpp::List normr_core(const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s, const int models, const double eps, const int iterations, const int bgIdx, const bool verbose, const int nthreads);
+RcppExport SEXP normr_normr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP iterationsSEXP, SEXP bgIdxSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -112,9 +53,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type s(sSEXP);
     Rcpp::traits::input_parameter< const int >::type models(modelsSEXP);
     Rcpp::traits::input_parameter< const double >::type eps(epsSEXP);
+    Rcpp::traits::input_parameter< const int >::type iterations(iterationsSEXP);
+    Rcpp::traits::input_parameter< const int >::type bgIdx(bgIdxSEXP);
     Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
-    __result = Rcpp::wrap(diffr_core(r, s, models, eps, verbose, nthreads));
+    __result = Rcpp::wrap(normr_core(r, s, models, eps, iterations, bgIdx, verbose, nthreads));
     return __result;
 END_RCPP
 }
