@@ -118,7 +118,7 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
       }
 
       # C++ does computation & construct NormRFit-class object herein
-      fit <- diffr_core(counts[[2]], counts[[1]], 2, eps, verbose, procs)
+      fit <- normr_core(counts[[2]], counts[[1]], 2, eps, verbose, procs)
       obj <- new("NormRFit", type="enrichR", k=2, B=1, eps=eps, ranges=genome,
          names=c(names(treatment), names(control)), thetastar=fit$qstar,
          counts=list("Input"=control, "Treatment"=treatment),
