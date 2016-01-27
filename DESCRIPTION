@@ -37,6 +37,8 @@ biocViews: Bayesian, DifferentialPeakCalling, Classification, DataImport,
 VignetteBuilder: knitr
 NeedsCompilation: yes
 Collate:
+    'BamCountConfig.R'
     'NormRFit.R'
     'RcppExports.R'
+    'NormRFit.R,'
     'methods.R'
