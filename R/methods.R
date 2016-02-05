@@ -112,18 +112,27 @@ setGeneric("enrichR",
 #' @rdname normr-methods
 #' @export
 setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
-    function(treatment, control, genome=NULL, eps=1e-5, procs=1, verbose=TRUE) {
+    function(treatment, control, genome=NULL, eps=1e-5, procs=1L, verbose=TRUE) {
       if (length(treatment) != length(control)) {
-        stop("invalid treatment and control")
+        stop("incompatible treatment and control count vectors")
       }
 
       # C++ does computation & construct NormRFit-class object herein
-      fit <- normr_core(counts[[2]], counts[[1]], 2, eps, verbose, procs)
+      fit <- normr_core(control, treatment, 2L, eps, iterations, 1, F, verbose, 
+                        procs)
+
+      #Apply T-Filter on model and report indices
+#TODO continue here
+      filteredT <- getFilteredT()
+
+      #Calculate q-value
+      qvalues(fit$p[fit$filteredT], eps)
+
       obj <- new("NormRFit", type="enrichR", k=2, B=1, eps=eps, ranges=genome,
          names=c(names(treatment), names(control)), thetastar=fit$qstar,
          counts=list("Input"=control, "Treatment"=treatment),
          n=length(treatment), theta=fit$theta, mixtures=fit$prior, lnL=fit$lnL,
-         posteriors=fit$post, enrichment=enr, p.vals=fit$p.vals,
+         posteriors=fit$post, enrichment=fit$enr, p.vals=fit$p.vals,
          filteredT=fit$filteredidx, q.vals=fit$q.vals)
 
       #Print logging information
@@ -138,34 +147,34 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
 #' @rdname normr-methods
 #' @export
 setMethod("enrichR", signature("character", "character", "data.frame"),
-          function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-                   eps=1e-5, procs=1, verbose=TRUE) {
-            if(!file.exists(paste(treatment, ".bai", sep=""))) {
-              stop("No index file for", treatment, ".\n")
-            }
-            if(!file.exists(paste(control, ".bai", sep=""))) {
-              stop("No index file for", control, ".\n")
-            }
-            if (NCOL(genome) != 2) stop("invalid genome data.frame")
+    function(treatment, control, genome, countConfig=countConfigSingleEnd(),
+             eps=1e-5, procs=1L, verbose=TRUE) {
+      if(!file.exists(paste(treatment, ".bai", sep=""))) {
+        stop("No index file for", treatment, ".\n")
+      }
+      if(!file.exists(paste(control, ".bai", sep=""))) {
+        stop("No index file for", control, ".\n")
+      }
+      if (NCOL(genome) != 2) stop("invalid genome data.frame")
 
-            require(GenomicRanges)
-            gr <- GRanges(genome[,1], IRanges(1,genome[,2]))
-            require(parallel)
-            counts <- mcmapply(bamsignals::bamProfile, bampath=c(treatment, control),
-                               MoreArgs=list(gr=gr, binsize=countConfig@binsize,
-                                             mapqual=countConfig@mapqual,
-                                             shift=countConfig@shift,
-                                             paired.end=getFilter(countConfig),
-                                             #Tlen.filter not yet in Bioconductor
-                                             #tlen.filter=countConfig@tlenFilter,
-                                             verbose=F),
-                               mc.cores=procs, SIMPLIFY=F)
+      require(GenomicRanges)
+      gr <- GRanges(genome[,1], IRanges(1,genome[,2]))
+      require(parallel)
+      counts <- mcmapply(bamsignals::bamProfile, bampath=c(treatment, control),
+                         MoreArgs=list(gr=gr, binsize=countConfig@binsize,
+                                       mapqual=countConfig@mapqual,
+                                       shift=countConfig@shift,
+                                       paired.end=getFilter(countConfig),
+                                       #Tlen.filter not yet in Bioconductor
+                                       #tlen.filter=countConfig@tlenFilter,
+                                       verbose=F),
+                         mc.cores=procs, SIMPLIFY=F)
 
-            #Give bins across the supplied genome
-            gr <- unlist(tile(gr, countConfig@binsize))
+      #Give bins across the supplied genome
+      gr <- unlist(tile(gr, countConfig@binsize))
 
-            return(enrichR(counts[[1]], counts[[2]], gr, countConfig, eps, procs,
-                           verbose))
+      return(enrichR(counts[[1]], counts[[2]], gr, countConfig, eps, procs,
+        verbose))
 })
 #' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
 #' control (Input) for two given bam files and a genome data.frame
@@ -174,7 +183,7 @@ setMethod("enrichR", signature("character", "character", "data.frame"),
 #' @rdname
 setMethod("enrichR", signature("character", "character", "character"),
     function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-             eps=1e-5, procs=1, verbose=TRUE) {
+             eps=1e-5, procs=1L, verbose=TRUE) {
       #UseGenomeInfoDb to fetch information on regular, non-circular chroms
       genome <- fetchExtendedChromInfoFromUCSC(genome)
       idx <- which(!genome$circular & genome$SequenceRole=="assembled-molecule")
@@ -184,6 +193,21 @@ setMethod("enrichR", signature("character", "character", "character"),
                      verbose))
   }
 )
+
+
+#setGeneric("recomputeP", function(fit, B))
+#setMethod("recomputeP", signature("NormRFit", "integer"),
+#    function(fit, B,
+#
+#
+#setGeneric("exportR", function(fit, filename, format, ...))
+#
+#setMethod("exportR", signature("NormRFit", "character", "character"),
+#    function(fit, filename, format="bigWig") {
+#      if (!(format %in% c("bigWig", "bedGraph", "bed"))) {
+#      }
+#}
+
 
 
 

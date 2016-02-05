@@ -222,19 +222,19 @@ setGeneric("writeEnrichment", function(obj) standardGeneric("writeEnrichment"))
 #' @aliases writeEnrichment
 #' @export
 setMethod("writeEnrichment", "NormRFit",
-          function(obj, gr=NULL, filename=NULL) {
-            if (is.null(gr) & is.null(obj@ranges)) stop("no chromosomes stored in obj")
-            if (is.null(gr)) gr <- obj@ranges
-            if (length(ranges) != obj@n) stop("gr not corresponding to obj")
-            enr <- obj@enrichment
-            if (is.null(enr)) enr <- getEnrichment(obj)
-            require(rtracklayer)
-            gr$score <- enr
-            file <- filename
-            if (grep('.bw$|.bigWig$', file, perl=T)) file.type="BigWig"
-            else if (grep('.bg|bedGraph', file, perl=T)) file.type="bedGraph"
-            else stop("filetype could not be determined by filename suffix")
-            export(gr, filename, con=file.type)
-          }
+    function(obj, gr=NULL, filename=NULL) {
+      if (is.null(gr) & is.null(obj@ranges)) stop("no chromosomes stored in obj")
+      if (is.null(gr)) gr <- obj@ranges
+      if (length(ranges) != obj@n) stop("gr not corresponding to obj")
+      enr <- obj@enrichment
+      if (is.null(enr)) enr <- getEnrichment(obj)
+      require(rtracklayer)
+      gr$score <- enr
+      file <- filename
+      if (grep('.bw$|.bigWig$', file, perl=T)) file.type="BigWig"
+      else if (grep('.bg|bedGraph', file, perl=T)) file.type="bedGraph"
+      else stop("filetype could not be determined by filename suffix")
+      export(gr, filename, con=file.type)
+    }
 )
 
