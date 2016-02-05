@@ -237,8 +237,8 @@ static inline bool pairCompare(const Pair& a, const Pair& b){
 }
 //Extracts unique tupels from (r,s) and keep a map to retrieve original vectors
 static inline void map2uniquePairs_core(std::vector<int> r, std::vector<int> s,
-  std::vector<int>& map, std::vector<int>& amount, std::vector<int>& ur, 
-  std::vector<int>& us)  {
+  std::vector<int>& map, std::vector<int>& idx, std::vector<int>& amount,
+  std::vector<int>& ur, std::vector<int>& us)  {
     if (r.size() <= 0 | s.size() <= 0) {
         return;
     }
@@ -295,11 +295,12 @@ List mapToUniquePairs(const IntegerVector& r, const IntegerVector& s){
         stop("Lengths differ.");
     }
     std::vector<int> map(r.length());
+    std::vector<int> idx;
     std::vector<int> amount;
     std::vector<int> ur;
     std::vector<int> us;
 
-    map2uniquePairs_core(asVector(r), asVector(s), map, amount, ur, us);
+    map2uniquePairs_core(asVector(r), asVector(s), map, idx, amount, ur, us);
 
     NumericMatrix values(2,ur.size());
     for (int i = 0; i < values.ncol(); ++i) {
@@ -318,21 +319,34 @@ List mapToUniquePairs(const IntegerVector& r, const IntegerVector& s){
 //' original ordering for output. This function does this by creating a new
 //' numeric().
 //'
-//' @param vec The \code{numeric()}-vector to be mapped back
-//' @param map The \code{integer()}-vector containg the maps
-//' @return a \code{numeric()}-vector of mapped back values
+//' @param vec The \code{numeric()}-vector to be mapped back.
+//' @param map A map computed by \code{\lin{mapToUniquePairs}}.
+//' @return a \code{numeric()}-vector of mapped back values.
 //'
 //' @seealso \code{\link{mapToUniquePairs}} for generation of map
 //
 //' @export
 //[[Rcpp::export]]
-NumericVector mapToOriginal(const NumericVector& vec, const IntegerVector& map)
+NumericVector mapToOriginal(const NumericVector& vec, const List& m2u)
 {
     NumericVector out(map.length());
     for (int i = 0; i < map.length(); ++i) {
         out[i] = vec[map[i]-1];
     }
     return out;
+}
+
+//[[Rcpp:export]]
+NumericVector mapToUniqueWithMap(const NumericVector& vec, const List& m2u) {
+  int l = as<NumericMatrix>(m2u["values"]).nrow();
+  NumericVector out(l);
+
+  IntegerVector map = as<IntegerVector>(m2u["map"]);
+  for (int i = 0; i < map.size(); i++) {
+    if (out[map[i]] != 0) out[map[i]] = vec[i]
+  }
+
+  return out;
 }
 
 
@@ -354,40 +368,9 @@ static inline void calculatePost(NumericMatrix& lnPost, NumericVector& lnZ,
     }
 }
 
-//' Get normalized enrichment from a diffR fit
-//'
-//' @param r vector of counts in control/condition1
-//' @param s vector of counts in treatment/condition2
-//' @param posteriors posterior matrix as computed by diffR
-//' @param B column index of background component in posteriors (DEFAULT=1)
-//' @return a numeric with enrichment values in log space
-//'
-//' @export
-//[[Rcpp::export]]
-NumericVector getEnrichment(const IntegerVector& r, const IntegerVector& s, 
-    const NumericMatrix& posteriors, const int B=1, const int nthreads=1) { 
-  NumericVector p = posteriors(_,B);
-  double p_sum = sum(p);
-  double pseu_r = sum(p * r) / p_sum;
-  double pseu_s = sum(p * s) / p_sum;
-  return log((s + pseu_s)/(r + pseu_r) ) / log(pseu_r / pseu_s)
-}
-
-///compute posteriors with a map
-Rcpp::NumericVector getEnrichmentWithMap(const Rcpp::NumericMatrix& lnPost,
-    const Rcpp::List& m2u, const int B=1) {
-  NumericVector lnP = lnPost(_,B) + m2u["amount"];
-  double lnP_sum = logSumVector(p);
-  double lnPseu_r = logSumVector(p * r) / p_sum;
-  double lnPseu_s = logSumVector(p * s) / p_sum;
-
-  return log((s + pseu_s)/(r + pseu_r) ) / log(pseu_r / pseu_s)
-}
-
-
 ///EXPECTATION MAXIMIZATION
 List em(const List& m2u_sub, const int models=2, const double eps=0.0001, 
-    const bool verbose=false, const int nthreads=1) {
+    const boo l verbose=false, const int nthreads=1) {
   //Get values from mapToUniquePairs structure as NumericVector
   NumericVector ur_sub = as<NumericMatrix>(m2u_sub["values"]).row(0);
   NumericVector us_sub = as<NumericMatrix>(m2u_sub["values"]).row(1);
@@ -483,6 +466,112 @@ List em(const List& m2u_sub, const int models=2, const double eps=0.0001,
       Named("lntheta")=lntheta, Named("lnL")=lnL);
 }
 
+//' Get normalized enrichment from a diffR fit
+//'
+//' @param r vector of counts in control/condition1
+//' @param s vector of counts in treatment/condition2
+//' @param posteriors posterior matrix as computed by a normR routine
+//' @param B column index of background component in posteriors (DEFAULT=0)
+//' @return a numeric with enrichment values in log space
+//'
+//' @export
+//[[Rcpp::export]]
+NumericVector getEnrichment(const IntegerVector& r, const IntegerVector& s, 
+    const NumericMatrix& posteriors, const int B=0, const int nthreads=1) { 
+  List m2u = mapToUniquePairs(r, s);
+  NumericMatrix lnP(as<NumericMatrix>(m2u["values"]).nrow(), posteriors.ncol());
+  for (int i=0; i < posteriors.ncol()) {
+    lnP(_,i) = mapToUniqueWithMap(posteriors(_,i), m2u);
+  }
+  re turn mapToUniqueWithMap(lnP, m2u, B, nthreads):
+}
+
+///compute posteriors with a map and a log posterior matrix on the unique values
+//[[Rcpp::export]]
+NumericVector getEnrichmentWithMap(const NumericMatrix& lnPost,
+     const List& m2u, const int B=0, const int nthreads=1) {
+  if (B < 0 || B >= lnPost.ncol()) stop("invalid B argument")
+
+  NumericVector ur_log = log(as<NumericMatrix>(m2u["values"]).row(0));
+  NumericVector us_log = log(as<NumericMatrix>(m2u["values"]).row(1));
+  NumericVector uamount_log = log(as<NumericVector>(m2u["amount"]));
+
+  if (lnPost.nrow() != ur_log.size()) {
+    stop("lnPost and m2u do not match in size")
+  }
+
+  //calculate pseudo-counts from fit B
+  double lnP_sum = logSumVector(lnPost(_,B) + uamount_log, nthreads);
+  double lnPseu_r = 
+    logSumVector(lnPost(_,B) + ur_log + uamount_log, nthreads) - lnP_sum;
+  double lnPseu_s = 
+    logSumVector(lnPost(_,B) + us_log + uamount_log, nthreads) - lnP_sum;
+
+  NumericVector out(ur_log.size);
+  #pragma omp parallel for schedule(static) num_threads(nthreads)
+  for (int i = 0; i < out.size(); ++i) {
+    ur_log[i] = ur_log[i] + lnPseu_r;
+    us_log[i] = us_log[i] + lnPseu_s;
+    out[i] = (us_log[i] - ur_log[i]) / (lnPseu_r - lnPseu_s);  
+  }
+
+  return out;
+}
+
+double getLnP(const int r, const int s, const double p, 
+    const bool twoTailed=false) {
+  int n = r+s;
+  if (twoTailed) {
+    double m = n * p;
+    if (s == m) return 0;
+
+    double d = dbinom(s, n, p, true);
+    int y = 0;
+    if (s < m) {
+      for (int i=ceil(m); i <= n; ++i) {
+        if (dbinom(i, n, p, true) <= d) y++;
+      }
+      double up = pbinom(n-y, n, p, false, true);
+      return up + log(1 + exp(pbinom(s, n, p, true, true) - up));
+    } else {
+      for (int i=0; i <= floor(m); ++i) {
+        if (dbinom(i, n, p, true) <= d) y++;
+      }
+      double up = pbinom(x-1, n, p, false, true);
+      return up + log(1 + exp(pbinom(y-1, n, p, true, true) - up));
+    }
+  } else {
+    if (s == 0) return 0;
+    else return pbinom(s-1, n, p, false, true);
+  }
+}
+
+NumericVector getPWithMap(const List& m2u, const double theta, 
+    const bool diffCall=false, const int nthreads=1) {
+  NumericVector ur = as<NumericMatrix>(m2u["values"]).row(0);
+  NumericVector us = as<NumericMatrix>(m2u["values"]).row(1);
+
+  //TODO prevent double computations for same (ur[i] + us[i])
+  NumericVector out(ur.size);
+#pragma omp parallel for schedule(static) num_threads(nthreads)
+  for (int i = 0; i < out.size(); ++i) {
+    out[i] = getLnP(us[i], (ur[i]+us[i]), theta, diffCall)
+  }
+  return out;
+}
+
+//' Get T-Filter
+//' 
+//' @export
+//[[Rcpp::export]]
+NumericVector filterP(const IntegerVector& r, const IntegerVector& s, 
+    const double theta, const double eps=.0001, const bool diffCall=false) {
+  if (r.size() != s.size()) stop("incompatible count vectors r and s")
+  if (theta < 0 || theta > 1) stop("invalid theta specified")
+  if (eps < 0 || eps > 1) stop("invalid eps specified")
+
+}
+
 //TODO write doc
 //' Deconvolute bivariate count data in multiple enrichment regimes. Bivariate
 //'  data is modeled as a mixture of binomial distributions. Fitting is done
@@ -503,100 +592,97 @@ List em(const List& m2u_sub, const int models=2, const double eps=0.0001,
 //'        \item{prior}{Mixture proportions for \code{models} binomial distributiions}
 //'        \item{posterior}{Posteriormatrix over all bins for \code{models} binomial distributiions}
 //'        \item{lnL}{log likelihood trace}
+//'
+//' @export
 //[[Rcpp::export]]
 List normr_core(const IntegerVector& r, const IntegerVector& s, 
     const int models=2, const double eps=.0001, const int iterations=5, 
-    const int bgIdx=1, const bool verbose=false, const int nthreads=1) {
-    if (models < 2) {
-        stop("Error: need at least 2 models (i.e. background and foreground)");
-    }
-    if (verbose) {
-        message("[Started] normR mixture modeling");
-    }
+    const int bgIdx=0, const bool diffCall=false, const bool verbose=false, 
+    const int nthreads=1) {
+  if (models < 2) {
+      stop("Error: need at least 2 models (i.e. background and foreground)");
+  }
+  if (eps < 0 || eps > 1) stop("invalid eps specified")
 
-    /*
-     * Expectation Maximization on (r,s) with non-zero entries
-     *
-     * Subset data for excluding zero regions. Uses Rcpp sugar. Therefore ursub
-     * and ssub have to be NumericVectors. Recreating a new map for subset is
-     * much faster than reorganizing the old one.
-     */
-    LogicalVector idx = (r > 0 & s > 0);
-    if (verbose) {
-       message("\t... removing (r == 0) or (s == 0) regions [" +
-           logical2Count(idx) + " of " + r.length() +" regions kept].");
-    }
-    List m2u_sub = mapToUniquePairs(r[idx], s[idx]);
-    List fit();
-    for (int i = 0; i < iterations; ++i) {
-      message("\n*** Iteration " + i + ":");
-      List fit_new = em(m2u_sub, models, eps, verbose, nthreads);
-      if (fit.size() == 0) {
+  if (verbose) {
+      message("[Started] normR mixture modeling");
+  }
+
+  /*
+   * Expectation Maximization on (r,s) with non-zero entries
+   *
+   * Subset data for excluding zero regions. Uses Rcpp sugar. Therefore ursub
+   * and ssub have to be NumericVectors. Recreating a new map for subset is
+   * much faster than reorganizing the old one.
+   */
+  LogicalVector idx = (r > 0 & s > 0);
+  if (verbose) {
+     message("\t... removing (r == 0) or (s == 0) regions [" +
+         logical2Count(idx) + " of " + r.length() +" regions kept].");
+  }
+  List m2u_sub = mapToUniquePairs(r[idx], s[idx]);
+  List fit();
+  for (int i = 0; i < iterations; ++i) {
+    message("\n*** Iteration " + i + ":");
+    List fit_new = em(m2u_sub, models, eps, verbose, nthreads);
+    if (fit.size() == 0) {
+      fit = fit_new;
+    } else {
+      if (as<NumericVector>(fit_new["lnL"]) > as<NumericVector>(fit["lnL"])) {
         fit = fit_new;
-      } else {
-        if (as<NumericVector>(fit_new["lnL"]) > as<NumericVector>(fit["lnL"])) {
-          fit = fit_new;
-          message("+++ Iteration " + i + " best so far. Fit updated.")
-        }
+        message("+++ Iteration " + i + " best so far. Fit updated.")
       }
     }
+  }
 
-    /*
-     * Map2UniquePairs on complete data for model calculations.
-     */
-    List m2u = mapToUniquePairs(r, s);
-    NumericVector ur = as<NumericMatrix>(m2u["values"]).row(0);
-    NumericVector us = as<NumericMatrix>(m2u["values"]).row(1);
-    IntegerVector umap = as<IntegerVector>(m2u["map"]);
+  /*
+   * Map2UniquePairs on complete data for model calculations.
+   */
+  List m2u = mapToUniquePairs(r, s);
+  NumericVector ur = as<NumericMatrix>(m2u["values"]).row(0);
+  NumericVector us = as<NumericMatrix>(m2u["values"]).row(1);
+  IntegerVector umap = as<IntegerVector>(m2u["map"]);
 
-    //posterior matrix
-    if (verbose) {
-      message("...computing posterior for all data.");
-    }
-    NumericMatrix lnPost(ur.length(), models);
-    NumericVector lnZ(ur.length());
-    NumericVector lnprior = as<NumericVector>(fit["lnprior"]);
-    NumericVector lntheta = as<NumericVector>(fit["lntheta"]);
-    NumericVector lnftheta = log(1 - exp(lntheta));
-    calculatePost(lnPost, lnZ, ur, us, lnprior, lntheta, lnftheta, nthreads);
+  //posterior matrix
+  if (verbose) {
+    message("...computing posterior for all data.");
+  }
+  NumericMatrix lnPost(ur.length(), models);
+  NumericVector lnZ(ur.length());
+  NumericVector lnprior = as<NumericVector>(fit["lnprior"]);
+  NumericVector lntheta = as<NumericVector>(fit["lntheta"]);
+  NumericVector lnftheta = log(1 - exp(lntheta));
+  calculatePost(lnPost, lnZ, ur, us, lnprior, lntheta, lnftheta, nthreads);
 
-    //calculate enrichment
-    if ( verbose ) {
-        message("...computing enrichment.");
-    }
-    std::vector<unsigned int> o = indexSort(as<std::vector<double> >(lntheta));
-    NumericMatrix fc( r.length(), models-1 );
+  //calculate enrichment on map
+  if ( verbose ) {
+      message("...computing enrichment.");
+  }
+  //FIXME Is this really needed?
+  //std::vector<unsigned int> o = indexSort(as<std::vector<double> >(lntheta));
+  NumericMatrix enr = getEnrichmentWithMap(lnPost, m2u, bgIdx, nthreads);
 
-    for (int k = 1; k < models; ++k) {
-        //foldchange for k against all other components
-        if (models == 2) {
-            fc(_,0) = lnPost2(_, o[1] ) - lnPost2(_, o[0]);
-        } else {
-            fc(_,k-1) = lnPost2(_, o[k]) - logSum(subMatrix(lnPost2, k));
-        }
-    }
+  //calculate p-values on map
+  NumericVector pvals = getPWithMap(m2u, theta[0], diffCall, nthreads);
 
-    // P value calculation
-    //TODO
+  //sort data by theta and compute exponential
+  std::vector<unsigned int> o = indexSort(as<std::vector<double> >(lntheta));
+  NumericMatrix post(r.length(), models);
+  NumericVector prior(models), theta(models);
+  for (int k = 0; k < models; k++) { //loop over model components
+      NumericVector postk = exp(lnPost.column(o[k]));
+      post(_,k) = mapToOriginal(postk, m2u);
+      prior[k] = exp(lnprior(o[k]));
+      theta[k] = exp(lntheta(o[k]));
+  }
 
-    //sort data by theta and compute exponential
-    std::vector<unsigned int> o = indexSort(as<std::vector<double> >(lntheta));
-    NumericMatrix post(r.length(), models);
-    NumericVector prior(models), theta(models);
-    for (int k = 0; k < models; k++) { //loop over model components
-        NumericVector postk = exp(lnPost.column(o[k]));
-        post(_,k) = mapToOriginal(postk, umap);
-        prior[k] = exp(lnprior(o[k]));
-        theta[k] = exp(lntheta(o[k]));
-    }
-
-    //output of re-mapped results
-    if (verbose) {
-        message("[Finished] normR mixture modeling");
-    }
-    return List::create( Named("qstar")=as<NumericVector>(fit["qstar"]),
-        Named("theta")=theta, Named("prior")=prior, Named("posterior")=post,
-        Named("lnL")=lnL);
+  //output of re-mapped results
+  if (verbose) {
+      message("[Finished] normR mixture modeling");
+  }
+  return List::create( Named("qstar")=as<NumericVector>(fit["qstar"]),
+      Named("theta")=theta, Named("prior")=prior, Named("posterior")=post,
+      Named("lnL")=lnL, Named("enrichment")=enr, Named("filteredT")=filteredT);
 }
 
 
