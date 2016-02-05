@@ -21,10 +21,10 @@ DONE summary function for NormRFit
 DONE attach bamsignals mononucleosomal options (unused until bamsignals bioc update)
 DONE use GenomicRanges::tile() function for binning genome
 DONE put normR & diffR wrappers for counts directly
+DONE pval for > 2 models in C++ (against putative background component)
 
--plotting function for NormRFit
--give pval for > 2 models (1-class(P-value)) (in C++; R is very slow)
 -give adjusted p-values (with qvalue package in R)
+-plotting function for NormRFit
 -improve logging of Fit (ProcessID or ID (filenames...))
 -output function for bigWig/bedGraph files (bigWigs with rtracklayer are huge! Bases covered is 6 times convential bigWig!)
  -> write only regions where s > 0 and/or r > 0 (Can I use these regions to center enrichment distribution?)
@@ -37,12 +37,11 @@ DONE R: bamProfile for counting & remove mclapply counting
 DONE C++: link against bamsignals for chromosomwise parallel counting
        -> not needee cuz bamProfile is really fast
 DONE C++: parallel sort (compile with -D_GLIBCXX_PARALLEL -fopenmp)
+DONE C++: run multiple iterations (argument) with differented deviations from thetastar
 
-- C++: do fit per chromosome or some fixed number of bins (run multiple
-       iterations with differented deviations from thetastar)
+- R:   a capsulated m2u structure for S4 object accessors!
 - C++: look for places where references or pointers are possible
 - C++/R: after em fit it takes a long time to end the call (Is it the generation of the posterior matrix or P values?)
-- R:   a capsulated m2u structure for S4 object accessors!
 
 
 STRUCTURE
@@ -65,6 +64,7 @@ DONE remove tlen.filter until propagated to Bioconductor
 -write tests for NormRFit.R
 -write tests for methods.R 
   (random generator with multiple poisson mixtures OR small toy data)
+- check correctness of getEnrichmentWithMap & getEnrichment
 -write exec scripts for commandline usage
 -write vignette (normalization, diff-calling seperately on minimal test set or
  public data)
@@ -73,12 +73,11 @@ DONE remove tlen.filter until propagated to Bioconductor
 -make release on github
 
 
+
 ADDITIONAL
 #############
 -rational binomial modeling
 -attach PeakHunter routine
--C++: replace all NumericVector/NumericMatrix types with appropriate 
-  std::vector
 - READ: Question: Why does code in mclapply not allow for parallel execution? 
   http://wrathematics.github.io/RparallelGuide/
   http://stats.blogoverflow.com/2011/08/using-openmp-ized-c-code-with-r/
