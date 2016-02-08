@@ -11,14 +11,14 @@ DONE  -correct removing strategy
 DONE remove double computing with index structure or map
 DONE logSumVector with nthreads > 1 gives wrong result 
       -> summation of alot of values in imprecise
-        -> used that algorithm (https://en.wikipedia.org/wiki/Kahan_summation_algorithm)
+      -> used https://en.wikipedia.org/wiki/Kahan_summation_algorithm
       -> filed an issue about that
 DONE removed difference call function (use only one function for all)
 DONE check posterior distribution (benchmark) bc sometimes the results are
       different (if low number of enriched bins are present) 
       -> no problem!
 DONE summary function for NormRFit
-DONE attach bamsignals mononucleosomal options (unused until bamsignals bioc update)
+DONE attach bamsignals mononucleosomal options
 DONE use GenomicRanges::tile() function for binning genome
 DONE put normR & diffR wrappers for counts directly
 DONE pval for > 2 models in C++ (against putative background component)
@@ -26,8 +26,10 @@ DONE pval for > 2 models in C++ (against putative background component)
 -give adjusted p-values (with qvalue package in R)
 -plotting function for NormRFit
 -improve logging of Fit (ProcessID or ID (filenames...))
--output function for bigWig/bedGraph files (bigWigs with rtracklayer are huge! Bases covered is 6 times convential bigWig!)
- -> write only regions where s > 0 and/or r > 0 (Can I use these regions to center enrichment distribution?)
+-output function for bigWig/bedGraph files (bigWigs with rtracklayer are huge!
+ Bases covered is 6 times convential bigWig!)
+ -> write only regions where s > 0 and/or r > 0 (Can I use these regions to
+ center enrichment distribution?)
 
 
 PERFORMANCE
@@ -37,11 +39,12 @@ DONE R: bamProfile for counting & remove mclapply counting
 DONE C++: link against bamsignals for chromosomwise parallel counting
        -> not needee cuz bamProfile is really fast
 DONE C++: parallel sort (compile with -D_GLIBCXX_PARALLEL -fopenmp)
-DONE C++: run multiple iterations (argument) with differented deviations from thetastar
+DONE C++: run multiple iterations (argument) with differented deviations
 
 - R:   a capsulated m2u structure for S4 object accessors!
 - C++: look for places where references or pointers are possible
-- C++/R: after em fit it takes a long time to end the call (Is it the generation of the posterior matrix or P values?)
+- C++/R: after em fit it takes a long time to end the call (Is it the generation
+         of the posterior matrix or P values?)
 
 
 STRUCTURE
@@ -52,8 +55,9 @@ DONE R: S4 functions on DiffR (plotting, summary, print, ...)
 DONE R: labels for identified components -> NO!
 
 - READ: http://adv-r.had.co.nz/Environments.html
-- C++: consider using long double for lik
-- C++: flagged potential CORE module candidates with "CORE candidate" (should use only C++ types)
+- C++: adapt functions to take NormRFit-class as arguments (getEnrichment, pvals)
+- C++: flagged potential CORE module candidates with "CORE candidate" (should
+       use only C++ types)
 
 
 DEPLOYMENT
