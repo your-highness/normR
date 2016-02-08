@@ -1,4 +1,16 @@
+
+
 # Some helper methods for test that routines
+
+
+genome = GRanges("chr21", IRanges(1, 48129895))
+binsize = 250
+
+bamfiles = c("inst/extdata/H3K4me3.bam",
+             "inst/extdata/H3K36me3.bam",
+             "inst/extdata/H3K9me3.bam")
+
+
 
 getEnrichmentR <- function(fit, bg.idx=1) {
   p <- fit$posterior[,bg.idx]
