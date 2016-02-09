@@ -6,58 +6,74 @@
 using namespace Rcpp;
 
 // mapToUniquePairs
-Rcpp::List mapToUniquePairs(const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s);
+List mapToUniquePairs(const IntegerVector& r, const IntegerVector& s);
 RcppExport SEXP normr_mapToUniquePairs(SEXP rSEXP, SEXP sSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type r(rSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type s(sSEXP);
     __result = Rcpp::wrap(mapToUniquePairs(r, s));
     return __result;
 END_RCPP
 }
 // mapToOriginal
-Rcpp::NumericVector mapToOriginal(const Rcpp::NumericVector& vec, const Rcpp::IntegerVector& map);
-RcppExport SEXP normr_mapToOriginal(SEXP vecSEXP, SEXP mapSEXP) {
+NumericVector mapToOriginal(const NumericVector& vec, const List& m2u);
+RcppExport SEXP normr_mapToOriginal(SEXP vecSEXP, SEXP m2uSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type vec(vecSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type map(mapSEXP);
-    __result = Rcpp::wrap(mapToOriginal(vec, map));
+    Rcpp::traits::input_parameter< const NumericVector& >::type vec(vecSEXP);
+    Rcpp::traits::input_parameter< const List& >::type m2u(m2uSEXP);
+    __result = Rcpp::wrap(mapToOriginal(vec, m2u));
+    return __result;
+END_RCPP
+}
+// getEnrichmentWithMap
+NumericVector getEnrichmentWithMap(const NumericMatrix& lnPost, const List& m2u, const int B, const int nthreads);
+RcppExport SEXP normr_getEnrichmentWithMap(SEXP lnPostSEXP, SEXP m2uSEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type lnPost(lnPostSEXP);
+    Rcpp::traits::input_parameter< const List& >::type m2u(m2uSEXP);
+    Rcpp::traits::input_parameter< const int >::type B(BSEXP);
+    Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
+    __result = Rcpp::wrap(getEnrichmentWithMap(lnPost, m2u, B, nthreads));
     return __result;
 END_RCPP
 }
 // getEnrichment
-Rcpp::NumericVector getEnrichment(const Rcpp::NumericMatrix& posteriors, const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s, const int k);
-RcppExport SEXP normr_getEnrichment(SEXP posteriorsSEXP, SEXP rSEXP, SEXP sSEXP, SEXP kSEXP) {
+NumericVector getEnrichment(const IntegerVector& r, const IntegerVector& s, const NumericMatrix& posteriors, const int B, const int nthreads);
+RcppExport SEXP normr_getEnrichment(SEXP rSEXP, SEXP sSEXP, SEXP posteriorsSEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type posteriors(posteriorsSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type r(rSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type s(sSEXP);
-    Rcpp::traits::input_parameter< const int >::type k(kSEXP);
-    __result = Rcpp::wrap(getEnrichment(posteriors, r, s, k));
+    Rcpp::traits::input_parameter< const IntegerVector& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type posteriors(posteriorsSEXP);
+    Rcpp::traits::input_parameter< const int >::type B(BSEXP);
+    Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
+    __result = Rcpp::wrap(getEnrichment(r, s, posteriors, B, nthreads));
     return __result;
 END_RCPP
 }
 // normr_core
-Rcpp::List normr_core(const Rcpp::IntegerVector& r, const Rcpp::IntegerVector& s, const int models, const double eps, const int iterations, const int bgIdx, const bool verbose, const int nthreads);
-RcppExport SEXP normr_normr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP iterationsSEXP, SEXP bgIdxSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
+List normr_core(const IntegerVector& r, const IntegerVector& s, const int models, const double eps, const int iterations, const int bgIdx, const bool diffCall, const bool verbose, const int nthreads);
+RcppExport SEXP normr_normr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP iterationsSEXP, SEXP bgIdxSEXP, SEXP diffCallSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type r(rSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type r(rSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type s(sSEXP);
     Rcpp::traits::input_parameter< const int >::type models(modelsSEXP);
     Rcpp::traits::input_parameter< const double >::type eps(epsSEXP);
     Rcpp::traits::input_parameter< const int >::type iterations(iterationsSEXP);
     Rcpp::traits::input_parameter< const int >::type bgIdx(bgIdxSEXP);
+    Rcpp::traits::input_parameter< const bool >::type diffCall(diffCallSEXP);
     Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
-    __result = Rcpp::wrap(normr_core(r, s, models, eps, iterations, bgIdx, verbose, nthreads));
+    __result = Rcpp::wrap(normr_core(r, s, models, eps, iterations, bgIdx, diffCall, verbose, nthreads));
     return __result;
 END_RCPP
 }
