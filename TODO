@@ -40,8 +40,8 @@ DONE C++: link against bamsignals for chromosomwise parallel counting
        -> not needee cuz bamProfile is really fast
 DONE C++: parallel sort (compile with -D_GLIBCXX_PARALLEL -fopenmp)
 DONE C++: run multiple iterations (argument) with differented deviations
+DONE R:   a capsulated m2u structure for S4 object accessors!
 
-- R:   a capsulated m2u structure for S4 object accessors!
 - C++: look for places where references or pointers are possible
 - C++/R: after em fit it takes a long time to end the call (Is it the generation
          of the posterior matrix or P values?)
@@ -74,6 +74,7 @@ DONE remove tlen.filter until propagated to Bioconductor
  public data)
 -update dates & LICENSE HEADER in sourcefiles
 -update README
+-R CMD build & R CMD install & R CMD check & R CMD biocCheck
 -make release on github
 
 
