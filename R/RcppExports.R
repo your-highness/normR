@@ -4,10 +4,16 @@
 #' Group unique tupels from two integer vectors r and s
 #'
 #' @param r An \code{integer()}-vector If elements are not integers, they
-NULL
-
+#'  will be casted to integers.
 #' @param s An \code{integer()}-vector. If elements are not integers, they 
-NULL
+#'  will be casted to integers.
+#' @return a list with the following items:
+#'        \item{values}{unique and sorted values of \code{r} and \code{s}}
+#'        \item{map}{a vector such that 
+#'                   \code{cbind(r,s)[i,] = values[,map[i]]} for every i}
+mapToUniquePairs <- function(r, s) {
+    .Call('normr_mapToUniquePairs', PACKAGE = 'normr', r, s)
+}
 
 #' Retrieve original vector of values with a supplied map
 #'
@@ -15,59 +21,79 @@ NULL
 #' original ordering for output. This function does this by creating a new
 #' numeric().
 #'
-#' @param vec The \code{numeric()}-vector to be mapped back
-#' @param map The \code{integer()}-vector containg the maps
-#' @return a \code{numeric()}-vector of mapped back values
+#' @param vec The \code{numeric()}-vector to be mapped back.
+#' @param map A map computed by \code{\link{mapToUniquePairs}}.
+#' @return a \code{numeric()}-vector of mapped back values.
 #'
 #' @seealso \code{\link{mapToUniquePairs}} for generation of map
-NULL
-
-#' @return a list with the following items:
-#'        \item{values}{unique and sorted values of \code{r} and \code{s}}
-#'        \item{map}{a vector such that 
-#'                   \code{cbind(r,s)[i,] = values[,map[i]]} for every i}
-#' @export
-mapToUniquePairs <- function(r, s) {
-    .Call('normr_mapToUniquePairs', PACKAGE = 'normr', r, s)
+mapToOriginal <- function(vec, m2u) {
+    .Call('normr_mapToOriginal', PACKAGE = 'normr', vec, m2u)
 }
 
-#' @export
-mapToOriginal <- function(vec, map) {
-    .Call('normr_mapToOriginal', PACKAGE = 'normr', vec, map)
+mapToUniqueWithMap <- function(vec, m2u) {
+    .Call('normr_mapToUniqueWithMap', PACKAGE = 'normr', vec, m2u)
+}
+
+computeEnrichmentWithMap <- function(lnPost, m2u, B = 0L, nthreads = 1L) {
+    .Call('normr_computeEnrichmentWithMap', PACKAGE = 'normr', lnPost, m2u, B, nthreads)
 }
 
 #' Get normalized enrichment from a diffR fit
 #'
-#' @param posteriors posterior matrix as computed by diffR
-#' @param r vector of counts in control
-#' @param s vector of counts in treatment
-#' @param k column index of background component in posteriors (DEFAULT=1)
+#' @param r vector of counts in control/condition1
+#' @param s vector of counts in treatment/condition2
+#' @param posteriors posterior matrix as computed by a normR routine
+#' @param B column index of background component in posteriors (DEFAULT=0)
 #' @return a numeric with enrichment values in log space
-#' @export
-getEnrichment <- function(posteriors, r, s, k = 1L) {
-    .Call('normr_getEnrichment', PACKAGE = 'normr', posteriors, r, s, k)
+computeEnrichment <- function(r, s, posteriors, B = 0L, nthreads = 1L) {
+    .Call('normr_computeEnrichment', PACKAGE = 'normr', r, s, posteriors, B, nthreads)
 }
 
 #' Deconvolute bivariate count data in multiple enrichment regimes. Bivariate
-#'  data is modeled as a mixture of binomial distributions. Fitting is done
-#'  with Expectation Maximization (EM).
+#' data is modeled as a mixture of binomial distributions. Fitting is done
+#' with Expectation Maximization (EM) on data points were \code{r > 0 & s > 0}.
 #'
-#' @param s \code{integer}-vector of counts (e.g. treatment counts in enrichment calls).
-#'     If elements are not integers, they will be casted to integers.
-#' @param r \code{integer}-vector of counts (e.g. control counts in enrichment calls).
-#'     If elements are not integers, they will be casted to integers.
-#' @param models \code{integer} specifying number of mixture components which should be
-#'     >= 2 (default=2).
-#' @param eps \code{double} specifying termination criterion for EM fit (default=0.001).
+#' In a first step, a map of unique non-zero (r,s) values is generated. This 
+#' allows for faster runtime. Second, EM is run with the given number of
+#' components on these reduced data representation. If \code{iterations > 1},
+#' the fit with the highest likelihood is selected. In a third step, a map for
+#' all (r,s) values is generated. Based on this map the complete posterior
+#' matrix, P-values and enrichment is calculated. The returned values are
+#' holding results exclusively for unique (r,s) values and go directly into a 
+#' \code{\link{NormRFit-class}} object.
+#'
+#' @param r \code{integer}-vector of counts (e.g. control counts in enrichment 
+#' calls). If elements are not integers, they will be casted to integers.
+#' @param s \code{integer}-vector of counts (e.g. treatment counts in 
+#' enrichment calls). If elements are not integers, they will be casted to 
+#' integers.
+#' @param models \code{integer} specifying number of mixture components which 
+#' should be >= 2 (default=2).
+#' @param eps \code{double} specifying termination criterion for EM fit 
+#' (default=0.001).
+#' @param iterations \code{integer} specifying the number of individual EM runs
+#' with differential initial parameters to be done. Adjust this argument to
+#' find global maxima (default=5).
+#' @param bgIdx \code{integer} giving the index of the background component. In
+#' enrichment and regime calls this should be 0. In difference calls, this value
+#' can be > 0 (default=0).
+#' @param diffCall \code{logical} specifying if difference calling is done such
+#' that a two-sided significance test will be conducted (default=FALSE).
 #' @param verbose \code{logical} specifying if logging should be performed (default=FALSE).
 #' @param nthreads \code{integer} specifying number of cores to use (default=1).
 #' @return a list with the following items:
-#'        \item{qstar}{naive enrichment ratio \code{s/(r + s)}. Basis for EM fit.}
-#'        \item{theta}{Parametrization for \code{models} binomial distributiions}
-#'        \item{prior}{Mixture proportions for \code{models} binomial distributiions}
-#'        \item{posterior}{Posteriormatrix over all bins for \code{models} binomial distributiions}
-#'        \item{lnL}{log likelihood trace}
-normr_core <- function(r, s, models = 2L, eps = .0001, iterations = 5L, bgIdx = 1L, verbose = FALSE, nthreads = 1L) {
-    .Call('normr_normr_core', PACKAGE = 'normr', r, s, models, eps, iterations, bgIdx, verbose, nthreads)
+#'  \item{qstar}{naive enrichment ratio \code{s/(r + s)}. Basis for EM fit.}
+#'  \item{map}{a map of unique (r,s) values. See
+#'   \code{\link{map2uniquePairs()}}}
+#'  \item{lntheta}{ln parametrization of mixture binomials}
+#'  \item{lnprior}{ln mixture proportions of mixture binomials}
+#'  \item{lnL}{log likelihood trace of EM}
+#'  \item{lnposterior}{ln posteriors for unique (r,s) according to map}
+#'  \item{lnenrichment}{ln enrichment for unique (r,s) according to map}
+#'  \item{lnpvals}{ln P-values for mixture component \code{bgIdx} for each 
+#'   unique (r,s)}
+#'  \item{filtered}{unique (r,s) tupels passing the T filter with \code{eps}}
+normr_core <- function(r, s, models = 2L, eps = .0001, iterations = 5L, bgIdx = 0L, diffCall = FALSE, verbose = FALSE, nthreads = 1L) {
+    .Call('normr_normr_core', PACKAGE = 'normr', r, s, models, eps, iterations, bgIdx, diffCall, verbose, nthreads)
 }
 
