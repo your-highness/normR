@@ -29,9 +29,21 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// getEnrichmentWithMap
-NumericVector getEnrichmentWithMap(const NumericMatrix& lnPost, const List& m2u, const int B, const int nthreads);
-RcppExport SEXP normr_getEnrichmentWithMap(SEXP lnPostSEXP, SEXP m2uSEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
+// mapToUniqueWithMap
+NumericVector mapToUniqueWithMap(const NumericVector& vec, const List& m2u);
+RcppExport SEXP normr_mapToUniqueWithMap(SEXP vecSEXP, SEXP m2uSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const NumericVector& >::type vec(vecSEXP);
+    Rcpp::traits::input_parameter< const List& >::type m2u(m2uSEXP);
+    __result = Rcpp::wrap(mapToUniqueWithMap(vec, m2u));
+    return __result;
+END_RCPP
+}
+// computeEnrichmentWithMap
+NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost, const List& m2u, const int B, const int nthreads);
+RcppExport SEXP normr_computeEnrichmentWithMap(SEXP lnPostSEXP, SEXP m2uSEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -39,13 +51,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const List& >::type m2u(m2uSEXP);
     Rcpp::traits::input_parameter< const int >::type B(BSEXP);
     Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
-    __result = Rcpp::wrap(getEnrichmentWithMap(lnPost, m2u, B, nthreads));
+    __result = Rcpp::wrap(computeEnrichmentWithMap(lnPost, m2u, B, nthreads));
     return __result;
 END_RCPP
 }
-// getEnrichment
-NumericVector getEnrichment(const IntegerVector& r, const IntegerVector& s, const NumericMatrix& posteriors, const int B, const int nthreads);
-RcppExport SEXP normr_getEnrichment(SEXP rSEXP, SEXP sSEXP, SEXP posteriorsSEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
+// computeEnrichment
+NumericVector computeEnrichment(const IntegerVector& r, const IntegerVector& s, const NumericMatrix& posteriors, const int B, const int nthreads);
+RcppExport SEXP normr_computeEnrichment(SEXP rSEXP, SEXP sSEXP, SEXP posteriorsSEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -54,7 +66,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const NumericMatrix& >::type posteriors(posteriorsSEXP);
     Rcpp::traits::input_parameter< const int >::type B(BSEXP);
     Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
-    __result = Rcpp::wrap(getEnrichment(r, s, posteriors, B, nthreads));
+    __result = Rcpp::wrap(computeEnrichment(r, s, posteriors, B, nthreads));
     return __result;
 END_RCPP
 }
