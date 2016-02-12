@@ -40,7 +40,8 @@
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #' @seealso \code{\link{normr-methods}} for available functions
 #' @useDynLib normr, .registration=TRUE
-#' @include NormRFit.R, BamCountConfig.R
+#' @include NormRFit.R 
+#' @include BamCountConfig.R
 NULL
 
 #' Normalize a NGS experiment with given background data.
@@ -74,37 +75,21 @@ NULL
 #' @param models Number of model components.
 #' @param eps Threshold for EM convergence.
 #' @param procs Number of threads to use
-#' @param mapqual discard reads with mapping quality strictly lower than this
-#' parameter. The value 0 ensures that no read will be discarded, the value 254
-#' that only reads with the highest possible mapping quality will be considered.
-#' @param shift shift the read position by a user-defined number of basepairs.
-#' This can be handy in the analysis of chip-seq data.
-#' @param paired.end a character string indicating how to handle paired-end
-#' reads. If \code{paired.end!="ignore"} then only first reads in proper mapped
-#' pairs will be consider (i.e. in the flag of the read, the bits in the mask
-#' 66 must be all ones). If \code{paired.end=="midpoint"} then the midpoint of a
-#' fragment is considered, where \code{mid = fragment_start + int(abs(tlen)/2)},
-#' and where tlen is the template length stored in the bam file. For even tlen,
-#' the given midpoint will be moved of 0.5 basepairs in the 3' direction.
-#' If \code{paired.end=="extend"} then the whole fragment is treated
-#' as a single read.
+#' @param countConfig A BamCountConfig object specifying bam counting parameters
+#' for read count retrieval.
+#' @param filename A filename to write data to.
+#' @param threshold A threshold on q-values. Set to 1 to write all regions.
 #' @param verbose A logical value indicating whether verbose output is desired
 #'
-#' @return a \link{list} with the following elements:
-#'  \item{posterior}{a matrix containing posteriors for model components.}
-#'  \item{fit}{
-#'    Result of the multinomial fit. \code{qstar} is naive estimate of
-#'    background intensity. \code{theta} gives binomial mixture model
-#'    parameters. \code{prior} gives binomial mixture model priors.\code{lnL}
-#'    gives lLn Likelihood trace.
-#'  }
+#' @return a \link{NormRFit} object 
 #'
 #' @example inst/examples/methods_example.R
+#' @see BamCountConfig-class
+#' @see NormRFit-class
 
 #' @export
-setGeneric("enrichR",
-           function(treatment, control, genome, ...)
-           standardGeneric("enrichR"))
+setGeneric("enrichR", function(treatment, control, genome, ...)
+  standardGeneric("enrichR"))
 #' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
 #' control (Input) for two given bam files and a genome data.frame
 #' @aliases enrichR
@@ -112,33 +97,36 @@ setGeneric("enrichR",
 #' @rdname normr-methods
 #' @export
 setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
-    function(treatment, control, genome=NULL, eps=1e-5, procs=1L, verbose=TRUE) {
-      if (length(treatment) != length(control)) {
-        stop("incompatible treatment and control count vectors")
-      }
+  function(treatment, control, genome=NULL, eps=1e-5, procs=1L, verbose=TRUE) {
+    if (length(treatment) != length(control)) {
+      stop("incompatible treatment and control count vectors")
+    }
 
-      # C++ does computation & construct NormRFit-class object herein
-      fit <- normr_core(control, treatment, 2L, eps, iterations, 1, F, verbose, 
-                        procs)
+    # C++ does computation & construct NormRFit-class object herein
+    fit <- normr:::normr_core(control, treatment, 2L, eps, iterations, 1, F, 
+                              verbose, procs)
 
-      #Apply T-Filter on model and report indices
-#TODO continue here
-      filteredT <- getFilteredT()
+    #Storey's q-value on T filtered P-values
+    if (verbose) message("... computing Q-values.")
+    idx <- which(fit$map$map %in% fit$filtered)
+    qvals <- qvalue(exp(fit$pvals[idx]), eps)
+    lnqvals <- rep(NA,length(treatment))
+    lnqvals[idx] <- log(qvals$qvalues)
+    #FIXME
+    lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
-      #Calculate q-value
-      qvalues(fit$p[fit$filteredT], eps)
+    #NormRFit-class object
+    o <- new("NormRFit", type="enrichR", n=length(treatment), ranges=genome,
+             k=2, B=1, map=fit$map$map,
+             counts=list(fit$map$values[1,],fit$map$values[2,]),
+             names=c(names(treatment), names(control)), thetastar=fit$qstar,
+             theta=exp(fit$lntheta), mixtures=exp(fit$lnprior), lnL=fit$lnL,
+             eps=eps, lnposteriors=fit$lnpost, lnenrichment=fit$lnenrrichment, 
+             lnpvals=fit$lnpvals, filteredT=fit$filtered, lnqvals=qvals)
 
-      obj <- new("NormRFit", type="enrichR", k=2, B=1, eps=eps, ranges=genome,
-         names=c(names(treatment), names(control)), thetastar=fit$qstar,
-         counts=list("Input"=control, "Treatment"=treatment),
-         n=length(treatment), theta=fit$theta, mixtures=fit$prior, lnL=fit$lnL,
-         posteriors=fit$post, enrichment=fit$enr, p.vals=fit$p.vals,
-         filteredT=fit$filteredidx, q.vals=fit$q.vals)
-
-      #Print logging information
-      if (verbose) message(summary(obj, print=F))
-
-      return(obj)
+    #Print logging information
+    if (verbose) message("+++ OVERALL RESULT ++++\n\n", summary(obj, print=F))
+    return(o)
 })
 #' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
 #' control (Input) for two given bam files and a genome data.frame
@@ -147,68 +135,77 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
 #' @rdname normr-methods
 #' @export
 setMethod("enrichR", signature("character", "character", "data.frame"),
-    function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-             eps=1e-5, procs=1L, verbose=TRUE) {
-      if(!file.exists(paste(treatment, ".bai", sep=""))) {
-        stop("No index file for", treatment, ".\n")
-      }
-      if(!file.exists(paste(control, ".bai", sep=""))) {
-        stop("No index file for", control, ".\n")
-      }
-      if (NCOL(genome) != 2) stop("invalid genome data.frame")
+  function(treatment, control, genome, countConfig=countConfigSingleEnd(),
+           eps=1e-5, procs=1L, verbose=TRUE) {
+    if(!file.exists(paste(treatment, ".bai", sep=""))) {
+      stop("No index file for", treatment, ".\n")
+    }
+    if(!file.exists(paste(control, ".bai", sep=""))) {
+      stop("No index file for", control, ".\n")
+    }
+    if (NCOL(genome) != 2) stop("invalid genome data.frame")
 
-      require(GenomicRanges)
-      gr <- GRanges(genome[,1], IRanges(1,genome[,2]))
-      require(parallel)
-      counts <- mcmapply(bamsignals::bamProfile, bampath=c(treatment, control),
-                         MoreArgs=list(gr=gr, binsize=countConfig@binsize,
-                                       mapqual=countConfig@mapqual,
-                                       shift=countConfig@shift,
-                                       paired.end=getFilter(countConfig),
-                                       #Tlen.filter not yet in Bioconductor
-                                       #tlen.filter=countConfig@tlenFilter,
-                                       verbose=F),
-                         mc.cores=procs, SIMPLIFY=F)
+    require(GenomicRanges)
+    gr <- GRanges(genome[,1], IRanges(1,genome[,2]))
+    require(parallel)
+    counts <- mcmapply(bamsignals::bamProfile, bampath=c(treatment, control),
+                       MoreArgs=list(gr=gr, binsize=countConfig@binsize,
+                                     mapqual=countConfig@mapqual,
+                                     shift=countConfig@shift,
+                                     paired.end=getFilter(countConfig),
+                                     #Tlen.filter not yet in Bioconductor
+                                     #tlen.filter=countConfig@tlenFilter,
+                                     verbose=F),
+                       mc.cores=procs, SIMPLIFY=F)
 
-      #Give bins across the supplied genome
-      gr <- unlist(tile(gr, countConfig@binsize))
+    #Give bins across the supplied genome
+    gr <- unlist(tile(gr, countConfig@binsize))
 
-      return(enrichR(counts[[1]], counts[[2]], gr, countConfig, eps, procs,
-        verbose))
+    return(enrichR(counts[[1]], counts[[2]], gr, countConfig, eps, procs,
+                   verbose))
 })
 #' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
 #' control (Input) for two given bam files and a genome data.frame
 #' @aliases enrichR
 #' @aliases enrichmentCall
-#' @rdname
+#' @rdname normr-methods
 setMethod("enrichR", signature("character", "character", "character"),
-    function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-             eps=1e-5, procs=1L, verbose=TRUE) {
-      #UseGenomeInfoDb to fetch information on regular, non-circular chroms
-      genome <- fetchExtendedChromInfoFromUCSC(genome)
-      idx <- which(!genome$circular & genome$SequenceRole=="assembled-molecule")
-      genome <- genome[idx,1:2]
+  function(treatment, control, genome, countConfig=countConfigSingleEnd(),
+           eps=1e-5, procs=1L, verbose=TRUE) {
+    #UseGenomeInfoDb to fetch information on regular, non-circular chroms
+    genome <- fetchExtendedChromInfoFromUCSC(genome)
+    idx <- which(!genome$circular & genome$SequenceRole=="assembled-molecule")
+    genome <- genome[idx,1:2]
 
-      return(enrichR(treatment, control, genome, countConfig, eps, procs,
-                     verbose))
-  }
-)
+    return(enrichR(treatment, control, genome, countConfig, eps, procs,
+                   verbose))
+})
 
+#' @export
+setGeneric("recomputeP", function(fit, B) standardGeneric("recomputeP"))
+#' \code{recomputeP}: Recompute P-values relative to provided background
+#' component B.
+#' @aliases computeP
+#' @rdname normr-methods
+setMethod("recomputeP", signature("NormRFit", "integer"), function(fit, B) {
+      stop("not implemented yet")
+})
 
-#setGeneric("recomputeP", function(fit, B))
-#setMethod("recomputeP", signature("NormRFit", "integer"),
-#    function(fit, B,
-#
-#
-#setGeneric("exportR", function(fit, filename, format, ...))
-#
-#setMethod("exportR", signature("NormRFit", "character", "character"),
-#    function(fit, filename, format="bigWig") {
-#      if (!(format %in% c("bigWig", "bedGraph", "bed"))) {
-#      }
-#}
-
-
-
-
-
+#' @export
+setGeneric("exportR", function(fit, filename, format, ...) 
+  standardGeneric("exportR"))
+#' \code{exportR}: Export results of a normR fit. The provided filetype
+#' specifies if significant regions (\code{"bed"}) or calculated enrichment
+#' (\code{c("bigWig", "bedGraph")}) is exported
+#' @aliases exportR
+#' @aliases exportNormRFit
+#' @aliases exporter
+#' @rdname normr-methods
+setMethod("exportR", signature("NormRFit", "character", "character"),
+  function(fit, filename, format=c("bed", "bigWig"), threshold=0.05) {
+    if (!(format %in% c("bed", "bigWig"))) {
+      stop("invalid format parameter")
+    }
+    if (format == "bed") writeBed(fit,filename,threshold)
+    if (format == "bigWig") writeEnrichment(fit,filename)
+})
