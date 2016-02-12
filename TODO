@@ -22,10 +22,10 @@ DONE attach bamsignals mononucleosomal options
 DONE use GenomicRanges::tile() function for binning genome
 DONE put normR & diffR wrappers for counts directly
 DONE pval for > 2 models in C++ (against putative background component)
+DONE give adjusted p-values (with qvalue package in R)
+DONE improve logging of Fit (ProcessID or ID (filenames...))
 
--give adjusted p-values (with qvalue package in R)
 -plotting function for NormRFit
--improve logging of Fit (ProcessID or ID (filenames...))
 -output function for bigWig/bedGraph files (bigWigs with rtracklayer are huge!
  Bases covered is 6 times convential bigWig!)
  -> write only regions where s > 0 and/or r > 0 (Can I use these regions to
@@ -41,10 +41,10 @@ DONE C++: link against bamsignals for chromosomwise parallel counting
 DONE C++: parallel sort (compile with -D_GLIBCXX_PARALLEL -fopenmp)
 DONE C++: run multiple iterations (argument) with differented deviations
 DONE R:   a capsulated m2u structure for S4 object accessors!
+DONE C++/R: after em fit it takes a long time to end the call 
+       -> pvalue computation done on unique values
 
 - C++: look for places where references or pointers are possible
-- C++/R: after em fit it takes a long time to end the call (Is it the generation
-         of the posterior matrix or P values?)
 
 
 STRUCTURE
@@ -64,8 +64,8 @@ DEPLOYMENT
 #############
 DONE writing DESCRIPTION
 DONE remove tlen.filter until propagated to Bioconductor
+DONE write tests for NormRFit.R
 
--write tests for NormRFit.R
 -write tests for methods.R 
   (random generator with multiple poisson mixtures OR small toy data)
 - check correctness of getEnrichmentWithMap & getEnrichment
