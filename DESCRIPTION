@@ -18,7 +18,6 @@ LinkingTo: Rcpp
 SystemRequirements: C++11
 Imports:
     methods,
-    BiocGenerics,
     GenomeInfoDb,
     GenomicRanges,
     IRanges,
@@ -40,5 +39,5 @@ Collate:
     'BamCountConfig.R'
     'NormRFit.R'
     'RcppExports.R'
-    'NormRFit.R,'
     'methods.R'
+RoxygenNote: 5.0.1
