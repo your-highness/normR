@@ -288,15 +288,14 @@ static inline void map2uniquePairs_core(std::vector<int> r, std::vector<int> s,
 //' Group unique tupels from two integer vectors r and s
 //'
 //' @param r An \code{integer()}-vector If elements are not integers, they
-//  will be casted to integers.
+//'  will be casted to integers.
 //' @param s An \code{integer()}-vector. If elements are not integers, they 
-//  will be casted to integers.
+//'  will be casted to integers.
 //' @return a list with the following items:
 //'        \item{values}{unique and sorted values of \code{r} and \code{s}}
 //'        \item{map}{a vector such that 
 //'                   \code{cbind(r,s)[i,] = values[,map[i]]} for every i}
-//' @export
-//[[Rcpp::export]]
+// [[Rcpp::export]]
 List mapToUniquePairs(const IntegerVector& r, const IntegerVector& s){
      if (r.length() != s.length()) {
         stop("Lengths differ.");
@@ -327,15 +326,12 @@ List mapToUniquePairs(const IntegerVector& r, const IntegerVector& s){
 //' numeric().
 //'
 //' @param vec The \code{numeric()}-vector to be mapped back.
-//' @param map A map computed by \code{\lin{mapToUniquePairs}}.
+//' @param map A map computed by \code{\link{mapToUniquePairs}}.
 //' @return a \code{numeric()}-vector of mapped back values.
 //'
 //' @seealso \code{\link{mapToUniquePairs}} for generation of map
-//
-//' @export
-//[[Rcpp::export]]
-NumericVector mapToOriginal(const NumericVector& vec, const List& m2u)
-{
+// [[Rcpp::export]]
+NumericVector mapToOriginal(const NumericVector& vec, const List& m2u) {
   IntegerVector map = as<IntegerVector>(m2u["map"]);
   NumericVector out(map.size());
   for (int i = 0; i < out.size(); ++i) {
@@ -344,7 +340,7 @@ NumericVector mapToOriginal(const NumericVector& vec, const List& m2u)
   return out;
 }
 
-//[[Rcpp:export]]
+// [[Rcpp::export]]
 NumericVector mapToUniqueWithMap(const NumericVector& vec, const List& m2u) {
   int l = as<NumericMatrix>(m2u["values"]).nrow();
   NumericVector out(l);
@@ -477,8 +473,8 @@ List em(const List& m2u_sub, const int models=2, const double eps=0.0001,
 }
 
 ///compute posteriors with a map and a log posterior matrix on the unique values
-//[[Rcpp::export]]
-NumericVector getEnrichmentWithMap(const NumericMatrix& lnPost,
+// [[Rcpp::export]]
+NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
      const List& m2u, const int B=0, const int nthreads=1) {
   if (B < 0 || B >= lnPost.ncol()) stop("invalid B argument");
 
@@ -515,10 +511,8 @@ NumericVector getEnrichmentWithMap(const NumericMatrix& lnPost,
 //' @param posteriors posterior matrix as computed by a normR routine
 //' @param B column index of background component in posteriors (DEFAULT=0)
 //' @return a numeric with enrichment values in log space
-//'
-//' @export
-//[[Rcpp::export]]
-NumericVector getEnrichment(const IntegerVector& r, const IntegerVector& s, 
+// [[Rcpp::export]]
+NumericVector computeEnrichment(const IntegerVector& r, const IntegerVector& s, 
     const NumericMatrix& posteriors, const int B=0, const int nthreads=1) { 
   //reduce data set to unique
   List m2u = mapToUniquePairs(r, s);
@@ -526,7 +520,7 @@ NumericVector getEnrichment(const IntegerVector& r, const IntegerVector& s,
   for (int i=0; i < posteriors.ncol(); ++i) {
     lnP(_,i) = mapToUniqueWithMap(posteriors(_,i), m2u);
   }
-  return mapToOriginal(getEnrichmentWithMap(lnP, m2u, B, nthreads), m2u);
+  return mapToOriginal(computeEnrichmentWithMap(lnP, m2u, B, nthreads), m2u);
 }
 
 double getLnP(const int r, const int s, const double p, 
@@ -665,9 +659,7 @@ IntegerVector filterIdx(const List& m2u, const double theta,
 //'  \item{lnpvals}{ln P-values for mixture component \code{bgIdx} for each 
 //'   unique (r,s)}
 //'  \item{filtered}{unique (r,s) tupels passing the T filter with \code{eps}}
-//'
-//' @export
-//[[Rcpp::export]]
+// [[Rcpp::export]]
 List normr_core(const IntegerVector& r, const IntegerVector& s, 
     const int models=2, const double eps=.0001, const int iterations=5, 
     const int bgIdx=0, const bool diffCall=false, const bool verbose=false, 
@@ -736,7 +728,7 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
 
   //calculate enrichment on map
   if (verbose) message("...computing enrichment.");
-  NumericVector enr = getEnrichmentWithMap(lnPost, m2u, bgIdx, nthreads);
+  NumericVector enr = computeEnrichmentWithMap(lnPost, m2u, bgIdx, nthreads);
 
   //calculate p-values on map
   if (verbose) message("...computing P-values.");
