@@ -73,74 +73,75 @@
 #' @example inst/examples/class_example.R
 #' @export
 setClass("NormRFit", 
-    representation = representation(type = "character",
-                                    n = "integer",
-                                    ranges = "GenomicRanges",
-                                    k = "integer",
-                                    B = "integer",
-                                    map = "integer",
-                                    counts = "list",
-                                    names = "character",
-                                    thetastar = "numeric",
-                                    theta = "numeric",
-                                    mixtures = "numeric",
-                                    lnL = "numeric",
-                                    eps = "numeric",
-                                    lnposteriors = "matrix",
-                                    lnenrichment = "numeric",
-                                    lnpvals = "numeric",
-                                    filteredT = "numeric",
-                                    lnqvals = "numeric" )
+  representation = representation(type = "character",
+                                  n = "integer",
+                                  ranges = "GenomicRanges",
+                                  k = "integer",
+                                  B = "integer",
+                                  map = "integer",
+                                  counts = "list",
+                                  names = "character",
+                                  thetastar = "numeric",
+                                  theta = "numeric",
+                                  mixtures = "numeric",
+                                  lnL = "numeric",
+                                  eps = "numeric",
+                                  lnposteriors = "matrix",
+                                  lnenrichment = "numeric",
+                                  lnpvals = "numeric",
+                                  filteredT = "numeric",
+                                  lnqvals = "numeric" )
 )
 
 setValidity("NormRFit",
-    function(object) {
-      if (!(object@type %in% c("enrichR", "diffR", "regimeR"))) {
-          return("invalid type slot")
-      }
-      if (object@n != length(object@ranges)) return("invalid n and ranges")
-      if (length(object@k) == 0 | object@k <= 0) return("invalid k slot")
-      if (object@B <= 0 || object@B > k) return("invalid B slot")
-      if (length(object@map) != length(object@counts[[1]])) {
-        return("incompatible map and count slot")
-      }
-      if (length(object@counts) != 2 ||
-          length(object@counts[[1]]) != length(object@counts[[2]])) {
-        return("invalid counts slot")
-      }
-      if (length(object@thetastar) != 1 || object@thetastar < 0 || 
-          object@thetastar > 1) {
-        return("invalid thetastar slot")
-      }
-      if (length(object@theta) != object@k) return("invald theta slot")
-      if (length(object@mixtures) != object@k) return("invald mixtures slot")
-      n <- length(object@counts[[1]])
-      if (NCOL(object@lnposteriors) != object$k || 
-          NROW(object@lnposteriors) != length(object@counts[[1]])) {
-        return("invald lnposterios slot")
-      }
-      if (length(object@lnenrichment) != length(object@counts[[1]])) {
-        return("invaled lnenrichment slot")
-      }
-      if (length(object@lnpvals) != length(object@counts[[1]])) { 
-          return("invaled lnpvals slot")
-      }
-      if (max(object@filteredT) > length(object@counts[[1]])) {
-        return("invaled filteredT slot")
-      }
-      if (length(object@lnqvals) != length(object@filteredT)) {
-        return("invaled lnqvals slot")
-      }
-      TRUE
+  function(object) {
+    if (!(object@type %in% c("enrichR", "diffR", "regimeR"))) {
+      return("invalid type slot")
     }
+    if (object@n != length(object@ranges)) return("invalid n and ranges")
+    if (length(object@k) == 0 | object@k <= 0) return("invalid k slot")
+    if (object@B <= 0 || object@B > object@k) return("invalid B slot")
+    if (max(object@map) != length(object@counts[[1]])) {
+      return(paste(max(object@map), " ", length(object@counts[[1]])))
+      #return("incompatible map and count slot")
+    }
+    if (length(object@counts) != 2 ||
+        length(object@counts[[1]]) != length(object@counts[[2]])) {
+      return("invalid counts slot")
+    }
+    if (length(object@thetastar) != 1 || object@thetastar < 0 || 
+        object@thetastar > 1) {
+      return("invalid thetastar slot")
+    }
+    if (length(object@theta) != object@k) return("invald theta slot")
+    if (length(object@mixtures) != object@k) return("invald mixtures slot")
+    n <- length(object@counts[[1]])
+    if (NCOL(object@lnposteriors) != object@k || 
+        NROW(object@lnposteriors) != length(object@counts[[1]])) {
+      return("invald lnposterios slot")
+    }
+    if (length(object@lnenrichment) != length(object@counts[[1]])) {
+      return("invaled lnenrichment slot")
+    }
+    if (length(object@lnpvals) != length(object@counts[[1]])) { 
+      return("invaled lnpvals slot")
+    }
+    if (max(object@filteredT) > length(object@counts[[1]])) {
+      return("invaled filteredT slot")
+    }
+    if (length(object@lnqvals) != length(object@counts[[1]])) {
+      return("invaled lnqvals slot")
+    }
+    TRUE
+  }
 )
 
 setMethod("print", "NormRFit",
   function(x, digits = max(3L, getOption("digits") - 3L), ...) {
-    cat("NormRFit-class xect\n\n",
-        "Type:\t\t'", x@type, "'\n",
+    cat("NormRFit-class object\n\n",
+        "Type:\t\t\t", x@type, "\n",
         "Number of Regions:\t", x@n, "\n",
-        "Theta* (naive bg):\t", x@thetastar, "\n\n")
+        "Theta* (naive bg):\t", format(x@thetastar,digits=digits), "\n\n")
     if (length(x@theta)) {
       cat("Results of fit\n", 
           "Mixture Proporitons:\n")
@@ -157,9 +158,9 @@ setMethod("print", "NormRFit",
 setMethod("show", "NormRFit", function(object) print(object))
 
 setMethod("plot", "NormRFit",
-     function(x, ...) {
-       stop("not implemented yet")
-     }
+  function(x, ...) {
+    stop("not implemented yet")
+  }
 )
 
 #' @describeIn NormRFit Number of regions analyzed.
@@ -173,39 +174,37 @@ setMethod("length", "NormRFit", function(x) x@n)
 #' @return NULL
 #' @export
 setMethod("summary", "NormRFit", 
-  function(object, print=T, ...) {
-    ans <- paste0("NormRFit-class objectect\n\n",
+  function(object, print=T, digits=3, ...) {
+    ans <- paste0("NormRFit-class object\n\n",
                   "Type:\t\t'", object@type, "'\n",
                   "Number of Regions:\t", object@n, "\n",
                   "Number of components:\t", object@k, "\n",
-                  "Theta* (naive bg):\t", object@thetastar, "\n",
+                  "Theta* (naive bg):\t", 
+                  format(object@thetastar, digits=digits), "\n",
                   "Backgroundcomponent B:\t", object@B, "\n\n")
+    cat(ans)
     if (length(object@theta)) {
-      ans <- paste(ans, 
-                   "Results of fit\n", 
-                   "Mixture Proporitons:\n")
+      cat("+++ Results of fit +++ \nMixture Proporitons:\n")
       print.default(format(object@mixtures,digits=digits), print.gap=2L, quote=F)
-      cat("Theta:\n")
+      cat("\nTheta:\n")
       print.default(format(object@theta,digits=digits), print.gap=2L, quote=F)
-      cat("Bayesian Information Criterion:\n")
-      print.default(format(
-                           (-2 * object@lnL[length(object@lnL)] + length(object@theta) * log(object@n)),
-                           quote=F))
+      cat("\nBayesian Information Criterion:\t", format(
+        (-2*object@lnL[length(object@lnL)]+length(object@theta)*log(object@n)), 
+        digits=digits), "\n\n")
       cat("Significantly different from background B:\n")
-      cts <- c("***"=length(which(object@lnqvals <= log(0))),
-               "*****" =length(which(object@lnqvals <= log(0.001))),
-               "*"  =length(which(object@lnqvals <= log(0.01))),
-               "."  =length(which(object@lnqvals <= log(0.05))),
-               " "  =length(which(object@lnqvals <= log(0.1))))
-      print.default(format(cts, digits=digits), print.gap=2L, quote=F)
-      cat("---\nSignif. codes:  ", sleg, sep = "", fill = w + 
-          4 + max(nchar(sleg, "bytes") - nchar(sleg)))
+      cts <- c("***"=length(which(object@lnqvals[object@map] <= log(0))),
+               "**" =length(which(object@lnqvals[object@map] <= log(0.001))),
+               "*"  =length(which(object@lnqvals[object@map] <= log(0.01))),
+               "."  =length(which(object@lnqvals[object@map] <= log(0.05))),
+               " "  =length(which(object@lnqvals[object@map] <= log(0.1))))
+      print.default(format(cts, digits=digits), print.gap=5L, quote=F)
+      cat("---\nSignif. codes:  0 ’***’ 0.001 ’**’ 0.01 ’*’ 0.05 ’.’ 0.1 ’ ’ 1")
     } else {
       cat("No results of fit.")
     }
     cat("\n")
   }
-  )
+)
 
 #'@export
 setGeneric("getCounts", function(obj) standardGeneric("getCounts"))
@@ -213,8 +212,8 @@ setGeneric("getCounts", function(obj) standardGeneric("getCounts"))
 #' @aliases getCounts
 #' @export
 setMethod("getCounts", "NormRFit", function(obj) { 
-    list("control"=obj@counts[[1]][obj@map], 
-         "treatment"=obj@counts[[2]][obj@map])
+  list("control"=obj@counts[[1]][obj@map], 
+       "treatment"=obj@counts[[2]][obj@map])
 })
 
 #'@export
@@ -224,8 +223,8 @@ setGeneric("getEnrichment", function(obj) standardGeneric("getEnrichment"))
 #' @aliases getEnrichment
 #' @export
 setMethod("getEnrichment", "NormRFit", function(obj) {
-    if (obj@tupe == "diffR") obj@lnenrichment[obj@map]
-    else exp(obj@lnenrichment)[obj@map]
+  if (obj@type == "diffR") obj@lnenrichment[obj@map]
+  else exp(obj@lnenrichment)[obj@map]
 })
 
 #'@export
@@ -234,7 +233,7 @@ setGeneric("getPosterior", function(obj) standardGeneric("getPosterior"))
 #' @aliases getPosterior
 #' @export
 setMethod("getPosterior", "NormRFit", function(obj) {
-    exp(obj@lnposteriors)[obj@map,]
+  exp(obj@lnposteriors)[obj@map,]
 })
 
 #'@export
@@ -257,7 +256,7 @@ setGeneric("getPvalues", function(obj) standardGeneric("getPvalues"))
 #' @aliases getPosterior
 #' @export
 setMethod("getPvalues", "NormRFit", function(obj) {
-    exp(obj@lnpvals)[obj@map]
+  exp(obj@lnpvals)[obj@map]
 })
 
 #'@export
@@ -266,31 +265,70 @@ setGeneric("getQvalues", function(obj) standardGeneric("getQvalues"))
 #' @aliases getPosterior
 #' @export
 setMethod("getQvalues", "NormRFit", function(obj) {
-    exp(obj@lnqvals)
+  exp(obj@lnqvals)[obj@map]
 })
 
 #' @export
 setGeneric("writeEnrichment", function(obj,...) 
-           standardGeneric("writeEnrichment"))
+  standardGeneric("writeEnrichment"))
 #' describeIn NormRFit Writes the calculated enrichment of a NormRFit to disk.
 #' @param obj A NormRFit object
+#' @param filename A file to write to.
+#' @param gr A GenomicRanges object representing the analyzed data. Usually, 
+#' ranges are stored inside \code{obj}. Use this if you want to change
+#' chromosome identifiers for example. Note that the width of the bins should be
+#' same to data and fit stored in \code{obj}.
 #' 
 #' @aliases writeEnrichment
 #' @export
 setMethod("writeEnrichment", "NormRFit",
-    function(obj, gr=NULL, filename=NULL) {
-      if (is.null(gr) & is.null(obj@ranges)) stop("no chromosomes stored in obj")
-      if (is.null(gr)) gr <- obj@ranges
-      if (length(ranges) != obj@n) stop("gr not corresponding to obj")
-      enr <- obj@enrichment
-      if (is.null(enr)) enr <- getEnrichment(obj)
-      require(rtracklayer)
-      gr$score <- enr
-      file <- filename
-      if (grep('.bw$|.bigWig$', file, perl=T)) file.type="BigWig"
-      else if (grep('.bg|bedGraph', file, perl=T)) file.type="bedGraph"
-      else stop("filetype could not be determined by filename suffix")
-      export(gr, filename, con=file.type)
-    }
+  function(obj, filename=NULL, gr=NULL) {
+    stop("not implemented yet")
+    #TODO
+    #if (is.null(gr) & is.null(obj@ranges)) stop("no chromosomes stored in obj")
+    #if (is.null(gr)) gr <- obj@ranges
+    #if (length(ranges) != obj@n) stop("gr not corresponding to obj")
+    #enr <- obj@enrichment
+    #if (is.null(enr)) enr <- getEnrichment(obj)
+    #require(rtracklayer)
+    #gr$score <- enr
+    #file <- filename
+    #if (grep('.bw$|.bigWig$', file, perl=T)) file.type="BigWig"
+    #else if (grep('.bg|bedGraph', file, perl=T)) file.type="bedGraph"
+    #else stop("filetype could not be determined by filename suffix")
+    #export(gr, filename, con=file.type)
+  }
 )
 
+#' @export
+setGeneric("writeBed", function(obj,...) 
+  standardGeneric("writeBed"))
+#' describeIn NormRFit Writes a bed file of regions called significant for
+#' @param obj A NormRFit object
+#' @param filename A file to write to.
+#' @param pval A p-value threshold.
+#' @param gr A GenomicRanges object representing the analyzed data. Usually, 
+#' ranges are stored inside \code{obj}. Use this if you want to change
+#' chromosome identifiers for example. Note that the width of the bins should be
+#' same to data and fit stored in \code{obj}.
+#' 
+#' @aliases writeBed
+#' @export
+setMethod("writeBed", "NormRFit",
+  function(obj, filename=NULL, pval=0.05, gr=NULL) {
+    stop("not implemented yet")
+    #TODO
+    #if (is.null(gr) & is.null(obj@ranges)) stop("no chromosomes stored in obj")
+    #if (is.null(gr)) gr <- obj@ranges
+    #if (length(ranges) != obj@n) stop("gr not corresponding to obj")
+    #enr <- obj@enrichment
+    #if (is.null(enr)) enr <- getEnrichment(obj)
+    #require(rtracklayer)
+    #gr$score <- enr
+    #file <- filename
+    #if (grep('.bw$|.bigWig$', file, perl=T)) file.type="BigWig"
+    #else if (grep('.bg|bedGraph', file, perl=T)) file.type="bedGraph"
+    #else stop("filetype could not be determined by filename suffix")
+    #export(gr, filename, con=file.type)
+  }
+)

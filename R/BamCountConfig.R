@@ -60,69 +60,72 @@ setClass("BamCountConfig",
 )
 
 setValidity("BamCountConfig",
-    function(obj) { 
-      if (!(obj@type %in% c("single.end", "paired.end"))) stop("invalid type")
-      if (is.null(obj@chromosomes)) stop("invalid chromosomes")
-      if (obj@binsize <= 0) stop("invalid binsize")
-      if (obj@mapq < 0 | obj@mapq > 255) stop("invalid mapq")
-      if (!is.null(obj@flag)) stop("flag filtering not supported yet")
-      if (obj@shift < 0) stop("invalid shift")
-      if (obj@type == "paired.end") {
-        if (length(obj@tlenfilter) != 2) stop("invalid tlenfilter")
-        if (obj@tlenfilter[1] < 0) stop("invalid tlenfilter lower bound")
+    function(object) { 
+      if (!(object@type %in% c("single.end", "paired.end"))) {
+        stop("invalid type")
+      }
+      if (is.null(object@chromosomes)) stop("invalid chromosomes")
+      if (object@binsize <= 0) stop("invalid binsize")
+      if (object@mapq < 0 | object@mapq > 255) stop("invalid mapq")
+      if (!is.null(object@flag)) stop("flag filtering not supported yet")
+      if (object@shift < 0) stop("invalid shift")
+      if (object@type == "paired.end") {
+        if (length(object@tlenfilter) != 2) stop("invalid tlenfilter")
+        if (object@tlenfilter[1] < 0) stop("invalid tlenfilter lower bound")
       }
       TRUE
     }
 )
 
 setMethod("print", "BamCountConfig",
-    function(obj) {
+    function(x) {
       cat("BamCountConfig-class object\n\n",
-          "Type:\t\t", obj@type, "\n",
-          "Number of ranges:\t", length(obj@ranges), "\n",
-          "Binsize:\t\t", obj@binsize, " bp\n",
-          "Minimal MAPQ:\t", obj@mapq, "\n",
-          "Filtered SAMFLAG:\t", obj@flag, "\n",
-          "Shift of anchor:\t", obj@shift, " bp \n")
-      if (obj@type == "paired.end") {
+          "Type:\t\t", x@type, "\n",
+          "Binsize:\t\t", x@binsize, " bp\n",
+          "Minimal MAPQ:\t", x@mapq, "\n",
+          "Filtered SAMFLAG:\t", x@flag, "\n",
+          "Shift of anchor:\t", x@shift, " bp \n")
+      if (x@type == "paired.end") {
         cat("\nPaired End Options: \n",
-            "\tMidpoint counting:\t", obj@midpoint, "\n",
-            "\tMinimal Fragmentlength:\t", obj@tlenfilter[1], "\n",
-            "\tMaximal Fragmentlength:\t", obj@tlenfilter[2], "\n"
+            "\tMidpoint counting:\t", x@midpoint, "\n",
+            "\tMinimal Fragmentlength:\t", x@tlenfilter[1], "\n",
+            "\tMaximal Fragmentlength:\t", x@tlenfilter[2], "\n"
             )
       }
-      invisible(obj)
+      invisible(x)
     }
 )
-setMethod("show", "BamCountConfig", function(obj) print(obj))
+setMethod("show", "BamCountConfig", function(object) print(object))
 
 #' @export
-setGeneric("countConfigPairedEnd", function(...) standardGeneric("countConfig"))
+setGeneric("countConfigPairedEnd", function(...)
+  standardGeneric("countConfigPairedEnd"))
 #' @describeIn BamCountConfig Setup a paired end counting configuration
 #' @aliases countConfigPairedEnd
 #' @export
 setMethod("countConfigPairedEnd", 
-    definition=function(binsize=250, mapq=20, flag=NULL, shift=0, midpoint=T,
-                        tlenfilter=c(70, 200)) {
-      new("BamCountConfig", type="paired.end", binsize=binsize, mapq=mapq, 
-          flag=flag, shift=shift, midpoint=midpoint, tlenfilter=tlenfilter)
+  definition=function(binsize=250, mapq=20, flag=NULL, shift=0, midpoint=T,
+                      tlenfilter=c(70, 200)) {
+    new("BamCountConfig", type="paired.end", binsize=binsize, mapq=mapq, 
+        flag=flag, shift=shift, midpoint=midpoint, tlenfilter=tlenfilter)
 })
 
 #' @export
-setGeneric("countConfigSingleEnd", function(...) standardGeneric("countConfig"))
+setGeneric("countConfigSingleEnd", function(...)
+  standardGeneric("countConfigSingleEnd"))
 #' @describeIn BamCountConfig Setup a single end counting configuration
 #' @aliases countConfigSingleEnd
 #' @export
 setMethod("countConfigSingleEnd", 
-    definition=function(binsize=250, mapq=20, flag=NULL, shift=0) {
-      new("BamCountConfig", type="single.end", binsize=binsize, mapq=mapq, 
-          flag=flag, shift=shift)
+  definition=function(binsize=250, mapq=20, flag=NULL, shift=0) {
+    new("BamCountConfig", type="single.end", binsize=binsize, mapq=mapq, 
+        flag=flag, shift=shift)
 })
 
 #' @export
 setGeneric("getFilter", function(obj) standardGeneric("getFilter"))
-#' @describeIn BamCountConfig
-#' @aliases getFilter
+#' @describeIn BamCountConfig 
+#' @aliases getFilter Get the bamsignals relevant filter
 #' @export
 setMethod("getFilter", "BamCountConfig",
     function(obj) {
