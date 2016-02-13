@@ -66,8 +66,7 @@ DONE writing DESCRIPTION
 DONE remove tlen.filter until propagated to Bioconductor
 DONE write tests for NormRFit.R
 
--write tests for methods.R 
-  (random generator with multiple poisson mixtures OR small toy data)
+-write tests for methods.R  (small toy data)
 - check correctness of getEnrichmentWithMap & getEnrichment
 -write exec scripts for commandline usage
 -write vignette (normalization, diff-calling seperately on minimal test set or
