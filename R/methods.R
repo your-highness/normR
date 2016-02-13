@@ -170,8 +170,13 @@ setMethod("enrichR", signature("character", "character", "data.frame"),
 #' @aliases enrichmentCall
 #' @rdname normr-methods
 setMethod("enrichR", signature("character", "character", "character"),
-  function(treatment, control, genome, countConfig=countConfigSingleEnd(),
+  function(treatment, control, genome="", countConfig=countConfigSingleEnd(),
            eps=1e-5, procs=1L, verbose=TRUE) {
+    treatment <- path.expand(treatment); control <- path.expand(control)
+    if (!file.exists(treatment)) strop("treatment is not a file")
+    if (!file.exists(control)) strop("control is not a file")
+    if (treatment == control) stop("treatment and control are identical")
+
     #UseGenomeInfoDb to fetch information on regular, non-circular chroms
     genome <- fetchExtendedChromInfoFromUCSC(genome)
     idx <- which(!genome$circular & genome$SequenceRole=="assembled-molecule")
