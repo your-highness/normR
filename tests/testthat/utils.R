@@ -41,7 +41,6 @@ applyMap <- function(v, map) {
   else v[idx]
 }
 
-
 # Some helper methods for test that routines
 #genome = GRanges("chr21", IRanges(1, 48129895))
 #binsize = 250
