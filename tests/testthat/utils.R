@@ -1,5 +1,8 @@
 #normR - testing utiltiy functions
 
+###
+# R MAP2UNIQUE PAIRS IMPLEMENTATION
+###
 #rle for a matrix
 rle.matrix <- function(x) {
         n <- dim(x)[1]
@@ -32,7 +35,6 @@ map2unique <- function(counts){
     map[o] <- inverse.rle( uval )
     return(list(values=t(values), map=map))
 } 
-
 #maps a vector v to unique value space
 applyMap <- function(v, map) {
   idx = which(!duplicated(map$map))
@@ -41,74 +43,62 @@ applyMap <- function(v, map) {
   else v[idx]
 }
 
-# Some helper methods for test that routines
-#genome = GRanges("chr21", IRanges(1, 48129895))
-#binsize = 250
-#
-#bamfiles = c("inst/extdata/H3K4me3.bam",
-#             "inst/extdata/H3K36me3.bam",
-#             "inst/extdata/H3K9me3.bam")
-#
-#
-#
-#getEnrichmentR <- function(fit, bg.idx=1) {
-#  p <- fit$posterior[,bg.idx]
-#  count_ctrl <- fit$control
-#  count_treat <- fit$treatment
-#
-#  pseu_ctrl <- sum(p * count_ctrl) / sum(p)
-#  pseu_treat <- sum(p * count_treat) / sum(p)
-#
-#  return(log((count_treat + pseu_treat)/(count_ctrl + pseu_ctrl))/
-#   log(pseu_ctrl / pseu_treat))
-#}
-#
-##PVALUE COMPUTATION
-#T.filter <- function(fit, thresh=.0001, bg.idx=1) {
-#  marg = 0 
-#  r = 0
-#  s = 0
-#  run=T
-#  border = 0
-#  pval.comp <- function(fit, r, s) {
-#    pbinom(s, r+s, fit$theta[bg.idx], lower.tail=F) + dbinom(s, r+s,
-#                                                             fit$theta[bg.idx])
-#  }
-#  while (run) {
-#    p <- pval.comp(fit, marg, 0)
-#    message("r=", marg, "; s=", 0, "; pval=", p)
-#    if (p <= thresh) {
-#      border = marg
-#      break
-#    }
-#    if ( (marg - 1) > 0 ) {
-#      for (i in (marg-1):1) {
-#        p <- pval.comp(fit, i, marg-i)
-#        message("r=", i, "; s=", marg-i, "; pval=", p)
-#        if (p <= thresh) {
-#          border = marg-i
-#          run=F
-#          break
-#        }
-#        if (marg-i != i) {
-#          p <- pval.comp(fit, marg-i, i)
-#          message("r=", marg-i, "; s=", i, "; pval=", p)
-#          if (p <= thresh) {
-#            border = i
-#            run=F
-#            break
-#          }
-#        }
-#      }
-#    }
-#    marg = marg + 1
-#  }
-#
-#  #pi_0 becomes very small here
-#  #return(which((fit$treatment + fit$control) >= marg & fit$control > 0 & fit$treatment > border))
-#  return(which((fit$treatment + fit$control) >= marg))
-#}
-##l is a list of c(treatment, control, binsize)
+###
+# R normR IMPLEMENTATION
+###
+RgetEnrichment <- function(fit, bg.idx=1) {
+  p <- fit$posterior[,bg.idx]
+  count_ctrl <- fit$control
+  count_treat <- fit$treatment
+  pseu_ctrl <- sum(p * count_ctrl) / sum(p)
+  pseu_treat <- sum(p * count_treat) / sum(p)
+  return(log((count_treat + pseu_treat)/(count_ctrl + pseu_ctrl))/
+    log(pseu_ctrl / pseu_treat))
+}
+
+#PVALUE COMPUTATION
+RTFilter <- function(fit, thresh=.0001, bg.idx=1) {
+  marg = 0 
+  r = 0
+  s = 0
+  run=T
+  border = 0
+  pval.comp <- function(fit, r, s) {
+    pbinom(s, r+s, fit$theta[bg.idx], lower.tail=F) + dbinom(s, r+s,
+                                                             fit$theta[bg.idx])
+  }
+  while (run) {
+    p <- pval.comp(fit, marg, 0)
+    message("r=", marg, "; s=", 0, "; pval=", p)
+    if (p <= thresh) {
+      border = marg
+      break
+    }
+    if ( (marg - 1) > 0 ) {
+      for (i in (marg-1):1) {
+        p <- pval.comp(fit, i, marg-i)
+        message("r=", i, "; s=", marg-i, "; pval=", p)
+        if (p <= thresh) {
+          border = marg-i
+          run=F
+          break
+        }
+        if (marg-i != i) {
+          p <- pval.comp(fit, marg-i, i)
+          message("r=", marg-i, "; s=", i, "; pval=", p)
+          if (p <= thresh) {
+            border = i
+            run=F
+            break
+          }
+        }
+      }
+    }
+    marg = marg + 1
+  }
+  return(which((fit$treatment + fit$control) >= marg))
+}
+#l is a list of c(treatment, control, binsize)
 #processFiles <- function(l, pe=paired.end, models=2, shift=0, nthreads=procs, gen=genome, bg.idx=1) {
 #  require(diffr)
 #  nor <- lapply(names(l), function(b) {
@@ -155,17 +145,6 @@ applyMap <- function(v, map) {
 #}
 #
 #
-##ENRICHMENT CALC
-#getEnrichment <- function(fit, bg.idx=1) {
-#  p <- fit$posterior[,bg.idx]
-#  count_ctrl <- fit$control
-#  count_treat <- fit$treatment
-#
-#  pseu_ctrl <- sum(p * count_ctrl) / sum(p)
-#  pseu_treat <- sum(p * count_treat) / sum(p)
-#
-#  log( (count_treat + pseu_treat) / (count_ctrl + pseu_ctrl) ) / log(pseu_ctrl / pseu_treat)
-#}
 #
 ##DIFFR CALL
 #T.filter.diff <- function(fit, thresh=.0001, bg.idx=1) {
