@@ -45,16 +45,20 @@ test_that("Function arguments are checked correctly", {
 })
 
 test_that("Fitting with counting from bam files works correctly", {
-  #genome = GRanges("chr21", IRanges(1, 48129895))
-  #bamfiles = c("../../inst/extdata/H3K4me3.bam",
-  #             "../../inst/extdata/H3K36me3.bam",
-  #             "../../inst/extdata/H3K9me3.bam")
+  datasets <- paste0("K562_", c("H3K27me3", "H3K4me3", "Input"), ".bam")
+  bamfiles <- system.file("extdata", datasets, package="normr")
+  genome <- GRanges("chr21", IRanges(1, 48129895))
 
-  #bamfiles <- system.file("extdata", "H3K4me3.bam", package="normr")
-  #expect_true(file.exists(bamfiles))
-  #expect_true(file.exists(paste0(bamfiles, ".idx")))
-  #for (binsize in c(250, 500, 1000)) {
-  #}
+  #check files first
+  sapply(bamfiles, function(b) expect_true(file.exists(b)))
+  sapply(bamfiles, function(b) expect_true(file.exists(paste0(b, ".bai"))))
+
+  #test for multiple binsizes
+  for (binsize in c(250, 500, 1000)) {
+
+    #TODO continue here
+    #normr::enrichR()
+  }
 
 })
 
