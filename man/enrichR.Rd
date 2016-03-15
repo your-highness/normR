@@ -34,34 +34,17 @@ might contain irregular contigs and chrM which influence the diffR fit.
 
 \item{procs}{Number of threads to use}
 
-\item{mapqual}{discard reads with mapping quality strictly lower than this
-parameter. The value 0 ensures that no read will be discarded, the value 254
-that only reads with the highest possible mapping quality will be considered.}
+\item{countConfig}{A BamCountConfig object specifying bam counting parameters
+for read count retrieval.}
 
-\item{shift}{shift the read position by a user-defined number of basepairs.
-This can be handy in the analysis of chip-seq data.}
+\item{filename}{A filename to write data to.}
 
-\item{paired.end}{a character string indicating how to handle paired-end
-reads. If \code{paired.end!="ignore"} then only first reads in proper mapped
-pairs will be consider (i.e. in the flag of the read, the bits in the mask
-66 must be all ones). If \code{paired.end=="midpoint"} then the midpoint of a
-fragment is considered, where \code{mid = fragment_start + int(abs(tlen)/2)},
-and where tlen is the template length stored in the bam file. For even tlen,
-the given midpoint will be moved of 0.5 basepairs in the 3' direction.
-If \code{paired.end=="extend"} then the whole fragment is treated
-as a single read.}
+\item{threshold}{A threshold on q-values. Set to 1 to write all regions.}
 
 \item{verbose}{A logical value indicating whether verbose output is desired}
 }
 \value{
-a \link{list} with the following elements:
- \item{posterior}{a matrix containing posteriors for model components.}
- \item{fit}{
-   Result of the multinomial fit. \code{qstar} is naive estimate of
-   background intensity. \code{theta} gives binomial mixture model
-   parameters. \code{prior} gives binomial mixture model priors.\code{lnL}
-   gives lLn Likelihood trace.
- }
+a \link{NormRFit} object
 }
 \description{
 This function implements the normalization of a treatment track with its
