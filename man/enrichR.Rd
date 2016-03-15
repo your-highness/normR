@@ -59,4 +59,9 @@ of enrichment.
 \examples{
 
 }
+\seealso{
+BamCountConfig-class
+
+NormRFit-class
+}
 
