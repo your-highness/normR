@@ -90,14 +90,16 @@ NULL
 #' @export
 setGeneric("enrichR", function(treatment, control, genome, ...)
   standardGeneric("enrichR"))
+setClassUnion("GenomicRangesOrNULL", c("GenomicRanges", "NULL"))
 #' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
 #' control (Input) for two given bam files and a genome data.frame
 #' @aliases enrichR
 #' @aliases enrichmentCall
 #' @rdname normr-methods
 #' @export
-setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
-  function(treatment, control, genome=NULL, eps=1e-5, procs=1L, verbose=TRUE) {
+setMethod("enrichR", signature("integer", "integer", "GenomicRangesOrNULL"),
+  function(treatment, control, genome=NULL, eps=1e-5, iterations=10, procs=1L,
+           verbose=TRUE) {
     if (length(treatment) != length(control)) {
       stop("incompatible treatment and control count vectors")
     }
@@ -136,7 +138,7 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
 #' @export
 setMethod("enrichR", signature("character", "character", "data.frame"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           eps=1e-5, procs=1L, verbose=TRUE) {
+           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
     if(!file.exists(paste(treatment, ".bai", sep=""))) {
       stop("No index file for", treatment, ".\n")
     }
@@ -145,9 +147,7 @@ setMethod("enrichR", signature("character", "character", "data.frame"),
     }
     if (NCOL(genome) != 2) stop("invalid genome data.frame")
 
-    require(GenomicRanges)
     gr <- GRanges(genome[,1], IRanges(1,genome[,2]))
-    require(parallel)
     counts <- mcmapply(bamsignals::bamProfile, bampath=c(treatment, control),
                        MoreArgs=list(gr=gr, binsize=countConfig@binsize,
                                      mapqual=countConfig@mapqual,
@@ -159,10 +159,10 @@ setMethod("enrichR", signature("character", "character", "data.frame"),
                        mc.cores=procs, SIMPLIFY=F)
 
     #Give bins across the supplied genome
-    gr <- unlist(tile(gr, countConfig@binsize))
+    gr <- unlist(tile(gr, width=countConfig@binsize))
 
-    return(enrichR(counts[[1]], counts[[2]], gr, countConfig, eps, procs,
-                   verbose))
+    return(enrichR(counts[[1]], counts[[2]], gr, countConfig, eps, iterations, 
+      procs, verbose))
 })
 #' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
 #' control (Input) for two given bam files and a genome data.frame
@@ -171,7 +171,7 @@ setMethod("enrichR", signature("character", "character", "data.frame"),
 #' @rdname normr-methods
 setMethod("enrichR", signature("character", "character", "character"),
   function(treatment, control, genome="", countConfig=countConfigSingleEnd(),
-           eps=1e-5, procs=1L, verbose=TRUE) {
+           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     if (!file.exists(treatment)) strop("treatment is not a file")
     if (!file.exists(control)) strop("control is not a file")
@@ -182,8 +182,8 @@ setMethod("enrichR", signature("character", "character", "character"),
     idx <- which(!genome$circular & genome$SequenceRole=="assembled-molecule")
     genome <- genome[idx,1:2]
 
-    return(enrichR(treatment, control, genome, countConfig, eps, procs,
-                   verbose))
+    return(enrichR(treatment, control, genome,countConfig, eps, iterations, 
+      procs, verbose))
 })
 
 #' @export
