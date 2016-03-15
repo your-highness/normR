@@ -155,6 +155,8 @@ setMethod("enrichR", signature("character", "character", "data.frame"),
                                      paired.end=getFilter(countConfig),
                                      #Tlen.filter not yet in Bioconductor
                                      #tlen.filter=countConfig@tlenFilter,
+                                     #filteredFlag not yet in Bioconductor
+                                     #filteredFlag=countConfig@requiredFlag,
                                      verbose=F),
                        mc.cores=procs, SIMPLIFY=F)
 

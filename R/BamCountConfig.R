@@ -25,18 +25,19 @@
 #' @slot mapqual discard reads with mapping quality strictly lower than this 
 #' parameter. The value 0 ensures that no read will be discarded, the value 254 
 #' that only reads with the highest possible mapping quality will be considered.
-#' @slot flag An \code{integer()} to filter for when counting reads (SAMFLAG).
-#' Not used at the moment.
+#' @slot filteredFlag An \code{integer()} to filter for when counting reads (SAMFLAG).
+#' For example, 1024 filters out marked duplicates (default), see
+#' \url{https://broadinstitute.github.io/picard/explain-flags.html}
 #' @slot shift shift the read position by a user-defined number of basepairs. 
 #' This can be handy in the analysis of chip-seq data.
 #' @slot midpoint A \code{logical()} indicating whether fragment midpoints 
 #' instead of 5'-ends should be counted in paired end data.
-#' @slot tlen.filter A filter on fragment length as estimated from alignment 
+#' @slot tlenfilter A filter on fragment length as estimated from alignment 
 #' in paired end experiments (TLEN). If set to \code{c(min,max)} only reads are 
 #' considered where \code{min <= TLEN <= max}. If \code{paired.end=="ignore"}, 
 #' this argument is set to \code{NULL} and no filtering is done. If 
 #' \code{paired.end!="ignore"}, this argument defaults to \code{c(0,1000)}.
-#' 
+#'
 #' @aliases BamCountConfig
 #' @aliases BamsignalsConfig
 #; @aliases BamsignalsCountConfig
@@ -52,7 +53,7 @@ setClass("BamCountConfig",
                                     chromosomes="GenomicRanges",
                                     binsize="integer",
                                     mapq="integer",
-                                    flag="character",
+                                    filteredFlag="character",
                                     shift="integer",
                                     midpoint="logical",
                                     tlenfilter="integer"
@@ -67,7 +68,9 @@ setValidity("BamCountConfig",
       if (is.null(object@chromosomes)) stop("invalid chromosomes")
       if (object@binsize <= 0) stop("invalid binsize")
       if (object@mapq < 0 | object@mapq > 255) stop("invalid mapq")
-      if (!is.null(object@flag)) stop("flag filtering not supported yet")
+      if (object@filteredFlag < -1 | object@filteredFlag > 4095) {
+        stop("invalid filteredFlag")
+      }
       if (object@shift < 0) stop("invalid shift")
       if (object@type == "paired.end") {
         if (length(object@tlenfilter) != 2) stop("invalid tlenfilter")
@@ -83,7 +86,7 @@ setMethod("print", "BamCountConfig",
           "Type:\t\t", x@type, "\n",
           "Binsize:\t\t", x@binsize, " bp\n",
           "Minimal MAPQ:\t", x@mapq, "\n",
-          "Filtered SAMFLAG:\t", x@flag, "\n",
+          "Filtered SAMFLAG:\t", x@filteredFlag, "\n",
           "Shift of anchor:\t", x@shift, " bp \n")
       if (x@type == "paired.end") {
         cat("\nPaired End Options: \n",
@@ -104,10 +107,11 @@ setGeneric("countConfigPairedEnd", function(...)
 #' @aliases countConfigPairedEnd
 #' @export
 setMethod("countConfigPairedEnd", 
-  definition=function(binsize=250, mapq=20, flag=NULL, shift=0, midpoint=T,
+  definition=function(binsize=250, mapq=20, filteredFlag=1024, shift=0, midpoint=T,
                       tlenfilter=c(70, 200)) {
     new("BamCountConfig", type="paired.end", binsize=binsize, mapq=mapq, 
-        flag=flag, shift=shift, midpoint=midpoint, tlenfilter=tlenfilter)
+        filteredFlag=filteredFlag, shift=shift, midpoint=midpoint,
+        tlenfilter=tlenfilter)
 })
 
 #' @export
@@ -117,9 +121,9 @@ setGeneric("countConfigSingleEnd", function(...)
 #' @aliases countConfigSingleEnd
 #' @export
 setMethod("countConfigSingleEnd", 
-  definition=function(binsize=250, mapq=20, flag=NULL, shift=0) {
+  definition=function(binsize=250, mapq=20, filteredFlag=1024, shift=0) {
     new("BamCountConfig", type="single.end", binsize=binsize, mapq=mapq, 
-        flag=flag, shift=shift)
+        filteredFlag=filteredFlag, shift=shift)
 })
 
 #' @export
