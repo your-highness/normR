@@ -19,7 +19,7 @@
 \usage{
 \S4method{length}{NormRFit}(x)
 
-\S4method{summary}{NormRFit}(object, print = T, ...)
+\S4method{summary}{NormRFit}(object, print = T, digits = 3, ...)
 
 \S4method{getCounts}{NormRFit}(obj)
 

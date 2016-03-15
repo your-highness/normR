@@ -18,10 +18,10 @@
 \title{Container for counting with bamsignals}
 \usage{
 \S4method{countConfigPairedEnd}{ANY}(binsize = 250, mapq = 20,
-  flag = NULL, shift = 0, midpoint = T, tlenfilter = c(70, 200))
+  filteredFlag = 1024, shift = 0, midpoint = T, tlenfilter = c(70, 200))
 
 \S4method{countConfigSingleEnd}{ANY}(binsize = 250, mapq = 20,
-  flag = NULL, shift = 0)
+  filteredFlag = 1024, shift = 0)
 
 \S4method{getFilter}{BamCountConfig}(obj)
 }
@@ -55,8 +55,9 @@ from bamfiles with bamsignals::bamProfile().
 parameter. The value 0 ensures that no read will be discarded, the value 254 
 that only reads with the highest possible mapping quality will be considered.}
 
-\item{\code{flag}}{An \code{integer()} to filter for when counting reads (SAMFLAG).
-Not used at the moment.}
+\item{\code{filteredFlag}}{An \code{integer()} to filter for when counting reads (SAMFLAG).
+For example, 1024 filters out marked duplicates (default), see
+\url{https://broadinstitute.github.io/picard/explain-flags.html}}
 
 \item{\code{shift}}{shift the read position by a user-defined number of basepairs. 
 This can be handy in the analysis of chip-seq data.}
@@ -64,7 +65,7 @@ This can be handy in the analysis of chip-seq data.}
 \item{\code{midpoint}}{A \code{logical()} indicating whether fragment midpoints 
 instead of 5'-ends should be counted in paired end data.}
 
-\item{\code{tlen.filter}}{A filter on fragment length as estimated from alignment 
+\item{\code{tlenfilter}}{A filter on fragment length as estimated from alignment 
 in paired end experiments (TLEN). If set to \code{c(min,max)} only reads are 
 considered where \code{min <= TLEN <= max}. If \code{paired.end=="ignore"}, 
 this argument is set to \code{NULL} and no filtering is done. If 
