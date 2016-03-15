@@ -84,8 +84,8 @@ NULL
 #' @return a \link{NormRFit} object 
 #'
 #' @example inst/examples/methods_example.R
-#' @see BamCountConfig-class
-#' @see NormRFit-class
+#' @seealso BamCountConfig-class
+#' @seealso NormRFit-class
 
 #' @export
 setGeneric("enrichR", function(treatment, control, genome, ...)
