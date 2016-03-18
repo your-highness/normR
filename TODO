@@ -67,10 +67,11 @@ DONE remove tlen.filter until propagated to Bioconductor
 DONE write tests for NormRFit.R
 
 -write tests for methods.R  (small toy data)
-- check correctness of getEnrichmentWithMap & getEnrichment
+-check correctness of getEnrichmentWithMap & getEnrichment
 -write exec scripts for commandline usage
 -write vignette (normalization, diff-calling seperately on minimal test set or
  public data)
+-check which files in ./man/ are really needed
 -update dates & LICENSE HEADER in sourcefiles
 -update README
 -R CMD build & R CMD install & R CMD check & R CMD biocCheck
