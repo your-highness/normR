@@ -40,7 +40,7 @@
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #' @seealso \code{\link{normr-methods}} for available functions
 #' @useDynLib normr, .registration=TRUE
-#' @include NormRFit.R 
+#' @include NormRFit.R
 #' @include BamCountConfig.R
 NULL
 
@@ -81,7 +81,7 @@ NULL
 #' @param threshold A threshold on q-values. Set to 1 to write all regions.
 #' @param verbose A logical value indicating whether verbose output is desired
 #'
-#' @return a \link{NormRFit} object 
+#' @return a \link{NormRFit} object
 #'
 #' @example inst/examples/methods_example.R
 #' @seealso BamCountConfig-class
@@ -105,7 +105,7 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRangesOrNULL"),
     }
 
     # C++ does computation & construct NormRFit-class object herein
-    fit <- normr:::normr_core(control, treatment, 2L, eps, iterations, 1, F, 
+    fit <- normr:::normr_core(control, treatment, 2L, eps, iterations, 1, F,
                               verbose, procs)
 
     #Storey's q-value on T filtered P-values
@@ -123,7 +123,7 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRangesOrNULL"),
              counts=list(fit$map$values[1,],fit$map$values[2,]),
              names=c(names(treatment), names(control)), thetastar=fit$qstar,
              theta=exp(fit$lntheta), mixtures=exp(fit$lnprior), lnL=fit$lnL,
-             eps=eps, lnposteriors=fit$lnpost, lnenrichment=fit$lnenrrichment, 
+             eps=eps, lnposteriors=fit$lnpost, lnenrichment=fit$lnenrrichment,
              lnpvals=fit$lnpvals, filteredT=fit$filtered, lnqvals=qvals)
 
     #Print logging information
@@ -163,7 +163,7 @@ setMethod("enrichR", signature("character", "character", "data.frame"),
     #Give bins across the supplied genome
     gr <- unlist(tile(gr, width=countConfig@binsize))
 
-    return(enrichR(counts[[1]], counts[[2]], gr, countConfig, eps, iterations, 
+    return(enrichR(counts[[1]], counts[[2]], gr, countConfig, eps, iterations,
       procs, verbose))
 })
 #' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
@@ -184,7 +184,7 @@ setMethod("enrichR", signature("character", "character", "character"),
     idx <- which(!genome$circular & genome$SequenceRole=="assembled-molecule")
     genome <- genome[idx,1:2]
 
-    return(enrichR(treatment, control, genome,countConfig, eps, iterations, 
+    return(enrichR(treatment, control, genome,countConfig, eps, iterations,
       procs, verbose))
 })
 
@@ -199,7 +199,7 @@ setMethod("recomputeP", signature("NormRFit", "integer"), function(fit, B) {
 })
 
 #' @export
-setGeneric("exportR", function(fit, filename, format, ...) 
+setGeneric("exportR", function(fit, filename, format, ...)
   standardGeneric("exportR"))
 #' \code{exportR}: Export results of a normR fit. The provided filetype
 #' specifies if significant regions (\code{"bed"}) or calculated enrichment
