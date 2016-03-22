@@ -14,17 +14,17 @@ test_that("Function arguments are checked correctly", {
     #input files
     expect_error(func("dmp.bam", "dmp2.bam"), info="Non existing files")
     if (file.create(c("dmp.bam", "dmp2.bam"), showWarnings=F)[1]) {
-      expect_error(func("dmp.bam", "dmp2.bam", data.frame()), 
+      expect_error(func("dmp.bam", "dmp2.bam", data.frame()),
         info="No index")
       file.remove(c("dmp.bam", "dmp2.bam"))
     }
-    expect_error(func("dmp.bam", c(1,1,1,1)), 
+    expect_error(func("dmp.bam", c(1,1,1,1)),
       info="file and vector input not allowed")
 
     #input vectors
-    expect_error(func(c(0.1,0.1,0.1), c(0.1,0.1,0.1), NULL), 
+    expect_error(func(c(0.1,0.1,0.1), c(0.1,0.1,0.1), NULL),
       info="Numeric type")
-    expect_error(func(c(1,1,1), c(1,1,1,1), NULL), 
+    expect_error(func(c(1,1,1), c(1,1,1,1), NULL),
       info="Different vector length")
 
     if (func.str %in% c("diffR", "regimeR")) {
@@ -55,6 +55,7 @@ test_that("Fitting with counting from bam files works correctly", {
 
   #test for multiple binsizes
   for (binsize in c(250, 500, 1000)) {
+
 
     #TODO continue here
     #normr::enrichR()
