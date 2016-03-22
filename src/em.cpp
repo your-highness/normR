@@ -289,11 +289,11 @@ static inline void map2uniquePairs_core(std::vector<int> r, std::vector<int> s,
 //'
 //' @param r An \code{integer()}-vector If elements are not integers, they
 //'  will be casted to integers.
-//' @param s An \code{integer()}-vector. If elements are not integers, they 
+//' @param s An \code{integer()}-vector. If elements are not integers, they
 //'  will be casted to integers.
 //' @return a list with the following items:
 //'        \item{values}{unique and sorted values of \code{r} and \code{s}}
-//'        \item{map}{a vector such that 
+//'        \item{map}{a vector such that
 //'                   \code{cbind(r,s)[i,] = values[,map[i]]} for every i}
 // [[Rcpp::export]]
 List mapToUniquePairs(const IntegerVector& r, const IntegerVector& s){
@@ -360,7 +360,7 @@ NumericVector mapToUniqueWithMap(const NumericVector& vec, const List& m2u) {
 ///calculates the posteriors based on a normr model fit
 static inline void calculatePost(NumericMatrix& lnPost, NumericVector& lnZ,
     const NumericVector& r, const NumericVector& s, const NumericVector&
-    lnprior, const NumericVector& lntheta, const NumericVector& lnftheta, 
+    lnprior, const NumericVector& lntheta, const NumericVector& lnftheta,
   const int nthreads=1) {
     int models = lnprior.length();
     for (int k = 0; k < models; ++k) {
@@ -373,7 +373,7 @@ static inline void calculatePost(NumericMatrix& lnPost, NumericVector& lnZ,
 }
 
 ///EXPECTATION MAXIMIZATION
-List em(const List& m2u_sub, const int models=2, const double eps=0.0001, 
+List em(const List& m2u_sub, const int models=2, const double eps=0.0001,
     const bool verbose=false, const int nthreads=1) {
   //Get values from mapToUniquePairs structure as NumericVector
   NumericVector ur_sub = as<NumericMatrix>(m2u_sub["values"]).row(0);
@@ -387,13 +387,13 @@ List em(const List& m2u_sub, const int models=2, const double eps=0.0001,
   NumericVector lnprior(models), lntheta(models), lnftheta(models);
   lnprior = runif(models, 0, 1);
   lnprior = log(lnprior / sum(lnprior));
-  double qstar = sum(us_sub * uamount_sub) / 
+  double qstar = sum(us_sub * uamount_sub) /
     sum(ur_sub * uamount_sub + us_sub * uamount_sub);
   double jitter = qstar-.01;
   lntheta = log(rep(qstar, models) + runif(models, -jitter, +jitter));
   lnftheta = log(1 - exp(lntheta));
   if (verbose) {
-    message("  ...initiatilizing prior and theta (theta*=" + 
+    message("  ...initiatilizing prior and theta (theta*=" +
         std::to_string(qstar) + ")");
   }
 
@@ -414,7 +414,7 @@ List em(const List& m2u_sub, const int models=2, const double eps=0.0001,
   double lnPostSum = 0;
   while ((runs < 25) | notConverged) { // run at least 25 times for burn in
     /*
-     * Expectation. Works only on unique values and uses indexes of logRowSum 
+     * Expectation. Works only on unique values and uses indexes of logRowSum
      * result to restore original matrix
      */
     calculatePost(lnPost, lnZ, ur_sub, us_sub, lnprior, lntheta, lnftheta,
@@ -432,7 +432,7 @@ List em(const List& m2u_sub, const int models=2, const double eps=0.0001,
     for (int k = 0; k < models; ++k) {
       lnPost_us_sub_log = lnPost(_, k) + us_sub_log;
       lnPost_un_sub_log = lnPost(_, k) + un_sub_log;
-      lntheta[k] = logSumVector(lnPost_us_sub_log, nthreads) 
+      lntheta[k] = logSumVector(lnPost_us_sub_log, nthreads)
                    - logSumVector(lnPost_un_sub_log, nthreads);
       lnftheta[k] = log(1 - exp(lntheta[k]));
       lnprior[k] = logSumVector(lnPost(_, k), nthreads) - lnPostSum;
@@ -453,14 +453,14 @@ List em(const List& m2u_sub, const int models=2, const double eps=0.0001,
      */
     runs++;
     if (verbose && (!notConverged || (runs % 10) == 0)) {
-      std::string priorstr = ""; std::string thetastr = ""; 
+      std::string priorstr = ""; std::string thetastr = "";
       for (int k = 0; k < models; k++) { //loop over model components
         priorstr += std::to_string(exp(lnprior[k]));
         thetastr += std::to_string(exp(lntheta[k]));
       }
-      message("  Run " + std::to_string(runs) + ": lnL=" + 
-          std::to_string(lnLNew) + ", step=" + 
-          std::to_string(lnLNew - lnL[lnL.size() - 2]) + ", prior=(" + 
+      message("  Run " + std::to_string(runs) + ": lnL=" +
+          std::to_string(lnLNew) + ", step=" +
+          std::to_string(lnLNew - lnL[lnL.size() - 2]) + ", prior=(" +
           priorstr + ") theta=(" + thetastr + ")");
     }
   }
@@ -476,6 +476,7 @@ List em(const List& m2u_sub, const int models=2, const double eps=0.0001,
 // [[Rcpp::export]]
 NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
      const List& m2u, const int B=0, const int nthreads=1) {
+//TODO impleent standardization for enrichR and diffR
   if (B < 0 || B >= lnPost.ncol()) stop("invalid B argument");
 
   NumericVector ur_log = log(as<NumericMatrix>(m2u["values"]).row(0));
@@ -488,9 +489,9 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
 
   //calculate pseudo-counts from fit B
   double lnP_sum = logSumVector(lnPost(_,B) + uamount_log, nthreads);
-  double lnPseu_r = 
+  double lnPseu_r =
     logSumVector(lnPost(_,B) + ur_log + uamount_log, nthreads) - lnP_sum;
-  double lnPseu_s = 
+  double lnPseu_s =
     logSumVector(lnPost(_,B) + us_log + uamount_log, nthreads) - lnP_sum;
 
   NumericVector out(ur_log.size());
@@ -498,7 +499,7 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
   for (int i = 0; i < out.size(); ++i) {
     ur_log[i] = ur_log[i] + lnPseu_r;
     us_log[i] = us_log[i] + lnPseu_s;
-    out[i] = (us_log[i] - ur_log[i]) / (lnPseu_r - lnPseu_s);  
+    out[i] = (us_log[i] - ur_log[i]) / (lnPseu_r - lnPseu_s);
   }
 
   return out;
@@ -512,8 +513,8 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
 //' @param B column index of background component in posteriors (DEFAULT=0)
 //' @return a numeric with enrichment values in log space
 // [[Rcpp::export]]
-NumericVector computeEnrichment(const IntegerVector& r, const IntegerVector& s, 
-    const NumericMatrix& posteriors, const int B=0, const int nthreads=1) { 
+NumericVector computeEnrichment(const IntegerVector& r, const IntegerVector& s,
+    const NumericMatrix& posteriors, const int B=0, const int nthreads=1) {
   //reduce data set to unique
   List m2u = mapToUniquePairs(r, s);
   NumericMatrix lnP(as<NumericMatrix>(m2u["values"]).nrow(), posteriors.ncol());
@@ -523,7 +524,7 @@ NumericVector computeEnrichment(const IntegerVector& r, const IntegerVector& s,
   return mapToOriginal(computeEnrichmentWithMap(lnP, m2u, B, nthreads), m2u);
 }
 
-double getLnP(const int r, const int s, const double p, 
+double getLnP(const int r, const int s, const double p,
     const bool twoTailed=false) {
   int n = r+s;
   if (twoTailed) {
@@ -551,7 +552,7 @@ double getLnP(const int r, const int s, const double p,
   }
 }
 
-NumericVector getPWithMap(const List& m2u, const double theta, 
+NumericVector getPWithMap(const List& m2u, const double theta,
     const bool diffCall=false, const int nthreads=1) {
   NumericVector ur = as<NumericMatrix>(m2u["values"]).row(0);
   NumericVector us = as<NumericMatrix>(m2u["values"]).row(1);
@@ -567,7 +568,7 @@ NumericVector getPWithMap(const List& m2u, const double theta,
 
 //a T filter implementation: What is the margin were significance can be
 //achieved?
-int tthreshold(const double p, const double eps=.0001, 
+int tthreshold(const double p, const double eps=.0001,
     const bool diffCall=false) {
   if (p < 0 || p > 0) stop("invalid p");
 
@@ -578,9 +579,9 @@ int tthreshold(const double p, const double eps=.0001,
     if (getLnP(r, marg, p, diffCall) >= thresh) break;
     if ((marg-1) > 0) {
       for (int i=(marg-1); i >= 1; --i) {
-        if (getLnP(i, (marg-i), p, diffCall) >= thresh) { 
-          run = false; 
-          break; 
+        if (getLnP(i, (marg-i), p, diffCall) >= thresh) {
+          run = false;
+          break;
         }
         if ((marg-i) != i) {
           if(getLnP((marg-i), i, p, diffCall) >= thresh) {
@@ -592,10 +593,10 @@ int tthreshold(const double p, const double eps=.0001,
     }
     marg++;
   }
-  return marg; 
+  return marg;
 }
 
-IntegerVector filterIdx(const List& m2u, const double theta, 
+IntegerVector filterIdx(const List& m2u, const double theta,
     const double eps=.0001, const bool diffCall=false) {
   if (theta < 0 || theta > 1) stop("invalid theta");
   if (eps < 0 || eps > 1) stop("invalid eps");
@@ -619,23 +620,23 @@ IntegerVector filterIdx(const List& m2u, const double theta,
 //' data is modeled as a mixture of binomial distributions. Fitting is done
 //' with Expectation Maximization (EM) on data points were \code{r > 0 & s > 0}.
 //'
-//' In a first step, a map of unique non-zero (r,s) values is generated. This 
+//' In a first step, a map of unique non-zero (r,s) values is generated. This
 //' allows for faster runtime. Second, EM is run with the given number of
 //' components on these reduced data representation. If \code{iterations > 1},
 //' the fit with the highest likelihood is selected. In a third step, a map for
 //' all (r,s) values is generated. Based on this map the complete posterior
 //' matrix, P-values and enrichment is calculated. The returned values are
-//' holding results exclusively for unique (r,s) values and go directly into a 
+//' holding results exclusively for unique (r,s) values and go directly into a
 //' \code{\link{NormRFit-class}} object.
 //'
-//' @param r \code{integer}-vector of counts (e.g. control counts in enrichment 
+//' @param r \code{integer}-vector of counts (e.g. control counts in enrichment
 //' calls). If elements are not integers, they will be casted to integers.
-//' @param s \code{integer}-vector of counts (e.g. treatment counts in 
-//' enrichment calls). If elements are not integers, they will be casted to 
+//' @param s \code{integer}-vector of counts (e.g. treatment counts in
+//' enrichment calls). If elements are not integers, they will be casted to
 //' integers.
-//' @param models \code{integer} specifying number of mixture components which 
+//' @param models \code{integer} specifying number of mixture components which
 //' should be >= 2 (default=2).
-//' @param eps \code{double} specifying termination criterion for EM fit 
+//' @param eps \code{double} specifying termination criterion for EM fit
 //' (default=0.001).
 //' @param iterations \code{integer} specifying the number of individual EM runs
 //' with differential initial parameters to be done. Adjust this argument to
@@ -656,13 +657,13 @@ IntegerVector filterIdx(const List& m2u, const double theta,
 //'  \item{lnL}{log likelihood trace of EM}
 //'  \item{lnposterior}{ln posteriors for unique (r,s) according to map}
 //'  \item{lnenrichment}{ln enrichment for unique (r,s) according to map}
-//'  \item{lnpvals}{ln P-values for mixture component \code{bgIdx} for each 
+//'  \item{lnpvals}{ln P-values for mixture component \code{bgIdx} for each
 //'   unique (r,s)}
 //'  \item{filtered}{unique (r,s) tupels passing the T filter with \code{eps}}
 // [[Rcpp::export]]
-List normr_core(const IntegerVector& r, const IntegerVector& s, 
-    const int models=2, const double eps=.0001, const int iterations=5, 
-    const int bgIdx=0, const bool diffCall=false, const bool verbose=false, 
+List normr_core(const IntegerVector& r, const IntegerVector& s,
+    const int models=2, const double eps=.0001, const int iterations=5,
+    const int bgIdx=0, const bool diffCall=false, const bool verbose=false,
     const int nthreads=1) {
   if (models < 2) {
       stop("Error: need at least 2 models (i.e. background and foreground)");
@@ -683,7 +684,7 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
   LogicalVector idx = (r > 0 & s > 0);
   if (verbose) {
      message("\t... removing (r == 0) or (s == 0) regions [" +
-         std::to_string(logical2Count(idx)) + " of " + 
+         std::to_string(logical2Count(idx)) + " of " +
          std::to_string(r.length()) +" regions kept].");
   }
   List m2u_sub = mapToUniquePairs(r[idx], s[idx]);
@@ -698,7 +699,7 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
       NumericVector lnLNew = as<NumericVector>(fit_new["lnL"]);
       if (lnLNew[lnLNew.size()-1] > lnLOld[lnLOld.size()-1]) {
         fit = fit_new;
-        if (verbose) message("+++ Iteration " + std::to_string(i) + 
+        if (verbose) message("+++ Iteration " + std::to_string(i) +
             " best so far. Fit updated.");
       }
     }
@@ -735,15 +736,15 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
   NumericVector pvals = getPWithMap(m2u, exp(lntheta[0]), diffCall, nthreads);
 
   //indizes of p-values passing T filter
-  if (verbose) { 
+  if (verbose) {
     message("...applying T filter with threshold " + std::to_string(eps) + ".");
   }
   IntegerVector filteredT = filterIdx(m2u, exp(lntheta[0]), eps, diffCall);
 
   if (verbose) message("[Finished] normR mixture modeling");
   return List::create(Named("qstar")=fit["qstar"], Named("map")=m2u,
-      Named("lntheta")=lntheta, Named("lnprior")=lnprior, 
-      Named("lnposterior")=lnPost, Named("lnL")=as<NumericVector>(fit["lnL"]), 
-      Named("lnenrichment")=enr, Named("lnpvals")=pvals, 
+      Named("lntheta")=lntheta, Named("lnprior")=lnprior,
+      Named("lnposterior")=lnPost, Named("lnL")=as<NumericVector>(fit["lnL"]),
+      Named("lnenrichment")=enr, Named("lnpvals")=pvals,
       Named("filtered")=filteredT);
 }
