@@ -114,6 +114,7 @@ NumericMatrix subMatrix(const NumericMatrix& mat, int col) {
     return(matslice);
 }
 ///computes logarhythmic row sums for a Rcpp::NumericMatrix
+// [[Rcpp::export]]
 NumericVector logRowSum(const NumericMatrix& mat, int nthreads=1){
     const int rows = mat.nrow();
     const int cols = mat.ncol();
@@ -159,6 +160,7 @@ double max_parallel(const NumericVector& vec, int nthreads=1) {
     return max;
 }
 ///computes logarithmic sum for Rcpp::NumericVector
+// [[Rcpp::export]]
 double logSumVector(const NumericVector& vec, int nthreads=1) {
     const int len = vec.size();
     //better to use unparallized here
@@ -342,12 +344,13 @@ NumericVector mapToOriginal(const NumericVector& vec, const List& m2u) {
 
 // [[Rcpp::export]]
 NumericVector mapToUniqueWithMap(const NumericVector& vec, const List& m2u) {
-  int l = as<NumericMatrix>(m2u["values"]).nrow();
+  int l = as<NumericMatrix>(m2u["values"]).ncol();
   NumericVector out(l);
+  std::fill(out.begin(), out.end(), NumericVector::get_na());
 
   IntegerVector map = as<IntegerVector>(m2u["map"]);
   for (int i = 0; i < map.size(); i++) {
-    if (out[map[i]] != 0) out[map[i]] = vec[i];
+    if (NumericVector::is_na(out[map[i]])) out[map[i]] = vec[i];
   }
 
   return out;
@@ -390,7 +393,7 @@ List em(const List& m2u_sub, const int models=2, const double eps=0.0001,
   double qstar = sum(us_sub * uamount_sub) /
     sum(ur_sub * uamount_sub + us_sub * uamount_sub);
   double jitter = qstar-.01;
-  lntheta = log(rep(qstar, models) + runif(models, -jitter, +jitter));
+  lntheta = log(rep(qstar, models) + runif(models, -.01, +.01));
   lnftheta = log(1 - exp(lntheta));
   if (verbose) {
     message("  ...initiatilizing prior and theta (theta*=" +
@@ -455,8 +458,8 @@ List em(const List& m2u_sub, const int models=2, const double eps=0.0001,
     if (verbose && (!notConverged || (runs % 10) == 0)) {
       std::string priorstr = ""; std::string thetastr = "";
       for (int k = 0; k < models; k++) { //loop over model components
-        priorstr += std::to_string(exp(lnprior[k]));
-        thetastr += std::to_string(exp(lntheta[k]));
+        priorstr += " "+std::to_string(exp(lnprior[k]));
+        thetastr += " "+std::to_string(exp(lntheta[k]));
       }
       message("  Run " + std::to_string(runs) + ": lnL=" +
           std::to_string(lnLNew) + ", step=" +
@@ -475,9 +478,10 @@ List em(const List& m2u_sub, const int models=2, const double eps=0.0001,
 ///compute posteriors with a map and a log posterior matrix on the unique values
 // [[Rcpp::export]]
 NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
-     const List& m2u, const int B=0, const int nthreads=1) {
-//TODO impleent standardization for enrichR and diffR
-  if (B < 0 || B >= lnPost.ncol()) stop("invalid B argument");
+     const List& m2u, const NumericVector& theta, const int F=1, const int B=0,
+     const bool diffCall=false, const int nthreads=1) {
+  if (B < 0 || B >= lnPost.ncol() || B >= theta.size()) stop("invalid B argument");
+  if (lnPost.ncol() != theta.size()) stop("lnPost and theta not matching");
 
   NumericVector ur_log = log(as<NumericMatrix>(m2u["values"]).row(0));
   NumericVector us_log = log(as<NumericMatrix>(m2u["values"]).row(1));
@@ -488,18 +492,40 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
   }
 
   //calculate pseudo-counts from fit B
-  double lnP_sum = logSumVector(lnPost(_,B) + uamount_log, nthreads);
-  double lnPseu_r =
-    logSumVector(lnPost(_,B) + ur_log + uamount_log, nthreads) - lnP_sum;
-  double lnPseu_s =
-    logSumVector(lnPost(_,B) + us_log + uamount_log, nthreads) - lnP_sum;
+  NumericVector lnP(lnPost.nrow());
+  lnP = lnPost(_,B) + uamount_log;
+  double lnP_sum = logSumVector(lnP, nthreads);
+  lnP = lnPost(_,B) + uamount_log + ur_log;
+  double lnPseu_r = logSumVector(lnP, nthreads) - lnP_sum;
+  lnP = lnPost(_,B) + uamount_log + us_log;
+  double lnPseu_s = logSumVector(lnP, nthreads) - lnP_sum;
+  double rglrz = lnPseu_r - lnPseu_s;
 
+  //compute regularized, standardized fold change
   NumericVector out(ur_log.size());
   #pragma omp parallel for schedule(static) num_threads(nthreads)
   for (int i = 0; i < out.size(); ++i) {
-    ur_log[i] = ur_log[i] + lnPseu_r;
-    us_log[i] = us_log[i] + lnPseu_s;
-    out[i] = (us_log[i] - ur_log[i]) / (lnPseu_r - lnPseu_s);
+    ur_log[i] = exp(ur_log[i]) + exp(lnPseu_r);
+    us_log[i] = exp(us_log[i]) + exp(lnPseu_s);
+    out[i] = log(us_log[i]) - log(ur_log[i]) + rglrz;
+  }
+  if (diffCall) {//standardization dependent on algebraic sign of fc
+    double stdrzC = log(theta[1]/(1-theta[1])*(1-theta[B])/theta[B]);
+    double stdrzT = log(theta[2]/(1-theta[2])*(1-theta[B])/theta[B]);
+    #pragma omp parallel for schedule(static) num_threads(nthreads)
+    for (int i = 0; i < out.size(); ++i) {
+      if (out[i] < 0) {
+        out[i] /= stdrzC;
+      } else {
+        out[i] /= stdrzT;
+      }
+    }
+  } else {
+    double stdrz = log(theta[F]/(1-theta[F])*(1-theta[B])/theta[B]);
+    #pragma omp parallel for schedule(static) num_threads(nthreads)
+    for (int i = 0; i < out.size(); ++i) {
+      out[i] = (us_log[i] - ur_log[i] + rglrz ) / stdrz;
+    }
   }
 
   return out;
@@ -509,19 +535,25 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
 //'
 //' @param r vector of counts in control/condition1
 //' @param s vector of counts in treatment/condition2
-//' @param posteriors posterior matrix as computed by a normR routine
+//' @param lnPost log-posterior matrix as computed by a normR routine
+//' @param theta numeric vector of binomial model parameters
+//' @param F column index of foreground component in posteriors (DEFAULT=1)
 //' @param B column index of background component in posteriors (DEFAULT=0)
+//' @param diffCall logical indicating if a difference call was performed. In
+//' that case standardization is performed dependent on the sign of the fold
+//' change. (DEFAULT=FALSE)
 //' @return a numeric with enrichment values in log space
 // [[Rcpp::export]]
 NumericVector computeEnrichment(const IntegerVector& r, const IntegerVector& s,
-    const NumericMatrix& posteriors, const int B=0, const int nthreads=1) {
+    const NumericMatrix& lnPost, const NumericVector& theta, const int F=1,
+    const int B=0, const bool diffCall=false, const int nthreads=1) {
   //reduce data set to unique
   List m2u = mapToUniquePairs(r, s);
-  NumericMatrix lnP(as<NumericMatrix>(m2u["values"]).nrow(), posteriors.ncol());
-  for (int i=0; i < posteriors.ncol(); ++i) {
-    lnP(_,i) = mapToUniqueWithMap(posteriors(_,i), m2u);
+  NumericMatrix lnP(as<NumericMatrix>(m2u["values"]).nrow(), lnPost.ncol());
+  for (int i=0; i < lnPost.ncol(); ++i) {
+    lnP(_,i) = mapToUniqueWithMap(lnPost(_,i), m2u);
   }
-  return mapToOriginal(computeEnrichmentWithMap(lnP, m2u, B, nthreads), m2u);
+  return mapToOriginal(computeEnrichmentWithMap(lnP, m2u, theta, F, B, nthreads), m2u);
 }
 
 double getLnP(const int r, const int s, const double p,
@@ -557,7 +589,6 @@ NumericVector getPWithMap(const List& m2u, const double theta,
   NumericVector ur = as<NumericMatrix>(m2u["values"]).row(0);
   NumericVector us = as<NumericMatrix>(m2u["values"]).row(1);
 
-  //TODO prevent double computations for same (ur[i] + us[i])
   NumericVector out(ur.size());
   #pragma omp parallel for schedule(static) num_threads(nthreads)
   for (int i = 0; i < out.size(); ++i) {
@@ -570,7 +601,7 @@ NumericVector getPWithMap(const List& m2u, const double theta,
 //achieved?
 int tthreshold(const double p, const double eps=.0001,
     const bool diffCall=false) {
-  if (p < 0 || p > 0) stop("invalid p");
+  if (p < 0 || p > 1) stop("invalid p");
 
   int r,s,marg;
   double thresh = log(eps);
@@ -596,6 +627,7 @@ int tthreshold(const double p, const double eps=.0001,
   return marg;
 }
 
+//[[Rcpp::export]]
 IntegerVector filterIdx(const List& m2u, const double theta,
     const double eps=.0001, const bool diffCall=false) {
   if (theta < 0 || theta > 1) stop("invalid theta");
@@ -605,12 +637,10 @@ IntegerVector filterIdx(const List& m2u, const double theta,
 
   NumericVector ur = as<NumericMatrix>(m2u["values"]).row(0);
   NumericVector us = as<NumericMatrix>(m2u["values"]).row(1);
-  int j;
   std::vector<int> idx;
-  for (int i=0; i < idx.size(); ++i) {
+  for (int i=0; i < ur.size(); ++i) {
     if ((ur[i] + us[i]) >= margin) {
       idx.push_back(i);
-      j++;
     }
   }
   return as<IntegerVector>(wrap(idx));
@@ -690,7 +720,7 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
   List m2u_sub = mapToUniquePairs(r[idx], s[idx]);
   List fit;
   for (int i = 0; i < iterations; ++i) {
-    if (verbose) message("\n*** Iteration " + std::to_string(i) + ":");
+    if (verbose) message("\n*** Iteration " + std::to_string(i+1) + ":");
     List fit_new = em(m2u_sub, models, eps, verbose, nthreads);
     if (fit.size() == 0) {
       fit = fit_new;
@@ -699,7 +729,7 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
       NumericVector lnLNew = as<NumericVector>(fit_new["lnL"]);
       if (lnLNew[lnLNew.size()-1] > lnLOld[lnLOld.size()-1]) {
         fit = fit_new;
-        if (verbose) message("+++ Iteration " + std::to_string(i) +
+        if (verbose) message("+++ Iteration " + std::to_string(i+1) +
             " best so far. Fit updated.");
       }
     }
@@ -715,12 +745,12 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
 
   //sort theta and calculate posterior for all data
   if (verbose) message("...computing posterior for all data.");
-  NumericVector lnprior(models);
-  NumericVector lntheta = as<NumericVector>(fit["lntheta"]);
-  std::vector<unsigned int> o = indexSort(as<std::vector<double> >(lntheta));
+  std::vector<unsigned int> o = 
+    indexSort(as<std::vector<double> >(as<NumericVector>(fit["lntheta"])));
+  NumericVector lnprior(models), lntheta(models);
   for (int k = 0; k < models; k++) { //loop over model components
-      lnprior[k] = as<NumericVector>(fit["lntheta"])(o[k]);
-      lntheta[k] = as<NumericVector>(fit["lnprior"])(o[k]);
+      lnprior[k] = as<NumericVector>(fit["lnprior"])(o[k]);
+      lntheta[k] = as<NumericVector>(fit["lntheta"])(o[k]);
   }
   NumericVector lnftheta = log(1 - exp(lntheta));
   NumericMatrix lnPost(ur.length(), models);
@@ -729,17 +759,19 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
 
   //calculate enrichment on map
   if (verbose) message("...computing enrichment.");
-  NumericVector enr = computeEnrichmentWithMap(lnPost, m2u, bgIdx, nthreads);
+  NumericVector enr = computeEnrichmentWithMap(lnPost, m2u, exp(lntheta),
+      models, bgIdx, diffCall, nthreads);
 
   //calculate p-values on map
   if (verbose) message("...computing P-values.");
-  NumericVector pvals = getPWithMap(m2u, exp(lntheta[0]), diffCall, nthreads);
+  NumericVector pvals = getPWithMap(m2u, exp(lntheta[bgIdx]), diffCall, nthreads);
 
   //indizes of p-values passing T filter
   if (verbose) {
-    message("...applying T filter with threshold " + std::to_string(eps) + ".");
+    message("...applying T filter with threshold eps=" + std::to_string(eps) + 
+        ".");
   }
-  IntegerVector filteredT = filterIdx(m2u, exp(lntheta[0]), eps, diffCall);
+  IntegerVector filteredT = filterIdx(m2u, exp(lntheta[bgIdx]), eps, diffCall);
 
   if (verbose) message("[Finished] normR mixture modeling");
   return List::create(Named("qstar")=fit["qstar"], Named("map")=m2u,

@@ -5,6 +5,30 @@
 
 using namespace Rcpp;
 
+// logRowSum
+NumericVector logRowSum(const NumericMatrix& mat, int nthreads);
+RcppExport SEXP normr_logRowSum(SEXP matSEXP, SEXP nthreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type mat(matSEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    __result = Rcpp::wrap(logRowSum(mat, nthreads));
+    return __result;
+END_RCPP
+}
+// logSumVector
+double logSumVector(const NumericVector& vec, int nthreads);
+RcppExport SEXP normr_logSumVector(SEXP vecSEXP, SEXP nthreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const NumericVector& >::type vec(vecSEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    __result = Rcpp::wrap(logSumVector(vec, nthreads));
+    return __result;
+END_RCPP
+}
 // mapToUniquePairs
 List mapToUniquePairs(const IntegerVector& r, const IntegerVector& s);
 RcppExport SEXP normr_mapToUniquePairs(SEXP rSEXP, SEXP sSEXP) {
@@ -42,31 +66,51 @@ BEGIN_RCPP
 END_RCPP
 }
 // computeEnrichmentWithMap
-NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost, const List& m2u, const int B, const int nthreads);
-RcppExport SEXP normr_computeEnrichmentWithMap(SEXP lnPostSEXP, SEXP m2uSEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
+NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost, const List& m2u, const NumericVector& theta, const int F, const int B, const bool diffCall, const int nthreads);
+RcppExport SEXP normr_computeEnrichmentWithMap(SEXP lnPostSEXP, SEXP m2uSEXP, SEXP thetaSEXP, SEXP FSEXP, SEXP BSEXP, SEXP diffCallSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< const NumericMatrix& >::type lnPost(lnPostSEXP);
     Rcpp::traits::input_parameter< const List& >::type m2u(m2uSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< const int >::type F(FSEXP);
     Rcpp::traits::input_parameter< const int >::type B(BSEXP);
+    Rcpp::traits::input_parameter< const bool >::type diffCall(diffCallSEXP);
     Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
-    __result = Rcpp::wrap(computeEnrichmentWithMap(lnPost, m2u, B, nthreads));
+    __result = Rcpp::wrap(computeEnrichmentWithMap(lnPost, m2u, theta, F, B, diffCall, nthreads));
     return __result;
 END_RCPP
 }
 // computeEnrichment
-NumericVector computeEnrichment(const IntegerVector& r, const IntegerVector& s, const NumericMatrix& posteriors, const int B, const int nthreads);
-RcppExport SEXP normr_computeEnrichment(SEXP rSEXP, SEXP sSEXP, SEXP posteriorsSEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
+NumericVector computeEnrichment(const IntegerVector& r, const IntegerVector& s, const NumericMatrix& lnPost, const NumericVector& theta, const int F, const int B, const bool diffCall, const int nthreads);
+RcppExport SEXP normr_computeEnrichment(SEXP rSEXP, SEXP sSEXP, SEXP lnPostSEXP, SEXP thetaSEXP, SEXP FSEXP, SEXP BSEXP, SEXP diffCallSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< const IntegerVector& >::type r(rSEXP);
     Rcpp::traits::input_parameter< const IntegerVector& >::type s(sSEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type posteriors(posteriorsSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type lnPost(lnPostSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< const int >::type F(FSEXP);
     Rcpp::traits::input_parameter< const int >::type B(BSEXP);
+    Rcpp::traits::input_parameter< const bool >::type diffCall(diffCallSEXP);
     Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
-    __result = Rcpp::wrap(computeEnrichment(r, s, posteriors, B, nthreads));
+    __result = Rcpp::wrap(computeEnrichment(r, s, lnPost, theta, F, B, diffCall, nthreads));
+    return __result;
+END_RCPP
+}
+// filterIdx
+IntegerVector filterIdx(const List& m2u, const double theta, const double eps, const bool diffCall);
+RcppExport SEXP normr_filterIdx(SEXP m2uSEXP, SEXP thetaSEXP, SEXP epsSEXP, SEXP diffCallSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const List& >::type m2u(m2uSEXP);
+    Rcpp::traits::input_parameter< const double >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< const double >::type eps(epsSEXP);
+    Rcpp::traits::input_parameter< const bool >::type diffCall(diffCallSEXP);
+    __result = Rcpp::wrap(filterIdx(m2u, theta, eps, diffCall));
     return __result;
 END_RCPP
 }
