@@ -106,12 +106,12 @@ setMethod("enrichR", signature("integer", "integer", "GRanges"),
     }
 
     # C++ does computation & construct NormRFit-class object herein
-    fit <- normr:::normr_core(control, treatment, 2L, eps, iterations, 1, F,
+    fit <- normr:::normr_core(control, treatment, 2L, eps, iterations, 0, F,
                               verbose, procs)
 
     #Storey's q-value on T filtered P-values
     if (verbose) message("... computing Q-values.")
-    idx <- which(fit$map$map %in% fit$filtered)
+    idx <- which(fit$map$map %in% fit$filteredT)
     qvals <- qvalue(exp(fit$lnpvals[idx]), eps)
     lnqvals <- as.numeric(rep(NA,length(treatment)))
     lnqvals[idx] <- log(qvals$qvalues)
@@ -125,16 +125,14 @@ setMethod("enrichR", signature("integer", "integer", "GRanges"),
              names=c("treatment", "control"), thetastar=fit$qstar,
              theta=exp(fit$lntheta), mixtures=exp(fit$lnprior), lnL=fit$lnL,
              eps=eps, lnposteriors=fit$lnpost, lnenrichment=fit$lnenrichment,
-             lnpvals=fit$lnpvals, filteredT=fit$filtered, lnqvals=lnqvals)
+             lnpvals=fit$lnpvals, filteredT=fit$filteredT, lnqvals=lnqvals)
 
     #Print logging information
     if (verbose) { 
       message("\n\n+++ OVERALL RESULT ++++\n")
       summary(o, print=T)
     }
-    #deleteme
-    return(list(o, fit))
-    #return(o)
+    return(o)
 })
 #' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
 #' control (Input) for two given bam files and a genome data.frame

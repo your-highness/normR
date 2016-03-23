@@ -100,20 +100,6 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// filterIdx
-IntegerVector filterIdx(const List& m2u, const double theta, const double eps, const bool diffCall);
-RcppExport SEXP normr_filterIdx(SEXP m2uSEXP, SEXP thetaSEXP, SEXP epsSEXP, SEXP diffCallSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const List& >::type m2u(m2uSEXP);
-    Rcpp::traits::input_parameter< const double >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< const double >::type eps(epsSEXP);
-    Rcpp::traits::input_parameter< const bool >::type diffCall(diffCallSEXP);
-    __result = Rcpp::wrap(filterIdx(m2u, theta, eps, diffCall));
-    return __result;
-END_RCPP
-}
 // normr_core
 List normr_core(const IntegerVector& r, const IntegerVector& s, const int models, const double eps, const int iterations, const int bgIdx, const bool diffCall, const bool verbose, const int nthreads);
 RcppExport SEXP normr_normr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP iterationsSEXP, SEXP bgIdxSEXP, SEXP diffCallSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {

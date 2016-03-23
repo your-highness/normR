@@ -128,8 +128,8 @@ setMethod("countConfigSingleEnd",
 
 #' @export
 setGeneric("getFilter", function(obj) standardGeneric("getFilter"))
-#' @describeIn BamCountConfig
-#' @aliases getFilter Get the bamsignals relevant filter
+#' @describeIn BamCountConfig Get the bamsignals relevant filter
+#' @aliases getFilter
 #' @export
 setMethod("getFilter", "BamCountConfig",
     function(obj) {

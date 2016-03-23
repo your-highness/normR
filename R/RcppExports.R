@@ -62,10 +62,6 @@ computeEnrichment <- function(r, s, lnPost, theta, F = 1L, B = 0L, diffCall = FA
     .Call('normr_computeEnrichment', PACKAGE = 'normr', r, s, lnPost, theta, F, B, diffCall, nthreads)
 }
 
-filterIdx <- function(m2u, theta, eps = .0001, diffCall = FALSE) {
-    .Call('normr_filterIdx', PACKAGE = 'normr', m2u, theta, eps, diffCall)
-}
-
 #' Deconvolute bivariate count data in multiple enrichment regimes. Bivariate
 #' data is modeled as a mixture of binomial distributions. Fitting is done
 #' with Expectation Maximization (EM) on data points were \code{r > 0 & s > 0}.
@@ -110,7 +106,7 @@ filterIdx <- function(m2u, theta, eps = .0001, diffCall = FALSE) {
 #'  \item{lnpvals}{ln P-values for mixture component \code{bgIdx} for each
 #'   unique (r,s)}
 #'  \item{filtered}{unique (r,s) tupels passing the T filter with \code{eps}}
-normr_core <- function(r, s, models = 2L, eps = .0001, iterations = 5L, bgIdx = 0L, diffCall = FALSE, verbose = FALSE, nthreads = 1L) {
+normr_core <- function(r, s, models = 2L, eps = 1e-5, iterations = 5L, bgIdx = 0L, diffCall = FALSE, verbose = FALSE, nthreads = 1L) {
     .Call('normr_normr_core', PACKAGE = 'normr', r, s, models, eps, iterations, bgIdx, diffCall, verbose, nthreads)
 }
 
