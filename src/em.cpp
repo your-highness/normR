@@ -299,26 +299,26 @@ static inline void map2uniquePairs_core(std::vector<int> r, std::vector<int> s,
 //'                   \code{cbind(r,s)[i,] = values[,map[i]]} for every i}
 // [[Rcpp::export]]
 List mapToUniquePairs(const IntegerVector& r, const IntegerVector& s){
-     if (r.length() != s.length()) {
-        stop("Lengths differ.");
-    }
-    std::vector<int> map(r.length());
-    std::vector<int> idx;
-    std::vector<int> amount;
-    std::vector<int> ur;
-    std::vector<int> us;
+  if (r.length() != s.length()) {
+    stop("Lengths differ.");
+  }
+  std::vector<int> map(r.length());
+  std::vector<int> idx;
+  std::vector<int> amount;
+  std::vector<int> ur;
+  std::vector<int> us;
 
-    map2uniquePairs_core(asVector(r), asVector(s), map, idx, amount, ur, us);
+  map2uniquePairs_core(asVector(r), asVector(s), map, idx, amount, ur, us);
 
-    NumericMatrix values(2,ur.size());
-    for (int i = 0; i < values.ncol(); ++i) {
-        values(0,i) = ur[i];
-        values(1,i) = us[i];
-    }
-    return List::create(Named("values")=values,
-        Named("amount")=NumericVector(amount.begin(), amount.end()),
-        Named("map")=IntegerVector(map.begin(), map.end())+1
-    );
+  NumericMatrix values(2,ur.size());
+  for (int i = 0; i < values.ncol(); ++i) {
+    values(0,i) = ur[i];
+    values(1,i) = us[i];
+  }
+  return List::create(Named("values")=values,
+      Named("amount")=NumericVector(amount.begin(), amount.end()),
+      Named("map")=IntegerVector(map.begin(), map.end())+1
+      );
 }
 
 //' Retrieve original vector of values with a supplied map
@@ -376,7 +376,7 @@ static inline void calculatePost(NumericMatrix& lnPost, NumericVector& lnZ,
 }
 
 ///EXPECTATION MAXIMIZATION
-List em(const List& m2u_sub, const int models=2, const double eps=0.0001,
+List em(const List& m2u_sub, const int models=2, const double eps=1e-5,
     const bool verbose=false, const int nthreads=1) {
   //Get values from mapToUniquePairs structure as NumericVector
   NumericVector ur_sub = as<NumericMatrix>(m2u_sub["values"]).row(0);
@@ -556,7 +556,7 @@ NumericVector computeEnrichment(const IntegerVector& r, const IntegerVector& s,
   return mapToOriginal(computeEnrichmentWithMap(lnP, m2u, theta, F, B, nthreads), m2u);
 }
 
-double getLnP(const int r, const int s, const double p,
+double getLnP(const int s, const int r, const double p,
     const bool twoTailed=false) {
   int n = r+s;
   if (twoTailed) {
@@ -580,7 +580,7 @@ double getLnP(const int r, const int s, const double p,
     }
   } else {
     if (s == 0) return 0;
-    else return R::pbinom(s-1, n, p, 0, 1);
+    return R::pbinom(s-1, n, p, 0, 1);
   }
 }
 
@@ -592,30 +592,30 @@ NumericVector getPWithMap(const List& m2u, const double theta,
   NumericVector out(ur.size());
   #pragma omp parallel for schedule(static) num_threads(nthreads)
   for (int i = 0; i < out.size(); ++i) {
-    out[i] = getLnP(us[i], (ur[i]+us[i]), theta, diffCall);
+    out[i] = getLnP(us[i], ur[i], theta, diffCall);
   }
   return out;
 }
 
 //a T filter implementation: What is the margin were significance can be
 //achieved?
-int tthreshold(const double p, const double eps=.0001,
+int tthreshold(const double p, const double eps=1e-5,
     const bool diffCall=false) {
   if (p < 0 || p > 1) stop("invalid p");
 
-  int r,s,marg;
+  int marg = 0;
   double thresh = log(eps);
   bool run = true;
   while (run) {
-    if (getLnP(r, marg, p, diffCall) >= thresh) break;
+    if (getLnP(0, marg, p, diffCall) <= thresh) break;
     if ((marg-1) > 0) {
       for (int i=(marg-1); i >= 1; --i) {
-        if (getLnP(i, (marg-i), p, diffCall) >= thresh) {
+        if (getLnP((marg-i), i, p, diffCall) <= thresh) {
           run = false;
           break;
         }
         if ((marg-i) != i) {
-          if(getLnP((marg-i), i, p, diffCall) >= thresh) {
+          if(getLnP(i, (marg-i), p, diffCall) <= thresh) {
             run = false;
             break;
           }
@@ -627,19 +627,18 @@ int tthreshold(const double p, const double eps=.0001,
   return marg;
 }
 
-//[[Rcpp::export]]
 IntegerVector filterIdx(const List& m2u, const double theta,
-    const double eps=.0001, const bool diffCall=false) {
+    const double eps=1e-5, const bool diffCall=false) {
   if (theta < 0 || theta > 1) stop("invalid theta");
   if (eps < 0 || eps > 1) stop("invalid eps");
 
   int margin = tthreshold(theta, eps, diffCall);
 
-  NumericVector ur = as<NumericMatrix>(m2u["values"]).row(0);
-  NumericVector us = as<NumericMatrix>(m2u["values"]).row(1);
+  NumericVector n = as<NumericMatrix>(m2u["values"]).row(0) +
+    as<NumericMatrix>(m2u["values"]).row(1);
   std::vector<int> idx;
-  for (int i=0; i < ur.size(); ++i) {
-    if ((ur[i] + us[i]) >= margin) {
+  for (int i=0; i < n.size(); ++i) {
+    if (n[i] >= margin) {
       idx.push_back(i);
     }
   }
@@ -692,7 +691,7 @@ IntegerVector filterIdx(const List& m2u, const double theta,
 //'  \item{filtered}{unique (r,s) tupels passing the T filter with \code{eps}}
 // [[Rcpp::export]]
 List normr_core(const IntegerVector& r, const IntegerVector& s,
-    const int models=2, const double eps=.0001, const int iterations=5,
+    const int models=2, const double eps=1e-5, const int iterations=5,
     const int bgIdx=0, const bool diffCall=false, const bool verbose=false,
     const int nthreads=1) {
   if (models < 2) {
@@ -778,5 +777,5 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
       Named("lntheta")=lntheta, Named("lnprior")=lnprior,
       Named("lnposterior")=lnPost, Named("lnL")=as<NumericVector>(fit["lnL"]),
       Named("lnenrichment")=enr, Named("lnpvals")=pvals,
-      Named("filtered")=filteredT);
+      Named("filteredT")=filteredT);
 }

@@ -89,7 +89,7 @@ setClass("NormRFit",
                                   lnposteriors = "matrix",
                                   lnenrichment = "numeric",
                                   lnpvals = "numeric",
-                                  filteredT = "numeric",
+                                  filteredT = "integer",
                                   lnqvals = "numeric" )
 )
 
@@ -222,8 +222,8 @@ setGeneric("getCounts", function(obj) standardGeneric("getCounts"))
 #' @aliases getCounts
 #' @export
 setMethod("getCounts", "NormRFit", function(obj) {
-  list("treatment"=obj@counts[[1]][obj@map],
-       "control"=obj@counts[[2]][obj@map])
+  list("control"=obj@counts[[1]][obj@map],
+       "treatment"=obj@counts[[2]][obj@map])
 })
 
 #'@export
