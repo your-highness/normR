@@ -4,17 +4,10 @@
 \name{BamCountConfig-class}
 \alias{BamCountConfig}
 \alias{BamCountConfig-class}
-\alias{Get}
-\alias{bamsignals}
 \alias{countConfigPairedEnd}
 \alias{countConfigPairedEnd,ANY-method}
 \alias{countConfigSingleEnd}
 \alias{countConfigSingleEnd,ANY-method}
-\alias{filter}
-\alias{getFilter}
-\alias{getFilter,BamCountConfig-method}
-\alias{relevant}
-\alias{the}
 \title{Container for counting with bamsignals}
 \usage{
 \S4method{countConfigPairedEnd}{ANY}(binsize = 250, mapq = 20,
@@ -22,8 +15,6 @@
 
 \S4method{countConfigSingleEnd}{ANY}(binsize = 250, mapq = 20,
   filteredFlag = 1024, shift = 0)
-
-\S4method{getFilter}{BamCountConfig}(obj)
 }
 \arguments{
 \item{chromosomes}{GenomicRanges object used to specify the chromosomes.}
@@ -40,39 +31,37 @@ from bamfiles with bamsignals::bamProfile().
 \item \code{countConfigPairedEnd}: Setup a paired end counting configuration
 
 \item \code{countConfigSingleEnd}: Setup a single end counting configuration
-
-\item \code{getFilter}: 
 }}
 \section{Slots}{
 
 \describe{
-\item{\code{type}}{A \code{character()} representing the type of bamfile 
+\item{\code{type}}{A \code{character()} representing the type of bamfile
 ("paired.end", "single.end").}
 
 \item{\code{binsize}}{An \code{integer()} giving the binsize to count in (in bp).}
 
-\item{\code{mapqual}}{discard reads with mapping quality strictly lower than this 
-parameter. The value 0 ensures that no read will be discarded, the value 254 
+\item{\code{mapqual}}{discard reads with mapping quality strictly lower than this
+parameter. The value 0 ensures that no read will be discarded, the value 254
 that only reads with the highest possible mapping quality will be considered.}
 
 \item{\code{filteredFlag}}{An \code{integer()} to filter for when counting reads (SAMFLAG).
 For example, 1024 filters out marked duplicates (default), see
 \url{https://broadinstitute.github.io/picard/explain-flags.html}}
 
-\item{\code{shift}}{shift the read position by a user-defined number of basepairs. 
+\item{\code{shift}}{shift the read position by a user-defined number of basepairs.
 This can be handy in the analysis of chip-seq data.}
 
-\item{\code{midpoint}}{A \code{logical()} indicating whether fragment midpoints 
+\item{\code{midpoint}}{A \code{logical()} indicating whether fragment midpoints
 instead of 5'-ends should be counted in paired end data.}
 
-\item{\code{tlenfilter}}{A filter on fragment length as estimated from alignment 
-in paired end experiments (TLEN). If set to \code{c(min,max)} only reads are 
-considered where \code{min <= TLEN <= max}. If \code{paired.end=="ignore"}, 
-this argument is set to \code{NULL} and no filtering is done. If 
+\item{\code{tlenfilter}}{A filter on fragment length as estimated from alignment
+in paired end experiments (TLEN). If set to \code{c(min,max)} only reads are
+considered where \code{min <= TLEN <= max}. If \code{paired.end=="ignore"},
+this argument is set to \code{NULL} and no filtering is done. If
 \code{paired.end!="ignore"}, this argument defaults to \code{c(0,1000)}.}
 }}
 \seealso{
-\code{\link{normr-methods}} for the functions that require this 
+\code{\link{normr-methods}} for the functions that require this
 object.\cr
 See \code{\link{bamsignals}}-package for counting in bam files.
 }

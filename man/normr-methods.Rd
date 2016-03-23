@@ -3,6 +3,10 @@
 \docType{methods}
 \name{enrichR,integer,integer,GenomicRangesOrNULL-method}
 \alias{computeP}
+\alias{diffR}
+\alias{diffR,character,character,character-method}
+\alias{diffR,character,character,data.frame-method}
+\alias{diffR,integer,integer,GenomicRangesOrNULL-method}
 \alias{enrichR}
 \alias{enrichR,character,character,character-method}
 \alias{enrichR,character,character,data.frame-method}
@@ -25,6 +29,18 @@ control (Input) for two given bam files and a genome data.frame}
   genome = "", countConfig = countConfigSingleEnd(), eps = 1e-05,
   iterations = 10, procs = 1L, verbose = TRUE)
 
+\S4method{diffR}{integer,integer,GenomicRangesOrNULL}(treatment, control,
+  genome = NULL, eps = 1e-05, iterations = 10, procs = 1L,
+  verbose = TRUE)
+
+\S4method{diffR}{character,character,data.frame}(treatment, control, genome,
+  countConfig = countConfigSingleEnd(), eps = 1e-05, iterations = 10,
+  procs = 1L, verbose = TRUE)
+
+\S4method{diffR}{character,character,character}(treatment, control,
+  genome = "", countConfig = countConfigSingleEnd(), eps = 1e-05,
+  iterations = 10, procs = 1L, verbose = TRUE)
+
 \S4method{recomputeP}{NormRFit,integer}(fit, B)
 
 \S4method{exportR}{NormRFit,character,character}(fit, filename,
@@ -38,6 +54,15 @@ control (Input) for two given bam files and a genome data.frame
 control (Input) for two given bam files and a genome data.frame
 
 \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
+control (Input) for two given bam files and a genome data.frame
+
+\code{diffR}: Do enrichment calling between treatment (ChIP-seq) and
+control (Input) for two given bam files and a genome data.frame
+
+\code{diffR}: Do enrichment calling between treatment (ChIP-seq) and
+control (Input) for two given bam files and a genome data.frame
+
+\code{diffR}: Do enrichment calling between treatment (ChIP-seq) and
 control (Input) for two given bam files and a genome data.frame
 
 \code{recomputeP}: Recompute P-values relative to provided background
