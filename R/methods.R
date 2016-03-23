@@ -33,6 +33,7 @@
 #' @import GenomeInfoDb
 #' @import IRanges
 #' @import Rcpp
+#' @import qvalue
 #' @import Rsamtools
 #' @import parallel
 #' @import bamsignals
@@ -90,14 +91,14 @@ NULL
 #' @export
 setGeneric("enrichR", function(treatment, control, genome, ...)
   standardGeneric("enrichR"))
-setClassUnion("GenomicRangesOrNULL", c("GenomicRanges", "NULL"))
+#setClassUnion("GRangesOrNULL", c("GRanges", "NULL"))
 #' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
 #' control (Input) for two given bam files and a genome data.frame
 #' @aliases enrichR
 #' @aliases enrichmentCall
 #' @rdname normr-methods
 #' @export
-setMethod("enrichR", signature("integer", "integer", "GenomicRangesOrNULL"),
+setMethod("enrichR", signature("integer", "integer", "GRanges"),
   function(treatment, control, genome=NULL, eps=1e-5, iterations=10, procs=1L,
            verbose=TRUE) {
     if (length(treatment) != length(control)) {
@@ -111,24 +112,29 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRangesOrNULL"),
     #Storey's q-value on T filtered P-values
     if (verbose) message("... computing Q-values.")
     idx <- which(fit$map$map %in% fit$filtered)
-    qvals <- qvalue(exp(fit$pvals[idx]), eps)
-    lnqvals <- rep(NA,length(treatment))
+    qvals <- qvalue(exp(fit$lnpvals[idx]), eps)
+    lnqvals <- as.numeric(rep(NA,length(treatment)))
     lnqvals[idx] <- log(qvals$qvalues)
-    #FIXME
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
     #NormRFit-class object
+    class(genome) <- "GRanges"
     o <- new("NormRFit", type="enrichR", n=length(treatment), ranges=genome,
-             k=2, B=1, map=fit$map$map,
+             k=2L, B=1L, map=fit$map$map,
              counts=list(fit$map$values[1,],fit$map$values[2,]),
-             names=c(names(treatment), names(control)), thetastar=fit$qstar,
+             names=c("treatment", "control"), thetastar=fit$qstar,
              theta=exp(fit$lntheta), mixtures=exp(fit$lnprior), lnL=fit$lnL,
-             eps=eps, lnposteriors=fit$lnpost, lnenrichment=fit$lnenrrichment,
-             lnpvals=fit$lnpvals, filteredT=fit$filtered, lnqvals=qvals)
+             eps=eps, lnposteriors=fit$lnpost, lnenrichment=fit$lnenrichment,
+             lnpvals=fit$lnpvals, filteredT=fit$filtered, lnqvals=lnqvals)
 
     #Print logging information
-    if (verbose) message("+++ OVERALL RESULT ++++\n\n", summary(obj, print=F))
-    return(o)
+    if (verbose) { 
+      message("\n\n+++ OVERALL RESULT ++++\n")
+      summary(o, print=T)
+    }
+    #deleteme
+    return(list(o, fit))
+    #return(o)
 })
 #' \code{enrichR}: Do enrichment calling between treatment (ChIP-seq) and
 #' control (Input) for two given bam files and a genome data.frame
@@ -187,6 +193,8 @@ setMethod("enrichR", signature("character", "character", "character"),
     return(enrichR(treatment, control, genome,countConfig, eps, iterations,
       procs, verbose))
 })
+
+
 
 #' @export
 setGeneric("recomputeP", function(fit, B) standardGeneric("recomputeP"))

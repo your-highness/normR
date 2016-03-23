@@ -75,7 +75,7 @@
 setClass("NormRFit",
   representation = representation(type = "character",
                                   n = "integer",
-                                  ranges = "GenomicRanges",
+                                  ranges = "GRanges",
                                   k = "integer",
                                   B = "integer",
                                   map = "integer",
@@ -98,7 +98,7 @@ setValidity("NormRFit",
     if (!(object@type %in% c("enrichR", "diffR", "regimeR"))) {
       return("invalid type slot")
     }
-    if (object@n != length(object@ranges)) return("invalid n and ranges")
+    #if (object@n != length(object@ranges)) return("invalid n and ranges")
     if (length(object@k) == 0 | object@k <= 0) return("invalid k slot")
     if (object@B <= 0 || object@B > object@k) return("invalid B slot")
     if (max(object@map) != length(object@counts[[1]])) {
@@ -132,8 +132,8 @@ setValidity("NormRFit",
     if (length(object@lnqvals) != length(object@counts[[1]])) {
       return("invaled lnqvals slot")
     }
-    TRUE
-  }
+     TRUE
+  } 
 )
 
 setMethod("print", "NormRFit",
@@ -182,27 +182,37 @@ setMethod("summary", "NormRFit",
                   "Theta* (naive bg):\t",
                   format(object@thetastar, digits=digits), "\n",
                   "Backgroundcomponent B:\t", object@B, "\n\n")
-    cat(ans)
     if (length(object@theta)) {
-      cat("+++ Results of fit +++ \nMixture Proporitons:\n")
-      print.default(format(object@mixtures,digits=digits), print.gap=2L, quote=F)
-      cat("\nTheta:\n")
-      print.default(format(object@theta,digits=digits), print.gap=2L, quote=F)
-      cat("\nBayesian Information Criterion:\t", format(
+      ans <- paste0(ans, "+++ Results of fit +++ \nMixture Proporitons:\n")
+      ans <- paste0(ans,
+        paste(format(object@mixtures,digits=digits), collapse="  "))
+      ans <- paste0(ans, "\nTheta:\n")
+      ans <- paste0(ans,
+        paste(format(object@theta,digits=digits), collapse="  "))
+      ans <- paste0(ans, "\nBayesian Information Criterion:\t", format(
         (-2*object@lnL[length(object@lnL)]+length(object@theta)*log(object@n)),
-        digits=digits), "\n\n")
-      cat("Significantly different from background B:\n")
-      cts <- c("***"=length(which(object@lnqvals[object@map] <= log(0))),
-               "**" =length(which(object@lnqvals[object@map] <= log(0.001))),
-               "*"  =length(which(object@lnqvals[object@map] <= log(0.01))),
-               "."  =length(which(object@lnqvals[object@map] <= log(0.05))),
-               " "  =length(which(object@lnqvals[object@map] <= log(0.1))))
-      print.default(format(cts, digits=digits), print.gap=5L, quote=F)
-      cat("---\nSignif. codes:  0 ’***’ 0.001 ’**’ 0.01 ’*’ 0.05 ’.’ 0.1 ’ ’ 1")
+        digits=digits), "\n\n",
+        "Significantly different from background B based on q-values:\n")
+      qvals <- getQvalues(object)
+      cts <- c("***"=sum(qvals <= 0, na.rm=T),
+               "**" =sum(qvals <= 0.001, na.rm=T),
+               "*"  =sum(qvals <= 0.01, na.rm=T),
+               "."  =sum(qvals <= 0.05, na.rm=T),
+               " "  =sum(qvals <= 0.1, na.rm=T),
+               "n.s."  =sum(qvals > 0.1, na.rm=T),
+               "T.filtered" =sum(is.na(qvals)))
+      cts <- cts - c(0,cts[1:4],0,0)
+      cts.string <- 
+        capture.output(print.default(format(cts, digits=digits), print.gap=2L,
+                                     quote=F))
+      ans <- paste0(ans, paste(cts.string, collapse="\n"), "\n")
+      ans <- paste0(ans, "---\nSignif. codes:  0 ’***’ 0.001 ’**’ 0.01 ’*’", 
+                          " 0.05 ’.’ 0.1 ’ ’ 1 'n.s.'\n\n")
     } else {
-      cat("No results of fit.")
+      ans <- paste0(ans, "No results of fit.\n\n")
     }
-    cat("\n")
+    if (print) cat(ans)
+    invisible(ans)
   }
 )
 
@@ -212,8 +222,8 @@ setGeneric("getCounts", function(obj) standardGeneric("getCounts"))
 #' @aliases getCounts
 #' @export
 setMethod("getCounts", "NormRFit", function(obj) {
-  list("control"=obj@counts[[1]][obj@map],
-       "treatment"=obj@counts[[2]][obj@map])
+  list("treatment"=obj@counts[[1]][obj@map],
+       "control"=obj@counts[[2]][obj@map])
 })
 
 #'@export
