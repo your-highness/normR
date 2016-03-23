@@ -44,26 +44,63 @@ test_that("Function arguments are checked correctly", {
   expect_error(exportR(new("NormRFit"), "dmp", "bigWig"), info="Invalid format")
 })
 
-test_that("Fitting with counting from bam files works correctly", {
-  datasets <- paste0("K562_", c("H3K27me3", "H3K4me3", "Input"), ".bam")
-  bamfiles <- system.file("extdata", datasets, package="normr")
-  genome <- GRanges("chr21", IRanges(1, 48129895))
+test_that("Fitting with enrichR() works correctly", {
+  genome <- GRanges("chr1", IRanges(22500000, 25000000))#chr1:1-249250621
+  inputfile <- system.file("extdata", 
+                          "K562_Input.bam", 
+                          package="normr")
+  chipfiles <- system.file("extdata", 
+                          paste0("K562_", c("H3K27me3", "H3K4me3"), ".bam"), 
+                          package="normr")
 
   #check files first
-  sapply(bamfiles, function(b) expect_true(file.exists(b)))
-  sapply(bamfiles, function(b) expect_true(file.exists(paste0(b, ".bai"))))
+  sapply(c(inputfile, chipfiles), function(b) expect_true(file.exists(b)))
+  sapply(c(inputfile, chipfiles), function(b) expect_true(file.exists(paste0(b, ".bai"))))
 
   #test for multiple binsizes
-  for (binsize in c(250, 500, 1000)) {
+  for (binsize in c(150, 500, 1000)) {
+    for (chipfile in chipfiles) {
+      label <- paste0("enrichR{",
+        "region=", seqnames(genome),":",start(genome),"-",end(genome),
+        ", binsize=", binsize, ",chipfile=", chipfile,
+        ",inputfile=", inputfile, "}")
 
+    Rfit <- RenrichR(suppressWarnings(bamProfile(chipfile,genome,binsize))[1],
+                     suppressWarnings(bamProfile(inputfile,genome,binsize))[1])
+    Cfit <- enrichR(Rfit$treatment, Rfit$control,
+                    unlist(tile(genome, width=binsize)), verbose=F)
 
-    #TODO continue here
-    #normr::enrichR()
+    expect_equal(label=paste0(label, " - Treatment counts"),
+                 Rfit$treatment, getCounts(Cfit)[["treatment"]])
+    expect_equal(label=paste0(label, " - Control counts"),
+                 Rfit$control, getCounts(Cfit)[["control"]])
+    }
   }
+  #expect_equal(label=paste0("bamCount{", 
+  #                          paste("shift", shift, "mapq", mapq, "ss", ss, "pe", pe, 
+  #                                "tlen.filter", paste0(tlen.filter, collapse=","), 
+  #                                sep="="),
+  #                          "}"),
+  #             countR(reads, regions, ss=ss, shift=shift, paired.end=pe, mapqual=mapq,
+  #                    tlen.filter=tlen.filter), 
+  #             bamCount(bampath, regions, ss=ss, shift=shift, paired.end=pe, mapqual=mapq, 
+  #                      tlen.filter=tlen.filter, verbose=FALSE))
+  #load_all()
+  #require(GenomicRanges)
+  #genome <- GRanges("chr1", IRanges(22500000, 25000000))#chr1:1-249250621
+  #require(bamsignals)
+  #binsize=1000
+  #datasets <- paste0("K562_", c("H3K27me3", "H3K4me3", "Input"), ".bam")
+  #bamfiles <- system.file("extdata", datasets, package="normr")
+  #count_ctrl <- bamProfile(bamfiles[3],genome,binsize)[1]
+  #count_treat <- bamProfile(bamfiles[1],genome,binsize)[1]
+  #load_all()
+  #gr <- unlist(tile(genome, width=binsize))
+  #Cfit <- enrichR(count_ctrl, count_treat, gr)
 
 })
 
-test_that("Fitting with counts files works correctly", {
+test_that("Fitting with diffR() works correctly", {
 })
 
 test_that("Recomputation of P works", {

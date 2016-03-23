@@ -1,4 +1,4 @@
-#normR - testing utiltiy functions
+#normR - testing utilitiy functions
 
 ###
 # R MAP2UNIQUE PAIRS IMPLEMENTATION
@@ -48,33 +48,36 @@ applyMap <- function(v, map) {
 ###
 #the workhorse implemented in R
 RnormR <- function(s, r, nmodels=2, eps=1e-5){
-  #init
   idx <- which(s > 0 & r > 0)
-  N <- length(idx); s <- s[idx]; r <- r[idx]; n <- s + r
-  transitions <- runif(nmodels)
-  theta <- rep(sum(s) / sum(n)) + runif(nmodels, 0, .1) # q*
+  N <- length(idx); n <- s + r
+  mixture <- runif(nmodels)
+  thetastar <- sum(s[idx]) / sum(n[idx])
+  theta <- rep(thetastar, nmodels) + runif(nmodels, 0, .1) # q*
   theta <- sort(theta)
   #helper functions
   logRowSum <- function(x) {
     apply(x,1,function(r) {
           m <- max(r)
           tmp <- sum(exp(r-m))
-          return( max + log(tmp) )
+          return(m + log(tmp))
     })
   }
   ## EM
   runs <- 0; lnL <- -Inf; not.converged <- T
   while (runs < 30 | not.converged) { #Ensure burn in
-    lnTransitions <- log(transitions)
+    lnmixture <- log(mixture)
     ## Expectation:
-    likelihood <- sapply(theta, function(p) log(p) * s + log(1 - p) * r)
-    likelihood <- sapply(1:nmodels, function(i) likelihood[, i] + lnTransitions[i])
+    likelihood <- sapply(theta, function(p) log(p) * s[idx] + log(1 - p) *
+                         r[idx])
+    likelihood <- sapply(1:nmodels, function(i) likelihood[, i] + lnmixture[i])
     lnZ <- logRowSum(likelihood)
     post <- exp(likelihood - lnZ)
-    transitions <- colSums(post, na.rm=TRUE)
-    transitions <- transitions / sum(transitions)
-    theta <- colSums( post * s, na.rm=T) / colSums( post * n, na.rm=T)
-    theta <- sort(theta)
+    mixture <- colSums(post, na.rm=TRUE)
+    mixture <- mixture / sum(mixture)
+    theta <- colSums( post * s[idx], na.rm=T) / colSums( post * n[idx], na.rm=T)
+    o <- order(theta)
+    theta <- theta[o]
+    mixture <- mixture[o]
 
     ## Convergence
     lnL.new <- sum(lnZ, na.rm=T)
@@ -82,49 +85,44 @@ RnormR <- function(s, r, nmodels=2, eps=1e-5){
       not.converged <- F
     lnL <- lnL.new
     runs <- runs + 1
-
-    if (!runs%%10)
-      cat(lnL, runs, transitions, theta, "\n")
   }
   ##Posterio and Pvalue computation for whole data set
-  lnTransitions = log(transitions)
-  ## Expectation:
   likelihood <- sapply(theta, function(p) log(p) * s + log(1 - p) * r)
-  likelihood <- sapply(1:nmodels, function(i) likelihood[, i] + lnTransitions[i])
-  lnZ <- diffr:::logSum(likelihood)
+  likelihood <- sapply(1:nmodels, function(i) likelihood[,i]+log(mixture[i]))
+  lnZ <- logRowSum(likelihood)
   post <- exp(likelihood - lnZ)
-  list(control=r, treatment=s, post=post, theta=theta, transitions=transitions,
-       idx=idx, lnZ=sum(lnZ))
+  list(control=r, treatment=s, idx=idx, thetastar=thetastar, theta=theta,
+       mixture=mixture, lnL=log(sum(exp(lnZ))), eps=eps, post=post)
 }
 
 ###
 # R enrichR test methods
 ###
-T.filter <- function(fit, thresh=.0001, bg.idx=1) {
+RgetP <- function(s, r, p) {
+  return(pbinom(s, r+s, p, lower.tail=F) + dbinom(s, r+s, p))
+}
+Rtfilter <- function(fit, thresh=1e-5, bgIdx=1) {
     marg = 0
     r = 0
     s = 0
     run=T
     border = 0
-    pval.comp <- function(fit, r, s) {
-        pbinom(s, r+s, fit$theta[bg.idx], lower.tail=F) + dbinom(s, r+s, fit$theta[bg.idx])
-    }
     while (run) {
-        p <- pval.comp(fit, marg, 0)
+        p <- RgetP(0, marg, fit$theta[bgIdx])
         if (p <= thresh) {
             border = marg
             break
         }
         if ( (marg - 1) > 0 ) {
             for (i in (marg-1):1) {
-                p <- pval.comp(fit, i, marg-i)
+                p <- RgetP(marg-i, i, fit$theta[bgIdx])
                 if (p <= thresh) {
                     border = marg-i
                     run=F
                     break
                 }
                 if (marg-i != i) {
-                    p <- pval.comp(fit, marg-i, i)
+                    p <- RgetP(i, marg-i, fit$theta[bgIdx])
                     if (p <= thresh) {
                         border = i
                         run=F
@@ -136,117 +134,48 @@ T.filter <- function(fit, thresh=.0001, bg.idx=1) {
         marg = marg + 1
     }
 
-    #pi_0 becomes very small here
-    #return(which((fit$treatment + fit$control) >= marg & fit$control > 0 & fit$treatment > border))
-    return(which((fit$treatment + fit$control) >= marg
-           & fit$control > 0 & fit$treatment > 0))
+    message("Rtfilter(): margin=", marg, ", border=", border)
+    return(which((fit$treatment + fit$control) >= marg))
 }
-RenrichR <- function(s, r) {
-  #use generic method for EM
-  fit <- RnormR(s,r)
-  fit$pval <- sapply(1:models, function(i) {
-    p <- pbinom(s, (r+s), fit$theta[i], lower.tail=F) + dbinom(s, (r+s), fit$theta[i])
-    p[which(p > 1)] <- 1
-    p[which(p < 0)] <- 0
-    (p)
-  })
-
-  #Apply T filter
-  fit$idx <- T.filter(fit, .001, bg.idx=bg.idx)
-
-  #Compute FDR
-  require(qvalue)
-  fdr <- qvalue(n$pval[n$idx, bg.idx])
-  n$fdr <- fdr$qvalues
-  n$significant <- n$idx[which(n$fdr <= fdr.thresh[b])]
-  if (models > 2) {
-    n$regime <- apply(n$posterior[n$significant,-bg.idx], 1, which.max)
-  }
-}
-RgetEnrichment <- function(post, count_ctrl, count_treat, theta, bg.idx=1) {
-  p <- post[,bg.idx]
-  pseu_ctrl <- sum(p * count_ctrl) / sum(p)
-  pseu_treat <- sum(p * count_treat) / sum(p)
-  foldchange <- log((count_treat+pseu_treat)/(count_ctrl+pseu_ctrl))
-  regularization <- log(pseu_ctrl / pseu_treat)
+RgetEnrichment <- function(post, r, s, theta, bgIdx=1) {
+  p <- post[,bgIdx]
+  pseu_r <- sum(p * r) / sum(p)
+  pseu_s <- sum(p * s) / sum(p)
+  foldchange <- log((s+pseu_s)/(r+pseu_r))
+  regularization <- log(pseu_r / pseu_s)
   standardization <-
-    theta[-bg.idx]/(1-theta[-bg.idx])*(1-theta[bg.idx])/theta[bg.idx]
-  return( (foldchange - regularization)/standardization )
+    theta[2]/(1-theta[2])*(1-theta[1])/theta[1]
+  return((foldchange - regularization)/standardization)
+}
+RenrichR <- function(s, r, eps=1e-5, bgIdx=1) {
+  #general EM fitting
+  fit <- RnormR(s,r)
+
+  #get enrichment
+  fit$lnenrichment <- RgetEnrichment(fit$post,r,s,fit$theta)
+
+  #calculate pvalues
+  fit$pvals <- RgetP(s,r,fit$theta[bgIdx])
+
+  #Apply Rtfilter filter
+  fit$filteredT <- Rtfilter(fit, eps, bgIdx=bgIdx)
+
+  #Q values
+  fit$qvals <- qvalue(fit$pvals[fit$filteredT], eps)$qvalues
+
+  return(fit)
 }
 
-#PVALUE COMPUTATION
-RTFilter <- function(fit, thresh=.0001, bg.idx=1) {
-  marg = 0
-  r = 0
-  s = 0
-  run=T
-  border = 0
-  pval.comp <- function(fit, r, s) {
-    pbinom(s, r+s, fit$theta[bg.idx], lower.tail=F) + dbinom(s, r+s,
-                                                             fit$theta[bg.idx])
-  }
-  while (run) {
-    p <- pval.comp(fit, marg, 0)
-    message("r=", marg, "; s=", 0, "; pval=", p)
-    if (p <= thresh) {
-      border = marg
-      break
-    }
-    if ( (marg - 1) > 0 ) {
-      for (i in (marg-1):1) {
-        p <- pval.comp(fit, i, marg-i)
-        message("r=", i, "; s=", marg-i, "; pval=", p)
-        if (p <= thresh) {
-          border = marg-i
-          run=F
-          break
-        }
-        if (marg-i != i) {
-          p <- pval.comp(fit, marg-i, i)
-          message("r=", marg-i, "; s=", i, "; pval=", p)
-          if (p <= thresh) {
-            border = i
-            run=F
-            break
-          }
-        }
-      }
-    }
-    marg = marg + 1
-  }
-  return(which((fit$treatment + fit$control) >= marg))
-}
-#l is a list of c(treatment, control, binsize)
-#processFiles <- function(l, pe=paired.end, models=2, shift=0, nthreads=procs, gen=genome, bg.idx=1) {
-#  require(diffr)
-#  nor <- lapply(names(l), function(b) {
-#                if (l[[b]]["paired"] == T) {
-#                  pe = "midpoint"
-#                } else {
-#                  pe = "ignore"
-#                  shift=100
-#                }
-#                n <- diffR(treatment = l[[b]]["treatment"],
-#                           control   = l[[b]]["control"],
-#                           genome    = gen,
-#                           bin.size  = binsize[b],
-#                           models    = models,
-#                           procs     = nthreads,
-#                           mapqual   = mapq,
-#                           shift     = shift,
-#                           paired.end= pe, #"ignore" (SE), "midpoint" (pe)
-#                           verbose   = T)
-#
-#                n
-#   })
-#  names(nor) <- names(l)
-#  return (nor)
-#}
-#
-#
-#
 ##DIFFR CALL
-#T.filter.diff <- function(fit, thresh=.0001, bg.idx=1) {
+#The object structure -> keep output similar here
+#o <- new("NormRFit", type="enrichR", n=length(treatment), ranges=genome,
+#         k=2L, B=1L, map=fit$map$map,
+#         counts=list(fit$map$values[1,],fit$map$values[2,]),
+#         names=c("treatment", "control"), thetastar=fit$qstar,
+#         theta=exp(fit$lntheta), mixtures=exp(fit$lnprior), lnL=fit$lnL,
+#         eps=eps, lnposteriors=fit$lnpost, lnenrichment=fit$lnenrichment,
+#         lnpvals=fit$lnpvals, filteredT=fit$filtered, lnqvals=lnqvals)
+#RtfilterDiff <- function(fit, thresh=.0001, bg.idx=1) {
 #  marg = 0
 #  r = 0
 #  s = 0
@@ -301,8 +230,8 @@ RTFilter <- function(fit, thresh=.0001, bg.idx=1) {
 #  }
 #  n$pval <- mcmapply(binom.test2, x=n$treatment, n=(n$control + n$treatment), MoreArgs=list("p"=n$theta[bg.idx], "alternative"="two.sided"), mc.cores=procs)
 #
-#  #Apply T filter
-#  n$idx <- T.filter.diff(n, .001, bg.idx=2)
+#  #Apply Rtfilter.diff
+#  n$idx <- Rtfilter.diff(n, .001, bg.idx=2)
 #
 #  require(qvalue)
 #  fdr <- qvalue(n$pval[n$idx])
@@ -445,8 +374,8 @@ RTFilter <- function(fit, thresh=.0001, bg.idx=1) {
 #                                                                 (p)
 #                                                     })
 #
-#                                #Apply T filter
-#                                n$idx <- T.filter(n, .001, bg.idx=bg.idx)
+#                                #Apply Rtfilter filter
+#                                n$idx <- Rtfilter(n, .001, bg.idx=bg.idx)
 #
 #                                #Compute FDR
 #                                require(qvalue)
@@ -518,3 +447,31 @@ RTFilter <- function(fit, thresh=.0001, bg.idx=1) {
 #  list(post = post, theta = theta, transitions = transitions, idx = idx, lnZ = sum(lnZ))
 #}
 #
+#binsizeEst <- function(bampath, gr, minbin=1, maxbin=5000, procs=1, ...) {
+#  bins <- seq(minbin, maxbin, by=minbin)
+#  require(bamsignals)
+#  p <- cumsum(bamProfile(bampath, gr, binsize=1, ...)[1])
+#  getCost <- function(bs, p) {
+#    idx <- seq(bs, length(p), by=bs)
+#    p <- p[idx] - c(0, head(p[idx], -1))
+#    return( -(log(abs((2*mean(p) - var(p)))) - log((sum(p)*bs)^2)) )
+#  }
+#  require(parallel)
+#  costs <- mclapply(bins, getCost, p=p, mc.cores=procs)
+#  names(costs) <- bins
+#  return(unlist(costs))
+#}
+getEnrichmentScaled <- function(fit, bg.idx=1) {
+  p <- fit$posterior[,bg.idx]
+  count_ctrl <- fit$control
+  count_treat <- fit$treatment
+  pseu_ctrl <- sum(p * count_ctrl) / sum(p)
+  pseu_treat <- sum(p * count_treat) / sum(p)
+  foldchange <- log((count_treat+pseu_treat)/(count_ctrl+pseu_ctrl))
+  regularization <- log(pseu_ctrl / pseu_treat)
+  standardization <-
+    fit$theta[-bg.idx]/(1-fit$theta[-bg.idx])*(1-fit$theta[bg.idx])/fit$theta[bg.idx]
+  list("foldchange"=foldchange, "regularization"=regularization,
+       "standardization"=standardization,
+       "pseudo"=c("ctrl"=pseu_ctrl, "treatment"=pseu_treat))
+}
