@@ -2,7 +2,6 @@
 
 export(countConfigPairedEnd)
 export(countConfigSingleEnd)
-export(diffR)
 export(enrichR)
 export(exportR)
 export(getCounts)
