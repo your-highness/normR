@@ -22,9 +22,9 @@ Imports:
     GenomicRanges,
     IRanges,
     Rcpp (>= 0.11),
+    qvalue (>= 2.2),
     Rsamtools,
-    bamsignals (>= 1.2.0),
-    qvalue
+    bamsignals (>= 1.2.0)
 Suggests:
     testthat (>= 0.9),
     knitr,
