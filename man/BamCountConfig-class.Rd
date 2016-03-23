@@ -8,6 +8,8 @@
 \alias{countConfigPairedEnd,ANY-method}
 \alias{countConfigSingleEnd}
 \alias{countConfigSingleEnd,ANY-method}
+\alias{getFilter}
+\alias{getFilter,BamCountConfig-method}
 \title{Container for counting with bamsignals}
 \usage{
 \S4method{countConfigPairedEnd}{ANY}(binsize = 250, mapq = 20,
@@ -15,6 +17,8 @@
 
 \S4method{countConfigSingleEnd}{ANY}(binsize = 250, mapq = 20,
   filteredFlag = 1024, shift = 0)
+
+\S4method{getFilter}{BamCountConfig}(obj)
 }
 \arguments{
 \item{chromosomes}{GenomicRanges object used to specify the chromosomes.}
@@ -31,6 +35,8 @@ from bamfiles with bamsignals::bamProfile().
 \item \code{countConfigPairedEnd}: Setup a paired end counting configuration
 
 \item \code{countConfigSingleEnd}: Setup a single end counting configuration
+
+\item \code{getFilter}: Get the bamsignals relevant filter
 }}
 \section{Slots}{
 
