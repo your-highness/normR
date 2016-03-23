@@ -48,14 +48,14 @@
 return values are described in the Methods section.
 }
 \description{
-This S4 class wraps a NormR fit containing counts, fit configuration and 
+This S4 class wraps a NormR fit containing counts, fit configuration and
 results of the fit.
 }
 \details{
 This class provides printing, summary and accessor methods for retrieving
 data from the object. Internally this class uses a map structure which saves
 memory, such that accessing data through \code{slot()} gives undesired
-output. Please use accessor methods. A NormRFit object is read-only, i.e. it 
+output. Please use accessor methods. A NormRFit object is read-only, i.e. it
 can not be modified.
 }
 \section{Methods (by generic)}{
@@ -66,7 +66,7 @@ can not be modified.
 
 \item \code{getCounts}: Retrieve used counts.
 
-\item \code{getEnrichment}: Retrieve NormR calculated enrichment. Ln enrichment for 
+\item \code{getEnrichment}: Retrieve NormR calculated enrichment. Ln enrichment for
 a difference call.
 
 \item \code{getPosterior}: Retrieve computed posteriors.
@@ -80,67 +80,67 @@ a difference call.
 \section{Slots}{
 
 \describe{
-\item{\code{type}}{A \code{character()} representing the type of fit ("enrichR", 
+\item{\code{type}}{A \code{character()} representing the type of fit ("enrichR",
 "diffR", "regimeR")}
 
 \item{\code{n}}{Number of regions analyzed in total.}
 
 \item{\code{ranges}}{A \code{GenomicRanges}-object specifying the analysed regions.}
 
-\item{\code{k}}{An \code{integer()} giving the number of binomial mixture 
+\item{\code{k}}{An \code{integer()} giving the number of binomial mixture
 components to be fit to the data.}
 
 \item{\code{B}}{The index of the background component.}
 
 \item{\code{map}}{A \code{integer}-vector to map back \code{counts},
-\code{lnposteriors}, \code{lnenrichment}, \code{lnpvals} and \code{lnqvals}. 
+\code{lnposteriors}, \code{lnenrichment}, \code{lnpvals} and \code{lnqvals}.
 See also \code{\link{map2uniquePairs()}} for map generation.}
 
-\item{\code{counts}}{A \code{list()} of length 2 containing unique count pairs. Use 
+\item{\code{counts}}{A \code{list()} of length 2 containing unique count pairs. Use
 accessor \code{\link{getCounts}} to retrieve original count matrix.}
 
 \item{\code{names}}{The corresponding names for counts.}
 
-\item{\code{thetaStar}}{A \code{numeric()} representing a naive background 
+\item{\code{thetaStar}}{A \code{numeric()} representing a naive background
 estimation, i.e. \code{sum(getCounts(obj)[2,])/sum(getCounts(obj))}}
 
-\item{\code{theta}}{A \code{k}-length \code{numeric()}-vector representing 
+\item{\code{theta}}{A \code{k}-length \code{numeric()}-vector representing
 NormR-fitted parametrization of binomial mixture components.}
 
-\item{\code{mixtures}}{A \code{k}-length \code{numeric()}-vector representing 
+\item{\code{mixtures}}{A \code{k}-length \code{numeric()}-vector representing
 NormR-fitted mixture proportions of binomial mixture
 components.}
 
 \item{\code{lnL}}{A \code{numeric()}-vector representing the log-likelihood-trace of
 the NormR model fit.}
 
-\item{\code{eps}}{A \code{numeric{}} representing preset threshold for NormR fit 
+\item{\code{eps}}{A \code{numeric{}} representing preset threshold for NormR fit
 convergence.}
 
 \item{\code{lnposteriors}}{A \code{k}-dimensional \code{matrix()} containing ln
-posterior probabilities for every unique \code{n} 2-tupel in counts given 
+posterior probabilities for every unique \code{n} 2-tupel in counts given
 each \code{theta} and \code{mixtures}. Use accessor
 \code{\link{getPosterior()}} to get the complete posterior matrix.}
 
-\item{\code{lnenrichment}}{A \code{numeric()}-vector of normalized ln enrichment over 
+\item{\code{lnenrichment}}{A \code{numeric()}-vector of normalized ln enrichment over
 component \code{B} for each unique count-tupel. Use accessor
 \code{\link{getEnrichment}} to retrieve enrichment for original count sequence.}
 
-\item{\code{lnpvals}}{A \code{numeric()}-vector containing ln P-values every unique 
+\item{\code{lnpvals}}{A \code{numeric()}-vector containing ln P-values every unique
 2-tupel in counts given \code{theta} of \code{B}.}
 
 \item{\code{filteredT}}{A \code{integer()}-vector giving indices of P-values to be
 considered for FDR correction. These indices have been obtainted by filtering
 P-values using the T method.}
 
-\item{\code{lnqvals}}{A \code{numeric()}-vector containing ln q-values. These are 
+\item{\code{lnqvals}}{A \code{numeric()}-vector containing ln q-values. These are
 P-values corrected for multiple testing using Storey's method.}
 }}
 \examples{
 
 }
 \seealso{
-\code{\link{normr-methods}} for the functions that produce 
+\code{\link{normr-methods}} for the functions that produce
 this object
 }
 

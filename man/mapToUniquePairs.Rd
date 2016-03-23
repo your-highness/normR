@@ -10,13 +10,13 @@ mapToUniquePairs(r, s)
 \item{r}{An \code{integer()}-vector If elements are not integers, they
 will be casted to integers.}
 
-\item{s}{An \code{integer()}-vector. If elements are not integers, they 
+\item{s}{An \code{integer()}-vector. If elements are not integers, they
 will be casted to integers.}
 }
 \value{
 a list with the following items:
        \item{values}{unique and sorted values of \code{r} and \code{s}}
-       \item{map}{a vector such that 
+       \item{map}{a vector such that
                   \code{cbind(r,s)[i,] = values[,map[i]]} for every i}
 }
 \description{

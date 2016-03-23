@@ -10,17 +10,17 @@ normr_core(r, s, models = 2L, eps = 1e-04, iterations = 5L, bgIdx = 0L,
   diffCall = FALSE, verbose = FALSE, nthreads = 1L)
 }
 \arguments{
-\item{r}{\code{integer}-vector of counts (e.g. control counts in enrichment 
+\item{r}{\code{integer}-vector of counts (e.g. control counts in enrichment
 calls). If elements are not integers, they will be casted to integers.}
 
-\item{s}{\code{integer}-vector of counts (e.g. treatment counts in 
-enrichment calls). If elements are not integers, they will be casted to 
+\item{s}{\code{integer}-vector of counts (e.g. treatment counts in
+enrichment calls). If elements are not integers, they will be casted to
 integers.}
 
-\item{models}{\code{integer} specifying number of mixture components which 
+\item{models}{\code{integer} specifying number of mixture components which
 should be >= 2 (default=2).}
 
-\item{eps}{\code{double} specifying termination criterion for EM fit 
+\item{eps}{\code{double} specifying termination criterion for EM fit
 (default=0.001).}
 
 \item{iterations}{\code{integer} specifying the number of individual EM runs
@@ -48,18 +48,18 @@ a list with the following items:
  \item{lnL}{log likelihood trace of EM}
  \item{lnposterior}{ln posteriors for unique (r,s) according to map}
  \item{lnenrichment}{ln enrichment for unique (r,s) according to map}
- \item{lnpvals}{ln P-values for mixture component \code{bgIdx} for each 
+ \item{lnpvals}{ln P-values for mixture component \code{bgIdx} for each
   unique (r,s)}
  \item{filtered}{unique (r,s) tupels passing the T filter with \code{eps}}
 }
 \description{
-In a first step, a map of unique non-zero (r,s) values is generated. This 
+In a first step, a map of unique non-zero (r,s) values is generated. This
 allows for faster runtime. Second, EM is run with the given number of
 components on these reduced data representation. If \code{iterations > 1},
 the fit with the highest likelihood is selected. In a third step, a map for
 all (r,s) values is generated. Based on this map the complete posterior
 matrix, P-values and enrichment is calculated. The returned values are
-holding results exclusively for unique (r,s) values and go directly into a 
+holding results exclusively for unique (r,s) values and go directly into a
 \code{\link{NormRFit-class}} object.
 }
 

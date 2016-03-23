@@ -16,7 +16,7 @@
 
 \item{pval}{A p-value threshold.}
 
-\item{gr}{A GenomicRanges object representing the analyzed data. Usually, 
+\item{gr}{A GenomicRanges object representing the analyzed data. Usually,
 ranges are stored inside \code{obj}. Use this if you want to change
 chromosome identifiers for example. Note that the width of the bins should be
 same to data and fit stored in \code{obj}.}
