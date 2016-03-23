@@ -48,5 +48,9 @@ We have load some libraries
 
 Use counts from normr object in Enrichment Call
 
+### Enrichment
+
+The enrichment in `regimeR()` is calculated to highest enrichment regime.
+
 ### Writing output
 
