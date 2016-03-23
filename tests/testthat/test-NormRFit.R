@@ -41,7 +41,7 @@ test_that("Test NormRFit construction, validity and accessors", {
     o <- new("NormRFit", type=type, n=as.integer(n),
              ranges=GRanges("chr1", IRanges(seq(0,n*100-1,100), width=100)),
              k=2L, B=1L, map=d$map$map, 
-             counts=list(d$map$values[1,],d$map$values[2,]), 
+             counts=list(d$map$values[2,],d$map$values[1,]), 
              thetastar=sum(d$s)/sum(d$r+d$s), theta=d$theta, 
              mixtures=d$mixtures, lnL=seq(-n,-1,10)+rnorm(n,0,.5), eps=.001, 
              lnposteriors=applyMap(d$lnpost, d$map), 
