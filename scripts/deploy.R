@@ -74,44 +74,57 @@ deployR <- function(pckg=".", registerFun=T, check=T) {
     stop("Package directory does not exist.")
   }
 
-  message("Deploying ", pckg, "...")
+  message(" #### Deploying ", pckg, "...")
   vsion <- read.dcf(file.path(pckg, "DESCRIPTION"))[,"Version"]
-  message("Version: ", vsion)
+  message(" #### Version: ", vsion)
 
-  library(Rcpp)
+  message(" #### devtools: Entering dev_mode()")
+  library(devtools, quietly=T)
+  dev_mode()
+
+  message(" #### Rcpp: compileAttributes(pckg) to generate object files")
+  library(Rcpp, quietly=T)
   compileAttributes(pckg)
 
-  library(roxygen2)
+  message(" #### roxygen2: roxygenize(pckg, clean=T) to generate man/*.Rd")
+  library(roxygen2, quietly=T)
   roxygenize(pckg, clean=T)
 
+  message(paste0(" ### Kmisc: registerFunctions(pckg, prefix=\"\") to generate",
+                 " src/", pckg, "_init.c"))
   setwd(pckg)
   if (registerFun) {
+    unlink(paste0("src/", pckg, "_init.c"))
     registerFunctions(pckg, prefix="")
   }
 
-  library(devtools)
+  message(" #### devtools: build_vignettes() to compile Rmarkdown") 
   build_vignettes()
+  message(" #### devtools: test() to run testthat routines")
   test()
-
   setwd("../")
-
 
   #  try installing the package in a stub library
   tmp.lib <- paste0(pckg, "_BUILDtmp")
   dir.create(tmp.lib) 
   if (check) {
+    message(" #### Testing requested: running 'R-dev CMD check'")
     system(paste0("~/R-devel/bin/R CMD check ", pckg))
+    message(" #### Testing requested: running 'R-dev CMD BiocCheck'")
     system(paste0("~/R-devel/bin/R CMD BiocCheck ", pckg))
   }
+  message(" #### Trying to install the package")
   system(paste0("~/R-devel/bin/R CMD build ", pckg))
   install.packages(paste0(pckg, "_", vsion, ".tar.gz"), lib=tmp.lib)
-  library(pckg, character.only=T)
-  unlink(tmp.lib, recursive=T)
 
+  message(" #### Trying to load the package")
+  library(pckg, character.only=T, quietly=T)
+  #unlink(tmp.lib, recursive=T)
 
   if (chgDir) {
     setwd(pckg)
   }
+  message(" #### SUCCESS! Refer to ../normr.Rcheck/00check.log to fix warnings")
 }
 
 #call
