@@ -1,11 +1,12 @@
 Package: normr
 Type: Package
 Title: Normalization and difference calling in ChIP-seq data
-Version: 0.1.0
-Authors@R: c(
-    person(given="Johannes",family="Helmuth", email="helmuth@molgen.mpg.de",
-    role=c("aut", "cre")))
-Author: Johannes Helmuth [aut, cre]
+Version: 0.99.0
+Authors@R: c(person(given="Johannes",family="Helmuth", 
+        email="helmuth@molgen.mpg.de", role=c("aut", "cre")), 
+        person(given="Ho-Ryun",family="Chung",
+        email="chung@molgen.mpg.de", role=c("aut")))
+Author: Johannes Helmuth [aut, cre], Ho-Ryun Chung [aut]
 Maintainer: Johannes Helmuth <helmuth@molgen.mpg.de>
 Description: Robust normalization and difference calling procedures for ChIP-seq
     and alike data. Count vectors can be obtained from experiment bam files in two
