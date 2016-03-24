@@ -12,16 +12,14 @@
 \alias{getFilter,BamCountConfig-method}
 \title{Container for counting with bamsignals}
 \usage{
-\S4method{countConfigPairedEnd}{ANY}(binsize = 250, mapq = 20,
-  filteredFlag = 1024, shift = 0, midpoint = T, tlenfilter = c(70, 200))
+\S4method{countConfigPairedEnd}{ANY}(binsize = 250L, mapq = 20L,
+  filteredFlag = 1024L, shift = 0L, midpoint = T, tlenfilter = c(70L,
+  200L))
 
-\S4method{countConfigSingleEnd}{ANY}(binsize = 250, mapq = 20,
-  filteredFlag = 1024, shift = 0)
+\S4method{countConfigSingleEnd}{ANY}(binsize = 250L, mapq = 20L,
+  filteredFlag = 1024L, shift = 0L)
 
 \S4method{getFilter}{BamCountConfig}(obj)
-}
-\arguments{
-\item{chromosomes}{GenomicRanges object used to specify the chromosomes.}
 }
 \value{
 return values are described in the Methods section.
@@ -38,15 +36,17 @@ from bamfiles with bamsignals::bamProfile().
 
 \item \code{getFilter}: Get the bamsignals relevant filter
 }}
-\section{Slots}{
+\section{Fields}{
 
 \describe{
 \item{\code{type}}{A \code{character()} representing the type of bamfile
 ("paired.end", "single.end").}
 
+\item{\code{chromosomes}}{GenomicRanges object used to specify the chromosomes.}
+
 \item{\code{binsize}}{An \code{integer()} giving the binsize to count in (in bp).}
 
-\item{\code{mapqual}}{discard reads with mapping quality strictly lower than this
+\item{\code{mapq}}{discard reads with mapping quality strictly lower than this
 parameter. The value 0 ensures that no read will be discarded, the value 254
 that only reads with the highest possible mapping quality will be considered.}
 

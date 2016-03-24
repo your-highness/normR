@@ -4,13 +4,17 @@
 \name{NormRFit-class}
 \alias{NormRFit}
 \alias{NormRFit-class}
+\alias{getClasses}
+\alias{getClasses,NormRFit-method}
 \alias{getCounts}
 \alias{getCounts,NormRFit-method}
 \alias{getEnrichment}
 \alias{getEnrichment,NormRFit-method}
-\alias{getPosterior}
-\alias{getPosterior,NormRFit-method}
+\alias{getPosteriors}
+\alias{getPosteriors,NormRFit-method}
+\alias{getPvalues}
 \alias{getPvalues,NormRFit-method}
+\alias{getQvalues}
 \alias{getQvalues,NormRFit-method}
 \alias{length}
 \alias{length,NormRFit-method}
@@ -23,15 +27,15 @@
 
 \S4method{getCounts}{NormRFit}(obj)
 
+\S4method{getPosteriors}{NormRFit}(obj)
+
 \S4method{getEnrichment}{NormRFit}(obj)
 
-\S4method{getPosterior}{NormRFit}(obj)
-
-\S4method{getPvalues}{NormRFit}(obj)
-
-\S4method{getPvalues}{NormRFit}(obj)
+\S4method{getPvalues}{NormRFit}(obj, filtered = F)
 
 \S4method{getQvalues}{NormRFit}(obj)
+
+\S4method{getClasses}{NormRFit}(obj)
 }
 \arguments{
 \item{object}{A NormRFit objectect}
@@ -45,7 +49,7 @@
 \item{B}{The index of the background component.}
 }
 \value{
-return values are described in the Methods section.
+return values are described in the methods section.
 }
 \description{
 This S4 class wraps a NormR fit containing counts, fit configuration and
@@ -64,18 +68,20 @@ can not be modified.
 
 \item \code{summary}: Prints a summary of the NormRFit object.
 
-\item \code{getCounts}: Retrieve used counts.
+\item \code{getCounts}: Retrieve read count data.
 
-\item \code{getEnrichment}: Retrieve NormR calculated enrichment. Ln enrichment for
-a difference call.
+\item \code{getPosteriors}: Retrieve computed posteriors.
 
-\item \code{getPosterior}: Retrieve computed posteriors.
+\item \code{getEnrichment}: Retrieve NormR calculated enrichment.
 
-\item \code{getPvalues}: Retrieve computed P-values
+\item \code{getPvalues}: Retrieve computed P-values.
 
-\item \code{getPvalues}: Retrieve computed P-values
+\item \code{getQvalues}: Retrieve computed Q-values. See Bioconductor package
+\link{qvalue}.
 
-\item \code{getQvalues}: Retrieve computed posteriors.
+\item \code{getClasses}: Retrieve classes for each bin, i.e. enriched vs
+non-enriched (enrichR), differential enrichment (diffR) and enrichment
+regimes (regimeR).
 }}
 \section{Slots}{
 
@@ -94,7 +100,7 @@ components to be fit to the data.}
 
 \item{\code{map}}{A \code{integer}-vector to map back \code{counts},
 \code{lnposteriors}, \code{lnenrichment}, \code{lnpvals} and \code{lnqvals}.
-See also \code{\link{map2uniquePairs()}} for map generation.}
+See also \code{map2uniquePairs()} for map generation.}
 
 \item{\code{counts}}{A \code{list()} of length 2 containing unique count pairs. Use
 accessor \code{\link{getCounts}} to retrieve original count matrix.}
@@ -120,7 +126,7 @@ convergence.}
 \item{\code{lnposteriors}}{A \code{k}-dimensional \code{matrix()} containing ln
 posterior probabilities for every unique \code{n} 2-tupel in counts given
 each \code{theta} and \code{mixtures}. Use accessor
-\code{\link{getPosterior()}} to get the complete posterior matrix.}
+\code{getPosteriors()} to get the complete posterior matrix.}
 
 \item{\code{lnenrichment}}{A \code{numeric()}-vector of normalized ln enrichment over
 component \code{B} for each unique count-tupel. Use accessor
@@ -135,10 +141,15 @@ P-values using the T method.}
 
 \item{\code{lnqvals}}{A \code{numeric()}-vector containing ln q-values. These are
 P-values corrected for multiple testing using Storey's method.}
-}}
-\examples{
 
-}
+\item{\code{classes}}{A \code{integer()}-vector giving class assignments based on
+model fit. For \code{obj@type == "enrichR"}, this vector contains either
+\code{NA} (not enriched) or \code{1} (enriched). For \code{obj@type ==
+"diffR"}, this vector contains \code{NA} (unchanged), \code{1} (differential
+in ChIP-seq 1) and \code{2} (differential in ChIP-seq 2). For
+\code{obj@type == "regimeR"}, this vector contains \code{NA} (not enriched)
+and an arbitary number of enrichment class \code{>= 1}.}
+}}
 \seealso{
 \code{\link{normr-methods}} for the functions that produce
 this object

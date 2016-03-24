@@ -287,16 +287,16 @@ static inline void map2uniquePairs_core(std::vector<int> r, std::vector<int> s,
     }
 }
 
-//' Group unique tupels from two integer vectors r and s
-//'
-//' @param r An \code{integer()}-vector If elements are not integers, they
-//'  will be casted to integers.
-//' @param s An \code{integer()}-vector. If elements are not integers, they
-//'  will be casted to integers.
-//' @return a list with the following items:
-//'        \item{values}{unique and sorted values of \code{r} and \code{s}}
-//'        \item{map}{a vector such that
-//'                   \code{cbind(r,s)[i,] = values[,map[i]]} for every i}
+// Group unique tupels from two integer vectors r and s
+//
+// @param r An \code{integer()}-vector If elements are not integers, they
+//  will be casted to integers.
+// @param s An \code{integer()}-vector. If elements are not integers, they
+//  will be casted to integers.
+// @return a list with the following items:
+//        \item{values}{unique and sorted values of \code{r} and \code{s}}
+//        \item{map}{a vector such that
+//                   \code{cbind(r,s)[i,] = values[,map[i]]} for every i}
 // [[Rcpp::export]]
 List mapToUniquePairs(const IntegerVector& r, const IntegerVector& s){
   if (r.length() != s.length()) {
@@ -321,17 +321,17 @@ List mapToUniquePairs(const IntegerVector& r, const IntegerVector& s){
       );
 }
 
-//' Retrieve original vector of values with a supplied map
-//'
-//' When computing only on unique values, it is often desired to retrieve the
-//' original ordering for output. This function does this by creating a new
-//' numeric().
-//'
-//' @param vec The \code{numeric()}-vector to be mapped back.
-//' @param map A map computed by \code{\link{mapToUniquePairs}}.
-//' @return a \code{numeric()}-vector of mapped back values.
-//'
-//' @seealso \code{\link{mapToUniquePairs}} for generation of map
+// Retrieve original vector of values with a supplied map
+//
+// When computing only on unique values, it is often desired to retrieve the
+// original ordering for output. This function does this by creating a new
+// numeric().
+//
+// @param vec The \code{numeric()}-vector to be mapped back.
+// @param map A map computed by \code{\link{mapToUniquePairs}}.
+// @return a \code{numeric()}-vector of mapped back values.
+//
+// @seealso \code{\link{mapToUniquePairs}} for generation of map
 // [[Rcpp::export]]
 NumericVector mapToOriginal(const NumericVector& vec, const List& m2u) {
   IntegerVector map = as<IntegerVector>(m2u["map"]);
@@ -350,7 +350,7 @@ NumericVector mapToUniqueWithMap(const NumericVector& vec, const List& m2u) {
 
   IntegerVector map = as<IntegerVector>(m2u["map"]);
   for (int i = 0; i < map.size(); i++) {
-    if (NumericVector::is_na(out[map[i]])) out[map[i]] = vec[i];
+    if (NumericVector::is_na(out[map[i]-1])) out[map[i]-1] = vec[i];
   }
 
   return out;
@@ -507,11 +507,11 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
   for (int i = 0; i < out.size(); ++i) {
     ur_log[i] = exp(ur_log[i]) + exp(lnPseu_r);
     us_log[i] = exp(us_log[i]) + exp(lnPseu_s);
-    out[i] = log(us_log[i]) - log(ur_log[i]) + rglrz;
+    out[i] = log(us_log[i]/ur_log[i]) + rglrz;
   }
   if (diffCall) {//standardization dependent on algebraic sign of fc
-    double stdrzC = log(theta[1]/(1-theta[1])*(1-theta[B])/theta[B]);
-    double stdrzT = log(theta[2]/(1-theta[2])*(1-theta[B])/theta[B]);
+    double stdrzC = theta[0]/(1-theta[0])*(1-theta[B])/theta[B];
+    double stdrzT = theta[2]/(1-theta[2])*(1-theta[B])/theta[B];
     #pragma omp parallel for schedule(static) num_threads(nthreads)
     for (int i = 0; i < out.size(); ++i) {
       if (out[i] < 0) {
@@ -521,35 +521,35 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
       }
     }
   } else {
-    double stdrz = log(theta[F]/(1-theta[F])*(1-theta[B])/theta[B]);
+    double stdrz = theta[F]/(1-theta[F])*(1-theta[B])/theta[B];
     #pragma omp parallel for schedule(static) num_threads(nthreads)
     for (int i = 0; i < out.size(); ++i) {
-      out[i] = (us_log[i] - ur_log[i] + rglrz ) / stdrz;
+      out[i] /= stdrz;
     }
   }
 
   return out;
 }
 
-//' Get normalized enrichment from a diffR fit
-//'
-//' @param r vector of counts in control/condition1
-//' @param s vector of counts in treatment/condition2
-//' @param lnPost log-posterior matrix as computed by a normR routine
-//' @param theta numeric vector of binomial model parameters
-//' @param F column index of foreground component in posteriors (DEFAULT=1)
-//' @param B column index of background component in posteriors (DEFAULT=0)
-//' @param diffCall logical indicating if a difference call was performed. In
-//' that case standardization is performed dependent on the sign of the fold
-//' change. (DEFAULT=FALSE)
-//' @return a numeric with enrichment values in log space
+// Get normalized enrichment from a diffR fit
+//
+// @param r vector of counts in control/condition1
+// @param s vector of counts in treatment/condition2
+// @param lnPost log-posterior matrix as computed by a normR routine
+// @param theta numeric vector of binomial model parameters
+// @param F column index of foreground component in posteriors (DEFAULT=1)
+// @param B column index of background component in posteriors (DEFAULT=0)
+// @param diffCall logical indicating if a difference call was performed. In
+// that case standardization is performed dependent on the sign of the fold
+// change. (DEFAULT=FALSE)
+// @return a numeric with enrichment values in log space
 // [[Rcpp::export]]
 NumericVector computeEnrichment(const IntegerVector& r, const IntegerVector& s,
     const NumericMatrix& lnPost, const NumericVector& theta, const int F=1,
     const int B=0, const bool diffCall=false, const int nthreads=1) {
   //reduce data set to unique
   List m2u = mapToUniquePairs(r, s);
-  NumericMatrix lnP(as<NumericMatrix>(m2u["values"]).nrow(), lnPost.ncol());
+  NumericMatrix lnP(as<NumericMatrix>(m2u["values"]).ncol(), lnPost.ncol());
   for (int i=0; i < lnPost.ncol(); ++i) {
     lnP(_,i) = mapToUniqueWithMap(lnPost(_,i), m2u);
   }
@@ -627,6 +627,7 @@ int tthreshold(const double p, const double eps=1e-5,
   return marg;
 }
 
+//gives indices in R notation, i.e. >=1
 IntegerVector filterIdx(const List& m2u, const double theta,
     const double eps=1e-5, const bool diffCall=false) {
   if (theta < 0 || theta > 1) stop("invalid theta");
@@ -639,56 +640,56 @@ IntegerVector filterIdx(const List& m2u, const double theta,
   std::vector<int> idx;
   for (int i=0; i < n.size(); ++i) {
     if (n[i] >= margin) {
-      idx.push_back(i);
+      idx.push_back(i+1);
     }
   }
   return as<IntegerVector>(wrap(idx));
 }
 
-//' Deconvolute bivariate count data in multiple enrichment regimes. Bivariate
-//' data is modeled as a mixture of binomial distributions. Fitting is done
-//' with Expectation Maximization (EM) on data points were \code{r > 0 & s > 0}.
-//'
-//' In a first step, a map of unique non-zero (r,s) values is generated. This
-//' allows for faster runtime. Second, EM is run with the given number of
-//' components on these reduced data representation. If \code{iterations > 1},
-//' the fit with the highest likelihood is selected. In a third step, a map for
-//' all (r,s) values is generated. Based on this map the complete posterior
-//' matrix, P-values and enrichment is calculated. The returned values are
-//' holding results exclusively for unique (r,s) values and go directly into a
-//' \code{\link{NormRFit-class}} object.
-//'
-//' @param r \code{integer}-vector of counts (e.g. control counts in enrichment
-//' calls). If elements are not integers, they will be casted to integers.
-//' @param s \code{integer}-vector of counts (e.g. treatment counts in
-//' enrichment calls). If elements are not integers, they will be casted to
-//' integers.
-//' @param models \code{integer} specifying number of mixture components which
-//' should be >= 2 (default=2).
-//' @param eps \code{double} specifying termination criterion for EM fit
-//' (default=0.001).
-//' @param iterations \code{integer} specifying the number of individual EM runs
-//' with differential initial parameters to be done. Adjust this argument to
-//' find global maxima (default=5).
-//' @param bgIdx \code{integer} giving the index of the background component. In
-//' enrichment and regime calls this should be 0. In difference calls, this value
-//' can be > 0 (default=0).
-//' @param diffCall \code{logical} specifying if difference calling is done such
-//' that a two-sided significance test will be conducted (default=FALSE).
-//' @param verbose \code{logical} specifying if logging should be performed (default=FALSE).
-//' @param nthreads \code{integer} specifying number of cores to use (default=1).
-//' @return a list with the following items:
-//'  \item{qstar}{naive enrichment ratio \code{s/(r + s)}. Basis for EM fit.}
-//'  \item{map}{a map of unique (r,s) values. See
-//'   \code{\link{map2uniquePairs()}}}
-//'  \item{lntheta}{ln parametrization of mixture binomials}
-//'  \item{lnprior}{ln mixture proportions of mixture binomials}
-//'  \item{lnL}{log likelihood trace of EM}
-//'  \item{lnposterior}{ln posteriors for unique (r,s) according to map}
-//'  \item{lnenrichment}{ln enrichment for unique (r,s) according to map}
-//'  \item{lnpvals}{ln P-values for mixture component \code{bgIdx} for each
-//'   unique (r,s)}
-//'  \item{filtered}{unique (r,s) tupels passing the T filter with \code{eps}}
+// Deconvolute bivariate count data in multiple enrichment regimes. Bivariate
+// data is modeled as a mixture of binomial distributions. Fitting is done
+// with Expectation Maximization (EM) on data points were \code{r > 0 & s > 0}.
+//
+// In a first step, a map of unique non-zero (r,s) values is generated. This
+// allows for faster runtime. Second, EM is run with the given number of
+// components on these reduced data representation. If \code{iterations > 1},
+// the fit with the highest likelihood is selected. In a third step, a map for
+// all (r,s) values is generated. Based on this map the complete posterior
+// matrix, P-values and enrichment is calculated. The returned values are
+// holding results exclusively for unique (r,s) values and go directly into a
+// \code{\link{NormRFit-class}} object.
+//
+// @param r \code{integer}-vector of counts (e.g. control counts in enrichment
+// calls). If elements are not integers, they will be casted to integers.
+// @param s \code{integer}-vector of counts (e.g. treatment counts in
+// enrichment calls). If elements are not integers, they will be casted to
+// integers.
+// @param models \code{integer} specifying number of mixture components which
+// should be >= 2 (default=2).
+// @param eps \code{double} specifying termination criterion for EM fit
+// (default=0.001).
+// @param iterations \code{integer} specifying the number of individual EM runs
+// with differential initial parameters to be done. Adjust this argument to
+// find global maxima (default=5).
+// @param bgIdx \code{integer} giving the index of the background component. In
+// enrichment and regime calls this should be 0. In difference calls, this value
+// can be > 0 (default=0).
+// @param diffCall \code{logical} specifying if difference calling is done such
+// that a two-sided significance test will be conducted (default=FALSE).
+// @param verbose \code{logical} specifying if logging should be performed (default=FALSE).
+// @param nthreads \code{integer} specifying number of cores to use (default=1).
+// @return a list with the following items:
+//  \item{qstar}{naive enrichment ratio \code{s/(r + s)}. Basis for EM fit.}
+//  \item{map}{a map of unique (r,s) values. See
+//   \code{map2uniquePairs()}}
+//  \item{lntheta}{ln parametrization of mixture binomials}
+//  \item{lnprior}{ln mixture proportions of mixture binomials}
+//  \item{lnL}{log likelihood trace of EM}
+//  \item{lnposterior}{ln posteriors for unique (r,s) according to map}
+//  \item{lnenrichment}{ln enrichment for unique (r,s) according to map}
+//  \item{lnpvals}{ln P-values for mixture component \code{bgIdx} for each
+//   unique (r,s)}
+//  \item{filtered}{unique (r,s) tupels passing the T filter with \code{eps}}
 // [[Rcpp::export]]
 List normr_core(const IntegerVector& r, const IntegerVector& s,
     const int models=2, const double eps=1e-5, const int iterations=5,
@@ -744,7 +745,7 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
 
   //sort theta and calculate posterior for all data
   if (verbose) message("...computing posterior for all data.");
-  std::vector<unsigned int> o = 
+  std::vector<unsigned int> o =
     indexSort(as<std::vector<double> >(as<NumericVector>(fit["lntheta"])));
   NumericVector lnprior(models), lntheta(models);
   for (int k = 0; k < models; k++) { //loop over model components
@@ -759,7 +760,7 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
   //calculate enrichment on map
   if (verbose) message("...computing enrichment.");
   NumericVector enr = computeEnrichmentWithMap(lnPost, m2u, exp(lntheta),
-      models, bgIdx, diffCall, nthreads);
+      (models-1), bgIdx, diffCall, nthreads);
 
   //calculate p-values on map
   if (verbose) message("...computing P-values.");
@@ -767,7 +768,7 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
 
   //indizes of p-values passing T filter
   if (verbose) {
-    message("...applying T filter with threshold eps=" + std::to_string(eps) + 
+    message("...applying T filter with threshold eps=" + std::to_string(eps) +
         ".");
   }
   IntegerVector filteredT = filterIdx(m2u, exp(lntheta[bgIdx]), eps, diffCall);

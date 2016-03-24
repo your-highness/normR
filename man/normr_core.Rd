@@ -6,7 +6,7 @@
 data is modeled as a mixture of binomial distributions. Fitting is done
 with Expectation Maximization (EM) on data points were \code{r > 0 & s > 0}.}
 \usage{
-normr_core(r, s, models = 2L, eps = 1e-04, iterations = 5L, bgIdx = 0L,
+normr_core(r, s, models = 2L, eps = 1e-05, iterations = 5L, bgIdx = 0L,
   diffCall = FALSE, verbose = FALSE, nthreads = 1L)
 }
 \arguments{
@@ -42,7 +42,7 @@ that a two-sided significance test will be conducted (default=FALSE).}
 a list with the following items:
  \item{qstar}{naive enrichment ratio \code{s/(r + s)}. Basis for EM fit.}
  \item{map}{a map of unique (r,s) values. See
-  \code{\link{map2uniquePairs()}}}
+  \code{map2uniquePairs()}}
  \item{lntheta}{ln parametrization of mixture binomials}
  \item{lnprior}{ln mixture proportions of mixture binomials}
  \item{lnL}{log likelihood trace of EM}
