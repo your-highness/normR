@@ -35,6 +35,7 @@ biocViews: Bayesian, DifferentialPeakCalling, Classification, DataImport,
     ChIPSeq, RIPSeq, FunctionalGenomics, Genetics, MultipleComparison,
     Normalization, PeakDetection, Preprocessing
 VignetteBuilder: knitr
+LazyData: true
 NeedsCompilation: yes
 Collate:
     'BamCountConfig.R'
