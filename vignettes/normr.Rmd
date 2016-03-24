@@ -9,7 +9,7 @@ output:
       toc: true
 vignette: >
   %\VignetteIndexEntry{Normalization of ChIP-seq Data}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{rmarkdown::render}
   \usepackage[utf8]{inputenc}
 ---
 
@@ -17,40 +17,88 @@ vignette: >
 BiocStyle::markdown()
 ```
 
-# Introduction to normr
+# Introduction to normR
 
-```{r, fig.show='hold', fig.cap= "Figure caption", fig.width = 5, fig.height = 5}
-#knitr code
-plot(1:10)
-plot(10:1)
-```
+Chromatin immunoprecipitation followed by sequencing (ChIP-seq) provides
+genome-wide localization data for DNA-associated proteins. To infer the
+regions bound by such proteins the read densities obtained by such a ChIP-seq
+experiment are compared to the corresponding read profile obtained by a
+control experiment. A meaningful comparison requires normalization to
+mitigate the effects of technical biases, e.g. different sequencing depth.
+But more importantly the effect of the enrichment of certain regions on the
+overall read statistics. Normalization requires knowledge of the regions that
+remained unchanged, such that normalization and difference calling are
+inseparable.
 
+This package, normR, follows this logic and performs normalization and
+difference calling simultaneously to identify genomic regions enriched by the
+ChIP-procedure (`normr::enrichR`). Furthermore, normR enables the comparison
+between ChIP-seq data obtained from different conditions allowing for
+unraveling genomic regions that change their association with the ChIP-target
+(`normr::diffR`). normR, is capable to differentiate multiple regimes of
+enrichment, i.e. broad domains and sharp peaks (`normr::regimeR`).
 
-## Loading some toy data
-
-We have load some libraries
 
 
 ## Calling Enrichment with an Input Control
 
-### Giving bampath
+In a first assessment, we would like to call regions significantly enriched
+for reads in the ChIP-seq experiment given an Input-seq alignment.
 
-### Writing output
 
+### Setup toy data
+
+As part of the normR package, we provide 3 stripped alignment files
+containing reads for chr1:22500000-25000000. One Input-seq alignment serves
+as control for two ChIP-seq experiments for H3K27me3 and H3K4me3.
+
+```{r}
+#Paths to files containing alignment files
+path_Input <- system.file("extdata", "K562_Input.bam", package="normr")
+path_ChIP_H3K27me3 <- system.file("extdata", "K562_H3K27me3.bam"), package="normr")
+path_ChIP_H3K4me3 <- system.file("extdata", "K562_H3K4me3.bam"), package="normr")
+```
+
+That is easy. Now, we have to define our genome sequences: The
+
+```{r}
+#A toy genome definition
+genome <- data.frame("seqname"="chr1", "length"=25000000)
+```
+
+```{r}
+#Calling enrichment with enrichR()
+enrichment_H3K27me3 <- enrichR(path_ChIP_H3K27me3, path_Input, genome, procs=1)
+
+#Giving some fitting results
+summary(enrichment_H3K27me3)
+```
+
+```{r}
+#Calling enrichment with enrichR()
+enrichment_H3K4me3 <- enrichR(path_ChIP_H3K4me3, path_Input, genome, procs=1)
+
+#Giving some fitting results
+summary(enrichment_H3K4me3)
+```
+
+```{r, fig.show='hold', fig.cap="Density of enrichment", fig.width=5, fig.height=5}
+par(mfrow=c(1,2), bty="n")
+hist(getEnrichment(enrichment_H3K27me3))
+```
 
 ## Calling Differential Enrichment between two Conditions
 
-
-### Writing output
-
+```{r}
+difference <- diffR(getCounts(enrichment_H3K27me3)$treatment,
+                    getCounts(enrichment_H3K4me3)$treatment,
+                    enrichment_H3K27me3@ranges)
+```
 
 ## Identify Regimes of Enrichment
 
-Use counts from normr object in Enrichment Call
-
-### Enrichment
-
-The enrichment in `regimeR()` is calculated to highest enrichment regime.
-
-### Writing output
-
+```{r}
+difference <- diffR(getCounts(enrichment_H3K4me3)$control,
+                    getCounts(enrichment_H3K4me3)$treatment,
+                    enrichment_H3K27me3@ranges)
+```

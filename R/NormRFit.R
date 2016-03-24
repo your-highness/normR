@@ -37,7 +37,7 @@
 #' @slot B The index of the background component.
 #' @slot map A \code{integer}-vector to map back \code{counts},
 #' \code{lnposteriors}, \code{lnenrichment}, \code{lnpvals} and \code{lnqvals}.
-#' See also \code{\link{map2uniquePairs()}} for map generation.
+#' See also \code{map2uniquePairs()} for map generation.
 #' @slot counts A \code{list()} of length 2 containing unique count pairs. Use
 #' accessor \code{\link{getCounts}} to retrieve original count matrix.
 #' @slot names The corresponding names for counts.
@@ -55,7 +55,7 @@
 #' @slot lnposteriors A \code{k}-dimensional \code{matrix()} containing ln
 #' posterior probabilities for every unique \code{n} 2-tupel in counts given
 #' each \code{theta} and \code{mixtures}. Use accessor
-#' \code{\link{getPosterior()}} to get the complete posterior matrix.
+#' \code{getPosteriors()} to get the complete posterior matrix.
 #' @slot lnenrichment A \code{numeric()}-vector of normalized ln enrichment over
 #' component \code{B} for each unique count-tupel. Use accessor
 #' \code{\link{getEnrichment}} to retrieve enrichment for original count sequence.
@@ -66,11 +66,17 @@
 #' P-values using the T method.
 #' @slot lnqvals A \code{numeric()}-vector containing ln q-values. These are
 #' P-values corrected for multiple testing using Storey's method.
+#' @slot classes A \code{integer()}-vector giving class assignments based on
+#' model fit. For \code{obj@type == "enrichR"}, this vector contains either
+#' \code{NA} (not enriched) or \code{1} (enriched). For \code{obj@type ==
+#' "diffR"}, this vector contains \code{NA} (unchanged), \code{1} (differential
+#' in ChIP-seq 1) and \code{2} (differential in ChIP-seq 2). For
+#' \code{obj@type == "regimeR"}, this vector contains \code{NA} (not enriched)
+#' and an arbitary number of enrichment class \code{>= 1}.
 #' @aliases NormRFit
 #' @seealso \code{\link{normr-methods}} for the functions that produce
 #' this object
-#' @return return values are described in the Methods section.
-#' @example inst/examples/class_example.R
+#' @return return values are described in the methods section.
 #' @export
 setClass("NormRFit",
   representation = representation(type = "character",
@@ -90,7 +96,8 @@ setClass("NormRFit",
                                   lnenrichment = "numeric",
                                   lnpvals = "numeric",
                                   filteredT = "integer",
-                                  lnqvals = "numeric" )
+                                  lnqvals = "numeric",
+                                  classes = "integer")
 )
 
 setValidity("NormRFit",
@@ -113,12 +120,12 @@ setValidity("NormRFit",
         object@thetastar > 1) {
       return("invalid thetastar slot")
     }
-    if (length(object@theta) != object@k) return("invald theta slot")
-    if (length(object@mixtures) != object@k) return("invald mixtures slot")
+    if (length(object@theta) != object@k) return("invalid theta slot")
+    if (length(object@mixtures) != object@k) return("invalid mixtures slot")
     n <- length(object@counts[[1]])
     if (NCOL(object@lnposteriors) != object@k ||
         NROW(object@lnposteriors) != length(object@counts[[1]])) {
-      return("invald lnposterios slot")
+      return("invalid lnposterios slot")
     }
     if (length(object@lnenrichment) != length(object@counts[[1]])) {
       return("invaled lnenrichment slot")
@@ -132,8 +139,11 @@ setValidity("NormRFit",
     if (length(object@lnqvals) != length(object@counts[[1]])) {
       return("invaled lnqvals slot")
     }
-     TRUE
-  } 
+    if (length(object@classes) != length(object@counts[[1]])) {
+      return("invaled classes slot")
+    }
+    TRUE
+  }
 )
 
 setMethod("print", "NormRFit",
@@ -202,12 +212,12 @@ setMethod("summary", "NormRFit",
                "n.s."  =sum(qvals > 0.1, na.rm=T),
                "T.filtered" =sum(is.na(qvals)))
       cts <- cts - c(0,cts[1:4],0,0)
-      cts.string <- 
+      cts.string <-
         capture.output(print.default(format(cts, digits=digits), print.gap=2L,
                                      quote=F))
       ans <- paste0(ans, paste(cts.string, collapse="\n"), "\n")
-      ans <- paste0(ans, "---\nSignif. codes:  0 ’***’ 0.001 ’**’ 0.01 ’*’", 
-                          " 0.05 ’.’ 0.1 ’ ’ 1 'n.s.'\n\n")
+      ans <- paste0(ans, "---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*'",
+                          " 0.05 '.' 0.1 ' ' 1 'n.s.'\n\n")
     } else {
       ans <- paste0(ans, "No results of fit.\n\n")
     }
@@ -218,38 +228,35 @@ setMethod("summary", "NormRFit",
 
 #'@export
 setGeneric("getCounts", function(obj) standardGeneric("getCounts"))
-#' @describeIn NormRFit Retrieve used counts.
+#' @describeIn NormRFit Retrieve read count data.
 #' @aliases getCounts
 #' @export
 setMethod("getCounts", "NormRFit", function(obj) {
-  list("control"=obj@counts[[1]][obj@map],
-       "treatment"=obj@counts[[2]][obj@map])
+  return(list("control"=obj@counts[[1]][obj@map],"treatment"=obj@counts[[2]][obj@map]))
+})
+
+#'@export
+setGeneric("getPosteriors", function(obj) standardGeneric("getPosteriors"))
+#' @describeIn NormRFit Retrieve computed posteriors.
+#' @aliases getPosteriors
+#' @export
+setMethod("getPosteriors", "NormRFit", function(obj) {
+  return(exp(obj@lnposteriors)[obj@map,])
 })
 
 #'@export
 setGeneric("getEnrichment", function(obj) standardGeneric("getEnrichment"))
-#' @describeIn NormRFit Retrieve NormR calculated enrichment. Ln enrichment for
-#' a difference call.
+#' @describeIn NormRFit Retrieve NormR calculated enrichment.
 #' @aliases getEnrichment
 #' @export
 setMethod("getEnrichment", "NormRFit", function(obj) {
-  if (obj@type == "diffR") obj@lnenrichment[obj@map]
-  else exp(obj@lnenrichment)[obj@map]
-})
-
-#'@export
-setGeneric("getPosterior", function(obj) standardGeneric("getPosterior"))
-#' @describeIn NormRFit Retrieve computed posteriors.
-#' @aliases getPosterior
-#' @export
-setMethod("getPosterior", "NormRFit", function(obj) {
-  exp(obj@lnposteriors)[obj@map,]
+  return(obj@lnenrichment[obj@map])
 })
 
 #'@export
 setGeneric("getPvalues", function(obj, ...) standardGeneric("getPvalues"))
-#' @describeIn NormRFit Retrieve computed P-values
-#' @aliases getPosterior
+#' @describeIn NormRFit Retrieve computed P-values.
+#' @aliases getPvalues
 #' @export
 setMethod("getPvalues", "NormRFit", function(obj, filtered=F) {
   if (filtered) {
@@ -261,84 +268,22 @@ setMethod("getPvalues", "NormRFit", function(obj, filtered=F) {
 })
 
 #'@export
-setGeneric("getPvalues", function(obj) standardGeneric("getPvalues"))
-#' @describeIn NormRFit Retrieve computed P-values
-#' @aliases getPosterior
-#' @export
-setMethod("getPvalues", "NormRFit", function(obj) {
-  exp(obj@lnpvals)[obj@map]
-})
-
-#'@export
 setGeneric("getQvalues", function(obj) standardGeneric("getQvalues"))
-#' @describeIn NormRFit Retrieve computed posteriors.
-#' @aliases getPosterior
+#' @describeIn NormRFit Retrieve computed Q-values. See Bioconductor package
+#' \link{qvalue}.
+#' @aliases getQvalues
 #' @export
 setMethod("getQvalues", "NormRFit", function(obj) {
   exp(obj@lnqvals)[obj@map]
 })
 
+#'@export
+setGeneric("getClasses", function(obj) standardGeneric("getClasses"))
+#' @describeIn NormRFit Retrieve classes for each bin, i.e. enriched vs
+#' non-enriched (enrichR), differential enrichment (diffR) and enrichment
+#' regimes (regimeR).
+#' @aliases getClasses
 #' @export
-setGeneric("writeEnrichment", function(obj,...)
-  standardGeneric("writeEnrichment"))
-#' describeIn NormRFit Writes the calculated enrichment of a NormRFit to disk.
-#' @param obj A NormRFit object
-#' @param filename A file to write to.
-#' @param gr A GenomicRanges object representing the analyzed data. Usually,
-#' ranges are stored inside \code{obj}. Use this if you want to change
-#' chromosome identifiers for example. Note that the width of the bins should be
-#' same to data and fit stored in \code{obj}.
-#'
-#' @aliases writeEnrichment
-#' @export
-setMethod("writeEnrichment", "NormRFit",
-  function(obj, filename=NULL, gr=NULL) {
-    stop("not implemented yet")
-    #TODO
-    #if (is.null(gr) & is.null(obj@ranges)) stop("no chromosomes stored in obj")
-    #if (is.null(gr)) gr <- obj@ranges
-    #if (length(ranges) != obj@n) stop("gr not corresponding to obj")
-    #enr <- obj@enrichment
-    #if (is.null(enr)) enr <- getEnrichment(obj)
-    #require(rtracklayer)
-    #gr$score <- enr
-    #file <- filename
-    #if (grep('.bw$|.bigWig$', file, perl=T)) file.type="BigWig"
-    #else if (grep('.bg|bedGraph', file, perl=T)) file.type="bedGraph"
-    #else stop("filetype could not be determined by filename suffix")
-    #export(gr, filename, con=file.type)
-  }
-)
-
-#' @export
-setGeneric("writeBed", function(obj,...)
-  standardGeneric("writeBed"))
-#' describeIn NormRFit Writes a bed file of regions called significant for
-#' @param obj A NormRFit object
-#' @param filename A file to write to.
-#' @param pval A p-value threshold.
-#' @param gr A GenomicRanges object representing the analyzed data. Usually,
-#' ranges are stored inside \code{obj}. Use this if you want to change
-#' chromosome identifiers for example. Note that the width of the bins should be
-#' same to data and fit stored in \code{obj}.
-#'
-#' @aliases writeBed
-#' @export
-setMethod("writeBed", "NormRFit",
-  function(obj, filename=NULL, pval=0.05, gr=NULL) {
-    stop("not implemented yet")
-    #TODO
-    #if (is.null(gr) & is.null(obj@ranges)) stop("no chromosomes stored in obj")
-    #if (is.null(gr)) gr <- obj@ranges
-    #if (length(ranges) != obj@n) stop("gr not corresponding to obj")
-    #enr <- obj@enrichment
-    #if (is.null(enr)) enr <- getEnrichment(obj)
-    #require(rtracklayer)
-    #gr$score <- enr
-    #file <- filename
-    #if (grep('.bw$|.bigWig$', file, perl=T)) file.type="BigWig"
-    #else if (grep('.bg|bedGraph', file, perl=T)) file.type="bedGraph"
-    #else stop("filetype could not be determined by filename suffix")
-    #export(gr, filename, con=file.type)
-  }
-)
+setMethod("getClasses", "NormRFit", function(obj) {
+  obj@classes[obj@map]
+})

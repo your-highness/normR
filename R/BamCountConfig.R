@@ -18,21 +18,21 @@
 #' This S4 class is a small wrapper for a configuration on obtaining counts
 #' from bamfiles with bamsignals::bamProfile().
 #'
-#' @slot type A \code{character()} representing the type of bamfile
+#' @field type A \code{character()} representing the type of bamfile
 #' ("paired.end", "single.end").
-#' @param chromosomes GenomicRanges object used to specify the chromosomes.
-#' @slot binsize An \code{integer()} giving the binsize to count in (in bp).
-#' @slot mapqual discard reads with mapping quality strictly lower than this
+#' @field chromosomes GenomicRanges object used to specify the chromosomes.
+#' @field binsize An \code{integer()} giving the binsize to count in (in bp).
+#' @field mapq discard reads with mapping quality strictly lower than this
 #' parameter. The value 0 ensures that no read will be discarded, the value 254
 #' that only reads with the highest possible mapping quality will be considered.
-#' @slot filteredFlag An \code{integer()} to filter for when counting reads (SAMFLAG).
+#' @field filteredFlag An \code{integer()} to filter for when counting reads (SAMFLAG).
 #' For example, 1024 filters out marked duplicates (default), see
 #' \url{https://broadinstitute.github.io/picard/explain-flags.html}
-#' @slot shift shift the read position by a user-defined number of basepairs.
+#' @field shift shift the read position by a user-defined number of basepairs.
 #' This can be handy in the analysis of chip-seq data.
-#' @slot midpoint A \code{logical()} indicating whether fragment midpoints
+#' @field midpoint A \code{logical()} indicating whether fragment midpoints
 #' instead of 5'-ends should be counted in paired end data.
-#' @slot tlenfilter A filter on fragment length as estimated from alignment
+#' @field tlenfilter A filter on fragment length as estimated from alignment
 #' in paired end experiments (TLEN). If set to \code{c(min,max)} only reads are
 #' considered where \code{min <= TLEN <= max}. If \code{paired.end=="ignore"},
 #' this argument is set to \code{NULL} and no filtering is done. If
@@ -50,10 +50,10 @@
 #' @export
 setClass("BamCountConfig",
     representation = representation(type="character",
-                                    chromosomes="GenomicRanges",
+                                    chromosomes="GRanges",
                                     binsize="integer",
                                     mapq="integer",
-                                    filteredFlag="character",
+                                    filteredFlag="integer",
                                     shift="integer",
                                     midpoint="logical",
                                     tlenfilter="integer"
@@ -83,9 +83,9 @@ setValidity("BamCountConfig",
 setMethod("print", "BamCountConfig",
     function(x) {
       cat("BamCountConfig-class object\n\n",
-          "Type:\t\t", x@type, "\n",
+          "Type:\t\t\t", x@type, "\n",
           "Binsize:\t\t", x@binsize, " bp\n",
-          "Minimal MAPQ:\t", x@mapq, "\n",
+          "Minimal MAPQ:\t\t", x@mapq, "\n",
           "Filtered SAMFLAG:\t", x@filteredFlag, "\n",
           "Shift of anchor:\t", x@shift, " bp \n")
       if (x@type == "paired.end") {
@@ -107,8 +107,8 @@ setGeneric("countConfigPairedEnd", function(...)
 #' @aliases countConfigPairedEnd
 #' @export
 setMethod("countConfigPairedEnd",
-  definition=function(binsize=250, mapq=20, filteredFlag=1024, shift=0, midpoint=T,
-                      tlenfilter=c(70, 200)) {
+  definition=function(binsize=250L, mapq=20L, filteredFlag=1024L, shift=0L,
+                      midpoint=T, tlenfilter=c(70L, 200L)) {
     new("BamCountConfig", type="paired.end", binsize=binsize, mapq=mapq,
         filteredFlag=filteredFlag, shift=shift, midpoint=midpoint,
         tlenfilter=tlenfilter)
@@ -121,7 +121,7 @@ setGeneric("countConfigSingleEnd", function(...)
 #' @aliases countConfigSingleEnd
 #' @export
 setMethod("countConfigSingleEnd",
-  definition=function(binsize=250, mapq=20, filteredFlag=1024, shift=0) {
+  definition=function(binsize=250L, mapq=20L, filteredFlag=1024L, shift=0L) {
     new("BamCountConfig", type="single.end", binsize=binsize, mapq=mapq,
         filteredFlag=filteredFlag, shift=shift)
 })
@@ -134,8 +134,7 @@ setGeneric("getFilter", function(obj) standardGeneric("getFilter"))
 setMethod("getFilter", "BamCountConfig",
     function(obj) {
       if (obj@type == "single.end") return("ignore")
-      if (obj@type == "paired.end" & !obj@midpoint) return("paired.end")
+      if (obj@type == "paired.end" & !obj@midpoint) return("filter")
       if (obj@type == "paired.end" & obj@midpoint) return("midpoint")
     }
 )
-
