@@ -109,9 +109,10 @@ setGeneric("countConfigPairedEnd", function(...)
 setMethod("countConfigPairedEnd",
   definition=function(binsize=250L, mapq=20L, filteredFlag=1024L, shift=0L,
                       midpoint=T, tlenfilter=c(70L, 200L)) {
-    new("BamCountConfig", type="paired.end", binsize=binsize, mapq=mapq,
-        filteredFlag=filteredFlag, shift=shift, midpoint=midpoint,
-        tlenfilter=tlenfilter)
+    new("BamCountConfig", type="paired.end", binsize=as.integer(binsize),
+        mapq=as.integer(mapq), filteredFlag=as.integer(filteredFlag),
+        shift=as.integer(shift), midpoint=as.integer(midpoint),
+        tlenfilter=as.integer(tlenfilter))
 })
 
 #' @export
@@ -122,8 +123,9 @@ setGeneric("countConfigSingleEnd", function(...)
 #' @export
 setMethod("countConfigSingleEnd",
   definition=function(binsize=250L, mapq=20L, filteredFlag=1024L, shift=0L) {
-    new("BamCountConfig", type="single.end", binsize=binsize, mapq=mapq,
-        filteredFlag=filteredFlag, shift=shift)
+    new("BamCountConfig", type="single.end", binsize=as.integer(binsize),
+        mapq=as.integer(mapq), filteredFlag=as.integer(filteredFlag),
+        shift=as.integer(shift))
 })
 
 #' @export
