@@ -16,6 +16,8 @@
 \alias{getPvalues,NormRFit-method}
 \alias{getQvalues}
 \alias{getQvalues,NormRFit-method}
+\alias{getRanges}
+\alias{getRanges,NormRFit-method}
 \alias{length}
 \alias{length,NormRFit-method}
 \alias{summary,NormRFit-method}
@@ -26,6 +28,8 @@
 \S4method{summary}{NormRFit}(object, print = T, digits = 3, ...)
 
 \S4method{getCounts}{NormRFit}(obj)
+
+\S4method{getRanges}{NormRFit}(obj)
 
 \S4method{getPosteriors}{NormRFit}(obj)
 
@@ -69,6 +73,8 @@ can not be modified.
 \item \code{summary}: Prints a summary of the NormRFit object.
 
 \item \code{getCounts}: Retrieve read count data.
+
+\item \code{getRanges}: Retrieve read count data.
 
 \item \code{getPosteriors}: Retrieve computed posteriors.
 

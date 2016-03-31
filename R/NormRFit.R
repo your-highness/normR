@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+#Needed ClassUnion for slot "ranges"
+setClassUnion("GenomicRangesOrNULL", c("GenomicRanges", "NULL"))
+
 #' Container for a NormR fit
 #'
 #' This S4 class wraps a NormR fit containing counts, fit configuration and
@@ -78,7 +82,6 @@
 #' this object
 #' @return return values are described in the methods section.
 #' @export
-setClassUnion("GenomicRangesOrNULL", c("GenomicRanges", "NULL"))
 setClass("NormRFit",
   representation = representation(type = "character",
                                   n = "integer",
@@ -106,7 +109,7 @@ setValidity("NormRFit",
     if (!(object@type %in% c("enrichR", "diffR", "regimeR"))) {
       return("invalid type slot")
     }
-    if (!is.null(object@ranges) && 
+    if (!is.null(object@ranges) &&
         object@n != length(object@ranges)) return("invalid n and ranges")
     if (length(object@k) == 0 | object@k <= 0) return("invalid k slot")
     if (object@B <= 0 || object@B > object@k) return("invalid B slot")
