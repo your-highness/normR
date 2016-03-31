@@ -135,7 +135,7 @@ handleCharCharDf <- function(treatment, control, genome, countConfig, procs) {
 #' @export
 setGeneric("enrichR", function(treatment, control, genome, ...)
   standardGeneric("enrichR"))
-#setClassUnion("GRangesOrNULL", c("GRanges", "NULL"))
+setClassUnion("GenomicRangesOrNULL", c("GenomicRanges", "NULL"))
 #' \code{enrichR}: Enrichment calling between \code{treatment} (ChIP-seq) and
 #' \code{control} (Input) for two given read count vectors and an optional
 #' \link{GRanges} object that defines the original regions.
@@ -143,8 +143,8 @@ setGeneric("enrichR", function(treatment, control, genome, ...)
 #' @aliases enrichmentCall
 #' @rdname normr-methods
 #' @export
-setMethod("enrichR", signature("integer", "integer", "GRanges"),
-  function(treatment, control, genome=NULL, fdr=5e-2, eps=1e-5, iterations=10,
+setMethod("enrichR", signature("integer", "integer", "GenomicRangesOrNULL"),
+  function(treatment, control, genome=GRanges(), fdr=5e-2, eps=1e-5, iterations=10,
            procs=1L, verbose=TRUE) {
     if (length(treatment) != length(control)) {
       stop("incompatible treatment and control count vectors")
@@ -165,7 +165,6 @@ setMethod("enrichR", signature("integer", "integer", "GRanges"),
     classes[which(lnqvals < log(fdr))] <- 1L
 
     #NormRFit-class object
-    class(genome) <- "GRanges"
     o <- new("NormRFit", type="enrichR", n=length(treatment), ranges=genome,
              k=2L, B=1L, map=fit$map$map,
              counts=list(as.integer(fit$map$values[1,]),
@@ -225,7 +224,7 @@ setGeneric("diffR", function(treatment, control, genome, ...)
 #' @aliases differenceCall
 #' @rdname normr-methods
 #' @export
-setMethod("diffR", signature("integer", "integer", "GRanges"),
+setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
   function(treatment, control, genome=NULL, fdr=5e-2, eps=1e-5, iterations=10,
            procs=1L, verbose=TRUE) {
     if (length(treatment) != length(control)) {
@@ -250,7 +249,6 @@ setMethod("diffR", signature("integer", "integer", "GRanges"),
     classes[which(lnqvals < log(fdr))] <-
       apply(fit$lnpost[which(lnqvals < log(fdr)),c(1,3)],1,which.max)
 
-    class(genome) <- "GRanges"
     o <- new("NormRFit", type="enrichR", n=length(treatment), ranges=genome,
              k=3L, B=2L, map=fit$map$map,
              counts=list(as.integer(fit$map$values[1,]),
@@ -303,7 +301,6 @@ setMethod("diffR", signature("character", "character", "character"),
 #' @export
 setGeneric("regimeR", function(treatment, control, genome, models, ...)
   standardGeneric("regimeR"))
-#setClassUnion("GRangesOrNULL", c("GRanges", "NULL"))
 #' \code{regimeR}: Enrichment regime calling for \code{treatment} (ChIP-seq) over
 #' \code{control} (Input) for two given read count vectors and an optional
 #' \link{GRanges} object that defines the original regions.
@@ -311,7 +308,7 @@ setGeneric("regimeR", function(treatment, control, genome, models, ...)
 #' @aliases regimeCall
 #' @rdname normr-methods
 #' @export
-setMethod("regimeR", signature("integer", "integer", "GRanges", "integer"),
+setMethod("regimeR", signature("integer", "integer", "GenomicRanges", "integer"),
   function(treatment, control, genome=NULL, models=3L, fdr=5e-2, eps=1e-5,
            iterations=10, procs=1L, verbose=TRUE) {
     if (models <= 2) stop("invalid number of models specified")
@@ -336,7 +333,6 @@ setMethod("regimeR", signature("integer", "integer", "GRanges", "integer"),
       apply(fit$lnpost[which(lnqvals < log(fdr)),2:models],1,which.max)
 
     #NormRFit-class object
-    class(genome) <- "GRanges"
     o <- new("NormRFit", type="regimeR", n=length(treatment), ranges=genome,
              k=models, B=1L, map=fit$map$map,
              counts=list(as.integer(fit$map$values[1,]),
