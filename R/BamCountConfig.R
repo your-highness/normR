@@ -111,7 +111,7 @@ setMethod("countConfigPairedEnd",
                       midpoint=T, tlenfilter=c(70L, 200L)) {
     new("BamCountConfig", type="paired.end", binsize=as.integer(binsize),
         mapq=as.integer(mapq), filteredFlag=as.integer(filteredFlag),
-        shift=as.integer(shift), midpoint=as.integer(midpoint),
+        shift=as.integer(shift), midpoint=as.logical(midpoint),
         tlenfilter=as.integer(tlenfilter))
 })
 
