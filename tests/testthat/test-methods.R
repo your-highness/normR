@@ -96,29 +96,29 @@ test_that("Fitting with enrichR() works correctly", {
     }
   }
 
-#  #input:character,character,data.frame
-#  for (chipfile in chipfiles) {
-#    genome.df <- data.frame("chr1", 25000000)
-#    gr <- GRanges("chr1", IRanges(1, 25000000))
-#    testFit(
-#      RenrichR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"ignore",verbose=F))[1],
-#               suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"ignore",verbose=F))[1]),
-#      enrichR(chipfile, inputfile, genome.df, countConfigSingleEnd(), verbose=F),
-#      paste0("enrichR-character,character,data.frame-SingleEnd{region=",
-#             seqnames(gr), ":", start(gr),"-",end(gr),
-#             ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
-#             inputfile, "}")
-#    )
-#    testFit(
-#      RenrichR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"midpoint",verbose=F))[1],
-#               suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"midpoint",verbose=F))[1]),
-#      enrichR(chipfile, inputfile, genome.df, countConfigPairedEnd(), verbose=F),
-#      paste0("enrichR-character,character,data.frame-PairedEnd{region=",
-#             seqnames(gr), ":", start(gr),"-",end(gr),
-#             ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
-#             inputfile, "}")
-#    )
-#  }
+  #input:character,character,data.frame
+  for (chipfile in chipfiles) {
+    genome.df <- data.frame("chr1", 25000000)
+    gr <- GRanges("chr1", IRanges(1, 25000000))
+    testFit(
+      RenrichR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"ignore",verbose=F))[1],
+               suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"ignore",verbose=F))[1]),
+      enrichR(chipfile, inputfile, genome.df, countConfigSingleEnd(), verbose=F),
+      paste0("enrichR-character,character,data.frame-SingleEnd{region=",
+             seqnames(gr), ":", start(gr),"-",end(gr),
+             ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
+             inputfile, "}")
+    )
+    testFit(
+      RenrichR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"midpoint",verbose=F))[1],
+               suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"midpoint",verbose=F))[1]),
+      enrichR(chipfile, inputfile, genome.df, countConfigPairedEnd(), verbose=F),
+      paste0("enrichR-character,character,data.frame-PairedEnd{region=",
+             seqnames(gr), ":", start(gr),"-",end(gr),
+             ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
+             inputfile, "}")
+    )
+  }
 })
 
 test_that("Fitting with diffR() works correctly", {

@@ -89,6 +89,9 @@ NULL
 #' @example inst/examples/methods_example.R
 NULL
 
+#new class uniting GenomicRanges and NULL
+setClassUnion("GenomicRangesOrNULL", c("GenomicRanges", "NULL"))
+
 #HELPER FUNCTIONS
 handleCharCharChar <- function(treatment, control, genome) {
   treatment <- path.expand(treatment); control <- path.expand(control)
@@ -128,6 +131,7 @@ handleCharCharDf <- function(treatment, control, genome, countConfig, procs) {
 
   #Give bins across the supplied genome
   gr <- unlist(tile(gr, width=countConfig@binsize))
+  seqlengths(gr) <- genome[,2]
 
   return(list(counts=counts, gr=gr))
 }
@@ -135,7 +139,6 @@ handleCharCharDf <- function(treatment, control, genome, countConfig, procs) {
 #' @export
 setGeneric("enrichR", function(treatment, control, genome, ...)
   standardGeneric("enrichR"))
-setClassUnion("GenomicRangesOrNULL", c("GenomicRanges", "NULL"))
 #' \code{enrichR}: Enrichment calling between \code{treatment} (ChIP-seq) and
 #' \code{control} (Input) for two given read count vectors and an optional
 #' \link{GRanges} object that defines the original regions.
@@ -206,7 +209,7 @@ setMethod("enrichR", signature("character", "character", "data.frame"),
 #' @aliases enrichmentCall
 #' @rdname normr-methods
 setMethod("enrichR", signature("character", "character", "character"),
-  function(treatment, control, genome="", countConfig=countConfigSingleEnd(),
+  function(treatment, control, genome, countConfig=countConfigSingleEnd(),
            fdr=5e-2, eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     genome <- handleCharCharChar(treatment, control, genome)
@@ -224,7 +227,7 @@ setGeneric("diffR", function(treatment, control, genome, ...)
 #' @aliases differenceCall
 #' @rdname normr-methods
 #' @export
-setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
+setMethod("diffR", signature("integer", "integer", "GenomicRangesOrNULL"),
   function(treatment, control, genome=NULL, fdr=5e-2, eps=1e-5, iterations=10,
            procs=1L, verbose=TRUE) {
     if (length(treatment) != length(control)) {
@@ -308,9 +311,10 @@ setGeneric("regimeR", function(treatment, control, genome, models, ...)
 #' @aliases regimeCall
 #' @rdname normr-methods
 #' @export
-setMethod("regimeR", signature("integer", "integer", "GenomicRanges", "integer"),
+setMethod("regimeR",
+          signature("integer", "integer", "GenomicRangesOrNULL", "integer"),
   function(treatment, control, genome=NULL, models=3L, fdr=5e-2, eps=1e-5,
-           iterations=10, procs=1L, verbose=TRUE) {
+            iterations=10, procs=1L, verbose=TRUE) {
     if (models <= 2) stop("invalid number of models specified")
     if (length(treatment) != length(control)) {
       stop("incompatible treatment and control count vectors")
