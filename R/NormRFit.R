@@ -78,10 +78,11 @@
 #' this object
 #' @return return values are described in the methods section.
 #' @export
+setClassUnion("GenomicRangesOrNULL", c("GenomicRanges", "NULL"))
 setClass("NormRFit",
   representation = representation(type = "character",
                                   n = "integer",
-                                  ranges = "GRanges",
+                                  ranges = "GenomicRangesOrNULL",
                                   k = "integer",
                                   B = "integer",
                                   map = "integer",
@@ -105,7 +106,8 @@ setValidity("NormRFit",
     if (!(object@type %in% c("enrichR", "diffR", "regimeR"))) {
       return("invalid type slot")
     }
-    #if (object@n != length(object@ranges)) return("invalid n and ranges")
+    if (!is.null(object@ranges) && 
+        object@n != length(object@ranges)) return("invalid n and ranges")
     if (length(object@k) == 0 | object@k <= 0) return("invalid k slot")
     if (object@B <= 0 || object@B > object@k) return("invalid B slot")
     if (max(object@map) != length(object@counts[[1]])) {
@@ -233,6 +235,22 @@ setGeneric("getCounts", function(obj) standardGeneric("getCounts"))
 #' @export
 setMethod("getCounts", "NormRFit", function(obj) {
   return(list("control"=obj@counts[[1]][obj@map],"treatment"=obj@counts[[2]][obj@map]))
+})
+
+#'@export
+setGeneric("getRanges", function(obj) standardGeneric("getRanges"))
+#' @describeIn NormRFit Retrieve read count data.
+#' @aliases getRanges
+#' @export
+setMethod("getRanges", "NormRFit", function(obj) {
+  if (is.null(obj@ranges)) {
+    return(NULL)
+  } else {
+    gr <- obj@ranges
+    class(gr) <- "GRanges"
+    attr(class(gr), "package") <- "GenomicRanges"
+    return(gr)
+  }
 })
 
 #'@export
