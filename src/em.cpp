@@ -510,8 +510,8 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
     out[i] = log(us_log[i]/ur_log[i]) + rglrz;
   }
   if (diffCall) {//standardization dependent on algebraic sign of fc
-    double stdrzC = theta[0]/(1-theta[0])*(1-theta[B])/theta[B];
-    double stdrzT = theta[2]/(1-theta[2])*(1-theta[B])/theta[B];
+    double stdrzC = log(theta[0]/(1-theta[0])*(1-theta[B])/theta[B]);
+    double stdrzT = log(theta[2]/(1-theta[2])*(1-theta[B])/theta[B]);
     #pragma omp parallel for schedule(static) num_threads(nthreads)
     for (int i = 0; i < out.size(); ++i) {
       if (out[i] < 0) {
@@ -521,7 +521,7 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
       }
     }
   } else {
-    double stdrz = theta[F]/(1-theta[F])*(1-theta[B])/theta[B];
+    double stdrz = log(theta[F]/(1-theta[F])*(1-theta[B])/theta[B]);
     #pragma omp parallel for schedule(static) num_threads(nthreads)
     for (int i = 0; i < out.size(); ++i) {
       out[i] /= stdrz;
