@@ -13,10 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-#Needed ClassUnion for slot "ranges"
-setClassUnion("GenomicRangesOrNULL", c("GenomicRanges", "NULL"))
-
 #' Container for a NormR fit
 #'
 #' This S4 class wraps a NormR fit containing counts, fit configuration and
@@ -81,6 +77,10 @@ setClassUnion("GenomicRangesOrNULL", c("GenomicRanges", "NULL"))
 #' @seealso \code{\link{normr-methods}} for the functions that produce
 #' this object
 #' @return return values are described in the methods section.
+
+#new class uniting GenomicRanges and NULL
+setClassUnion("GenomicRangesOrNULL", c("GenomicRanges", "NULL"))
+
 #' @export
 setClass("NormRFit",
   representation = representation(type = "character",
@@ -103,7 +103,6 @@ setClass("NormRFit",
                                   lnqvals = "numeric",
                                   classes = "integer")
 )
-
 setValidity("NormRFit",
   function(object) {
     if (!(object@type %in% c("enrichR", "diffR", "regimeR"))) {
@@ -246,14 +245,8 @@ setGeneric("getRanges", function(obj) standardGeneric("getRanges"))
 #' @aliases getRanges
 #' @export
 setMethod("getRanges", "NormRFit", function(obj) {
-  if (is.null(obj@ranges)) {
-    return(NULL)
-  } else {
-    gr <- obj@ranges
-    class(gr) <- "GRanges"
-    attr(class(gr), "package") <- "GenomicRanges"
-    return(gr)
-  }
+  if (is.null(obj@ranges)) return(NULL)
+  else return(as(obj@ranges, "GenomicRanges"))
 })
 
 #'@export

@@ -143,7 +143,7 @@ RgetEnrichment <- function(post, r, s, theta, bgIdx=1, fgIdx=2) {
   foldchange <- log((s+pseu_s)/(r+pseu_r))
   regularization <- log(pseu_r / pseu_s)
   standardization <-
-    theta[fgIdx]/(1-theta[fgIdx])*(1-theta[bgIdx])/theta[bgIdx]
+    log(theta[fgIdx]/(1-theta[fgIdx])*(1-theta[bgIdx])/theta[bgIdx])
   return((foldchange + regularization)/standardization)
 }
 RenrichR <- function(s, r, fdr=5e-2, eps=1e-5, bgIdx=1) {
@@ -224,9 +224,9 @@ RgetEnrichmentDiff <- function(post, r, s, theta) {
   #Standardized foldchange dependent on algebraic sign
   foldchange <- foldchange + regularization
   standardizationC <-
-    theta[1]/(1-theta[1])*(1-theta[2])/theta[2]
+    log(theta[1]/(1-theta[1])*(1-theta[2])/theta[2])
   standardizationT <-
-    theta[3]/(1-theta[3])*(1-theta[2])/theta[2]
+    log(theta[3]/(1-theta[3])*(1-theta[2])/theta[2])
   foldchange[foldchange < 0] <- foldchange[foldchange < 0]/standardizationC
   foldchange[foldchange > 0] <- foldchange[foldchange > 0]/standardizationT
   return(foldchange)
