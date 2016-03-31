@@ -5,21 +5,21 @@
 \alias{diffR}
 \alias{diffR,character,character,character-method}
 \alias{diffR,character,character,data.frame-method}
-\alias{diffR,integer,integer,GRanges-method}
+\alias{diffR,integer,integer,GenomicRanges-method}
 \alias{enrichR}
 \alias{enrichR,character,character,character-method}
 \alias{enrichR,character,character,data.frame-method}
-\alias{enrichR,integer,integer,GRanges-method}
+\alias{enrichR,integer,integer,GenomicRangesOrNULL-method}
 \alias{normr-methods}
 \alias{regimeR}
 \alias{regimeR,character,character,character,integer-method}
 \alias{regimeR,character,character,data.frame,integer-method}
-\alias{regimeR,integer,integer,GRanges,integer-method}
+\alias{regimeR,integer,integer,GenomicRanges,integer-method}
 \title{Enrichment, Difference and Regime Calling in ChIP-seq data.}
 \usage{
-\S4method{enrichR}{integer,integer,GRanges}(treatment, control, genome = NULL,
-  fdr = 0.05, eps = 1e-05, iterations = 10, procs = 1L,
-  verbose = TRUE)
+\S4method{enrichR}{integer,integer,GenomicRangesOrNULL}(treatment, control,
+  genome = GRanges(), fdr = 0.05, eps = 1e-05, iterations = 10,
+  procs = 1L, verbose = TRUE)
 
 \S4method{enrichR}{character,character,data.frame}(treatment, control, genome,
   countConfig = countConfigSingleEnd(), fdr = 0.05, eps = 1e-05,
@@ -29,8 +29,8 @@
   genome = "", countConfig = countConfigSingleEnd(), fdr = 0.05,
   eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
 
-\S4method{diffR}{integer,integer,GRanges}(treatment, control, genome = NULL,
-  fdr = 0.05, eps = 1e-05, iterations = 10, procs = 1L,
+\S4method{diffR}{integer,integer,GenomicRanges}(treatment, control,
+  genome = NULL, fdr = 0.05, eps = 1e-05, iterations = 10, procs = 1L,
   verbose = TRUE)
 
 \S4method{diffR}{character,character,data.frame}(treatment, control, genome,
@@ -41,7 +41,7 @@
   genome = "", countConfig = countConfigSingleEnd(), fdr = 0.05,
   eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
 
-\S4method{regimeR}{integer,integer,GRanges,integer}(treatment, control,
+\S4method{regimeR}{integer,integer,GenomicRanges,integer}(treatment, control,
   genome = NULL, models = 3L, fdr = 0.05, eps = 1e-05,
   iterations = 10, procs = 1L, verbose = TRUE)
 
