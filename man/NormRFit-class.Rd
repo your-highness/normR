@@ -4,6 +4,8 @@
 \name{NormRFit-class}
 \alias{NormRFit}
 \alias{NormRFit-class}
+\alias{exportR}
+\alias{exportR,NormRFit,character,character-method}
 \alias{getClasses}
 \alias{getClasses,NormRFit-method}
 \alias{getCounts}
@@ -40,13 +42,24 @@
 \S4method{getQvalues}{NormRFit}(obj)
 
 \S4method{getClasses}{NormRFit}(obj)
+
+\S4method{exportR}{NormRFit,character,character}(obj, filename,
+  type = c("bed", "bedGraph", "bigWig"), fdr = 0.01, color = NA)
 }
 \arguments{
-\item{object}{A NormRFit objectect}
+\item{object}{A NormRFit object}
+
+\item{print}{\code{logical()} indicating if summary should be print to screen}
+
+\item{digits}{Number of digits to show in number formatting.}
 
 \item{...}{Not used}
 
 \item{obj}{A NormRFit object.}
+
+\item{filename}{File to write results to.}
+
+\item{type}{Type of file used for exporting results.}
 
 \item{i}{\code{integer()}-index for subsetting.}
 
@@ -88,6 +101,9 @@ can not be modified.
 \item \code{getClasses}: Retrieve classes for each bin, i.e. enriched vs
 non-enriched (enrichR), differential enrichment (diffR) and enrichment
 regimes (regimeR).
+
+\item \code{exportR}: Export results of a \link{NormRFit} to either bed,
+bedGraph or bigWig.
 }}
 \section{Slots}{
 

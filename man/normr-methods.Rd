@@ -9,7 +9,7 @@
 \alias{enrichR}
 \alias{enrichR,character,character,character-method}
 \alias{enrichR,character,character,data.frame-method}
-\alias{enrichR,integer,integer,GenomicRangesOrNULL-method}
+\alias{enrichR,integer,integer,GenomicRanges-method}
 \alias{normr-methods}
 \alias{regimeR}
 \alias{regimeR,character,character,character,integer-method}
@@ -17,7 +17,9 @@
 \alias{regimeR,integer,integer,GenomicRanges,integer-method}
 \title{Enrichment, Difference and Regime Calling in ChIP-seq data.}
 \usage{
-\S4method{enrichR}{integer,integer,GenomicRangesOrNULL}(treatment, control,
+enrichR(treatment, control, genome, ...)
+
+\S4method{enrichR}{integer,integer,GenomicRanges}(treatment, control,
   genome = GRanges(), fdr = 0.05, eps = 1e-05, iterations = 10,
   procs = 1L, verbose = TRUE)
 
@@ -25,13 +27,15 @@
   countConfig = countConfigSingleEnd(), fdr = 0.05, eps = 1e-05,
   iterations = 10, procs = 1L, verbose = TRUE)
 
-\S4method{enrichR}{character,character,character}(treatment, control,
-  genome = "", countConfig = countConfigSingleEnd(), fdr = 0.05,
-  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
+\S4method{enrichR}{character,character,character}(treatment, control, genome,
+  countConfig = countConfigSingleEnd(), fdr = 0.05, eps = 1e-05,
+  iterations = 10, procs = 1L, verbose = TRUE)
+
+diffR(treatment, control, genome, ...)
 
 \S4method{diffR}{integer,integer,GenomicRanges}(treatment, control,
-  genome = NULL, fdr = 0.05, eps = 1e-05, iterations = 10, procs = 1L,
-  verbose = TRUE)
+  genome = GRanges(), fdr = 0.05, eps = 1e-05, iterations = 10,
+  procs = 1L, verbose = TRUE)
 
 \S4method{diffR}{character,character,data.frame}(treatment, control, genome,
   countConfig = countConfigSingleEnd(), fdr = 0.05, eps = 1e-05,
@@ -41,8 +45,10 @@
   genome = "", countConfig = countConfigSingleEnd(), fdr = 0.05,
   eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
 
+regimeR(treatment, control, genome, models, ...)
+
 \S4method{regimeR}{integer,integer,GenomicRanges,integer}(treatment, control,
-  genome = NULL, models = 3L, fdr = 0.05, eps = 1e-05,
+  genome = GRanges(), models = 3L, fdr = 0.05, eps = 1e-05,
   iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{regimeR}{character,character,data.frame,integer}(treatment, control,
@@ -103,47 +109,35 @@ a standardized enrichment for each bin is calculated based on the fitted
 background component.
 
 \code{enrichR}: Enrichment calling between \code{treatment} (ChIP-seq) and
-\code{control} (Input) for two given read count vectors and an optional
-\link{GRanges} object that defines the original regions.
-
-\code{enrichR}: Enrichment calling between \code{treatment} (ChIP-seq) and
-\code{control} (Input) for two given bam filepaths. The given \code{genome}
-defines chromosomes which will be binned according to \code{countConfig}.
-
-\code{enrichR}: Enrichment calling between \code{treatment} (ChIP-seq) and
-\code{control} (Input) for two given bam filepaths. The given \code{genome}
-defines a UCSC genome identifier (e.g. "hg19") that is used for retrieval
-of chromosome annotation. Chromosomes will be binned according to
-\code{countConfig}.
+\code{control} (Input) for either two given read count vectors and an
+optional \link{GenomicRanges} object that defines the original regions
+('integer,integer,GenomicRangesOrNULL'), two given bam filepaths and a
+genome \code{data.frame} defining chromosomes which will be binned according
+to 'countConfig' ('character,character,data.frame') or two given bam
+filepaths and a genome \code{character} specifying a UCSC genome identifier
+(e.g. "hg19") that is used for retrieval of chromosome annotation which will
+be binned according to 'countConfig' ('character,character,character').
 
 \code{diffR}: Difference calling between \code{treatment} (ChIP-seq 1) and
-\code{control} (ChIP-seq 2) for two given read count vectors and an optional
-\link{GRanges} object that defines the original regions.
+\code{control} (ChIP-seq 2) for either two given read count vectors and an
+optional \link{GenomicRanges} object that defines the original regions
+('integer,integer,GenomicRangesOrNULL'), two given bam filepaths and a
+genome \code{data.frame} defining chromosomes which will be binned according
+to 'countConfig' ('character,character,data.frame') or two given bam
+filepaths and a genome \code{character} specifying a UCSC genome identifier
+(e.g. "hg19") that is used for retrieval of chromosome annotation which will
+be binned according to 'countConfig' ('character,character,character').
 
-\code{diffR}: Difference calling between \code{treatment} (ChIP-seq 1) and
-\code{control} (ChIP-seq 2) for two given bam filepaths. The given
-\code{genome} defines chromosomes which will be binned according to
-\code{countConfig}.
-
-\code{diffR}: Difference calling between \code{treatment} (ChIP-seq 1) and
-\code{control} (ChIP-seq 2) for two given bam filepaths. The given
-\code{genome} defines a UCSC genome identifier (e.g. "hg19") that is used for
-retrieval of chromosome annotation.  Chromosomes will be binned according to
-\code{countConfig}.
-
-\code{regimeR}: Enrichment regime calling for \code{treatment} (ChIP-seq) over
-\code{control} (Input) for two given read count vectors and an optional
-\link{GRanges} object that defines the original regions.
-
-\code{regimeR}: Enrichment regime calling for \code{treatment} (ChIP-seq) over
-\code{control} (Input) for two given bam filepaths. The given \code{genome}
-defines chromosomes which will be binned according to \code{countConfig}.
-
-\code{regimeR}: Enrichment regime calling for \code{treatment} (ChIP-seq) over
-\code{control} (Input) for two given bam filepaths. The given \code{genome}
-defines a UCSC genome identifier (e.g. "hg19") that is used for retrieval
-of chromosome annotation. Chromosomes will be binned according to
-\code{countConfig}.
+\code{regimeR}: Enrichment regime calling between \code{treatment}
+(ChIP-seq 1) and \code{control} (ChIP-seq 2) with with \code{models} number
+of models for either two given read count vectors and an optional
+\link{GenomicRanges} object that defines the original regions
+('integer,integer,GenomicRangesOrNULL'), two given bam filepaths and a
+genome \code{data.frame} defining chromosomes which will be binned according
+to 'countConfig' ('character,character,data.frame') or two given bam
+filepaths and a genome \code{character} specifying a UCSC genome identifier
+(e.g. "hg19") that is used for retrieval of chromosome annotation which will
+be binned according to 'countConfig' ('character,character,character').
 }
 \examples{
 inputfile <- system.file("extdata", "K562_Input.bam", package="normr")
