@@ -165,8 +165,10 @@ RenrichR <- function(s, r, fdr=5e-2, eps=1e-5, bgIdx=1) {
   fit$qvals[fit$filteredT] <- qvalue::qvalue(fit$pvals[fit$filteredT])$qvalues
 
   #classes
-  fit$classes <- as.integer(rep(NA, length(fit$qvals)))
-  fit$classes[which(fit$qvals < fdr)] <- 1
+  fit$classes <- as.integer(rep(NA, length(r)))
+  fit$classes <- apply(fit$posteriors,1,which.max)
+  fit$classes[fit$classes == 1] <- NA
+  fit$classes <- fit$classes - 1
 
   return(fit)
 }
@@ -223,12 +225,12 @@ RgetEnrichmentDiff <- function(post, r, s, theta) {
 
   #Standardized foldchange dependent on algebraic sign
   foldchange <- foldchange + regularization
-  standardizationC <-
-    log(theta[1]/(1-theta[1])*(1-theta[2])/theta[2])
   standardizationT <-
     log(theta[3]/(1-theta[3])*(1-theta[2])/theta[2])
-  foldchange[foldchange < 0] <- foldchange[foldchange < 0]/standardizationC
   foldchange[foldchange > 0] <- foldchange[foldchange > 0]/standardizationT
+  standardizationC <-
+    -log(theta[1]/(1-theta[1])*(1-theta[2])/theta[2])
+  foldchange[foldchange < 0] <- foldchange[foldchange < 0]/standardizationC
   return(foldchange)
 }
 RdiffR <- function(s, r, fdr=5e-2, eps=1e-5) {
@@ -250,9 +252,9 @@ RdiffR <- function(s, r, fdr=5e-2, eps=1e-5) {
   fit$qvals[fit$filteredT] <- qvalue::qvalue(fit$pvals[fit$filteredT])$qvalues
 
   #classes
-  fit$classes <- as.integer(rep(NA, length(fit$qvals)))
-  fit$classes[which(fit$qvals < fdr)] <-
-    apply(fit$posteriors[which(fit$qvals < fdr),c(1,3)],1,which.max)
+  fit$classes <- as.integer(rep(NA, length(r)))
+  fit$classes <- apply(fit$posteriors[,c(1,3,2)],1,which.max)
+  fit$classes[fit$classes == 3] <- NA
 
   return(fit)
 }
@@ -279,9 +281,10 @@ RregimeR <- function(s, r, nmodels, fdr=5e-2, eps=1e-5, bgIdx=1) {
   fit$qvals[fit$filteredT] <- qvalue::qvalue(fit$pvals[fit$filteredT])$qvalues
 
   #classes
-  fit$classes <- as.integer(rep(NA, length(fit$qvals)))
-  fit$classes[which(fit$qvals < fdr)] <-
-    apply(fit$posteriors[which(fit$qvals < fdr),2:nmodels],1,which.max)
+  fit$classes <- as.integer(rep(NA, length(r)))
+  fit$classes <- apply(fit$posteriors[,1:nmodels],1,which.max)
+  fit$classes[fit$classes == 1] <- NA
+  fit$classes <- fit$classes - 1
 
   return(fit)
 }
