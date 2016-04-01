@@ -168,8 +168,9 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
     #Get classes vector
-    classes <- as.integer(rep(NA, length(lnqvals)))
-    classes[which(lnqvals < log(fdr))] <- 1L
+    classes <- apply(fit$lnpost,1,which.max)
+    classes[classes == 1] <- NA
+    classes <- classes-1
 
     #NormRFit-class object
     o <- new("NormRFit", type="enrichR", n=length(treatment), ranges=genome,
@@ -329,6 +330,7 @@ setMethod("regimeR",
     #Get classes vector
     classes <- apply(fit$lnpost[,1:models],1,which.max)
     classes[classes == 1] <- NA
+    classes <- classes-1#count from first regime model
 
     #NormRFit-class object
     o <- new("NormRFit", type="regimeR", n=length(treatment), ranges=genome,
