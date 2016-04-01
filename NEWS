@@ -1,3 +1,14 @@
+CHANGES IN VERSION 0.99.1
+-------------------------
+
+FEATURES
+     o  exportR() for exporting normR fitting results to bed, bedGraph and
+        bigWig
+
+BUGFIXES
+     o  Fixed build errors and warnings
+     o  Fixed failing test
+
 CHANGES IN VERSION 0.99.0
 -------------------------
 o Initial Bioconductor Submission
