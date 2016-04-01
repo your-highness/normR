@@ -89,9 +89,6 @@ NULL
 #' @example inst/examples/methods_example.R
 NULL
 
-#new class uniting GenomicRanges and NULL
-setClassUnion("GenomicRangesOrNULL", c("GenomicRanges", "NULL"))
-
 #HELPER FUNCTIONS
 handleCharCharChar <- function(treatment, control, genome) {
   treatment <- path.expand(treatment); control <- path.expand(control)
@@ -136,17 +133,24 @@ handleCharCharDf <- function(treatment, control, genome, countConfig, procs) {
   return(list(counts=counts, gr=gr))
 }
 
-#' @export
-setGeneric("enrichR", function(treatment, control, genome, ...)
-  standardGeneric("enrichR"))
 #' \code{enrichR}: Enrichment calling between \code{treatment} (ChIP-seq) and
-#' \code{control} (Input) for two given read count vectors and an optional
-#' \link{GRanges} object that defines the original regions.
+#' \code{control} (Input) for either two given read count vectors and an
+#' optional \link{GenomicRanges} object that defines the original regions
+#' ('integer,integer,GenomicRangesOrNULL'), two given bam filepaths and a
+#' genome \code{data.frame} defining chromosomes which will be binned according
+#' to 'countConfig' ('character,character,data.frame') or two given bam
+#' filepaths and a genome \code{character} specifying a UCSC genome identifier
+#' (e.g. "hg19") that is used for retrieval of chromosome annotation which will
+#' be binned according to 'countConfig' ('character,character,character').
 #' @aliases enrichR
 #' @aliases enrichmentCall
 #' @rdname normr-methods
 #' @export
-setMethod("enrichR", signature("integer", "integer", "GenomicRangesOrNULL"),
+setGeneric("enrichR", function(treatment, control, genome, ...)
+  standardGeneric("enrichR"))
+#' @rdname normr-methods
+#' @export
+setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
   function(treatment, control, genome=GRanges(), fdr=5e-2, eps=1e-5, iterations=10,
            procs=1L, verbose=TRUE) {
     if (length(treatment) != length(control)) {
@@ -185,11 +189,6 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRangesOrNULL"),
     }
     return(o)
 })
-#' \code{enrichR}: Enrichment calling between \code{treatment} (ChIP-seq) and
-#' \code{control} (Input) for two given bam filepaths. The given \code{genome}
-#' defines chromosomes which will be binned according to \code{countConfig}.
-#' @aliases enrichR
-#' @aliases enrichmentCall
 #' @rdname normr-methods
 #' @export
 setMethod("enrichR", signature("character", "character", "data.frame"),
@@ -200,14 +199,8 @@ setMethod("enrichR", signature("character", "character", "data.frame"),
     return(enrichR(countsGr$counts[[1]][1], countsGr$counts[[2]][1],
       countsGr$gr, fdr, eps, iterations, procs, verbose))
 })
-#' \code{enrichR}: Enrichment calling between \code{treatment} (ChIP-seq) and
-#' \code{control} (Input) for two given bam filepaths. The given \code{genome}
-#' defines a UCSC genome identifier (e.g. "hg19") that is used for retrieval
-#' of chromosome annotation. Chromosomes will be binned according to
-#' \code{countConfig}.
-#' @aliases enrichR
-#' @aliases enrichmentCall
 #' @rdname normr-methods
+#' @export
 setMethod("enrichR", signature("character", "character", "character"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
            fdr=5e-2, eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
@@ -217,18 +210,25 @@ setMethod("enrichR", signature("character", "character", "character"),
       iterations, procs, verbose))
 })
 
-#' @export
-setGeneric("diffR", function(treatment, control, genome, ...)
-  standardGeneric("diffR"))
 #' \code{diffR}: Difference calling between \code{treatment} (ChIP-seq 1) and
-#' \code{control} (ChIP-seq 2) for two given read count vectors and an optional
-#' \link{GRanges} object that defines the original regions.
+#' \code{control} (ChIP-seq 2) for either two given read count vectors and an
+#' optional \link{GenomicRanges} object that defines the original regions
+#' ('integer,integer,GenomicRangesOrNULL'), two given bam filepaths and a
+#' genome \code{data.frame} defining chromosomes which will be binned according
+#' to 'countConfig' ('character,character,data.frame') or two given bam
+#' filepaths and a genome \code{character} specifying a UCSC genome identifier
+#' (e.g. "hg19") that is used for retrieval of chromosome annotation which will
+#' be binned according to 'countConfig' ('character,character,character').
 #' @aliases diffR
 #' @aliases differenceCall
 #' @rdname normr-methods
 #' @export
-setMethod("diffR", signature("integer", "integer", "GenomicRangesOrNULL"),
-  function(treatment, control, genome=NULL, fdr=5e-2, eps=1e-5, iterations=10,
+setGeneric("diffR", function(treatment, control, genome, ...)
+  standardGeneric("diffR"))
+#' @rdname normr-methods
+#' @export
+setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
+  function(treatment, control, genome=GRanges(), fdr=5e-2, eps=1e-5, iterations=10,
            procs=1L, verbose=TRUE) {
     if (length(treatment) != length(control)) {
       stop("incompatible treatment and control count vectors")
@@ -248,9 +248,8 @@ setMethod("diffR", signature("integer", "integer", "GenomicRangesOrNULL"),
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
     #Get classes vector
-    classes <- as.integer(rep(NA, length(lnqvals)))
-    classes[which(lnqvals < log(fdr))] <-
-      apply(fit$lnpost[which(lnqvals < log(fdr)),c(1,3)],1,which.max)
+    classes <- apply(fit$lnpost[,c(1,3,2)],1,which.max)
+    classes[classes == 3] <- NA
 
     o <- new("NormRFit", type="enrichR", n=length(treatment), ranges=genome,
              k=3L, B=2L, map=fit$map$map,
@@ -268,12 +267,6 @@ setMethod("diffR", signature("integer", "integer", "GenomicRangesOrNULL"),
     }
     return(o)
 })
-#' \code{diffR}: Difference calling between \code{treatment} (ChIP-seq 1) and
-#' \code{control} (ChIP-seq 2) for two given bam filepaths. The given
-#' \code{genome} defines chromosomes which will be binned according to
-#' \code{countConfig}.
-#' @aliases diffR
-#' @aliases differenceCall
 #' @rdname normr-methods
 #' @export
 setMethod("diffR", signature("character", "character", "data.frame"),
@@ -284,14 +277,8 @@ setMethod("diffR", signature("character", "character", "data.frame"),
     return(diffR(countsGr$counts[[1]][1], countsGr$counts[[2]][1],
       countsGr$gr, fdr, eps, iterations, procs, verbose))
 })
-#' \code{diffR}: Difference calling between \code{treatment} (ChIP-seq 1) and
-#' \code{control} (ChIP-seq 2) for two given bam filepaths. The given
-#' \code{genome} defines a UCSC genome identifier (e.g. "hg19") that is used for
-#' retrieval of chromosome annotation.  Chromosomes will be binned according to
-#' \code{countConfig}.
-#' @aliases diffR
-#' @aliases differenceCall
 #' @rdname normr-methods
+#' @export
 setMethod("diffR", signature("character", "character", "character"),
   function(treatment, control, genome="", countConfig=countConfigSingleEnd(),
            fdr=5e-2, eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
@@ -301,19 +288,27 @@ setMethod("diffR", signature("character", "character", "character"),
       procs, verbose))
 })
 
-#' @export
-setGeneric("regimeR", function(treatment, control, genome, models, ...)
-  standardGeneric("regimeR"))
-#' \code{regimeR}: Enrichment regime calling for \code{treatment} (ChIP-seq) over
-#' \code{control} (Input) for two given read count vectors and an optional
-#' \link{GRanges} object that defines the original regions.
+#' \code{regimeR}: Enrichment regime calling between \code{treatment}
+#' (ChIP-seq 1) and \code{control} (ChIP-seq 2) with with \code{models} number
+#' of models for either two given read count vectors and an optional
+#' \link{GenomicRanges} object that defines the original regions
+#' ('integer,integer,GenomicRangesOrNULL'), two given bam filepaths and a
+#' genome \code{data.frame} defining chromosomes which will be binned according
+#' to 'countConfig' ('character,character,data.frame') or two given bam
+#' filepaths and a genome \code{character} specifying a UCSC genome identifier
+#' (e.g. "hg19") that is used for retrieval of chromosome annotation which will
+#' be binned according to 'countConfig' ('character,character,character').
 #' @aliases regimeR
 #' @aliases regimeCall
 #' @rdname normr-methods
 #' @export
+setGeneric("regimeR", function(treatment, control, genome, models, ...)
+  standardGeneric("regimeR"))
+#' @rdname normr-methods
+#' @export
 setMethod("regimeR",
-          signature("integer", "integer", "GenomicRangesOrNULL", "integer"),
-  function(treatment, control, genome=NULL, models=3L, fdr=5e-2, eps=1e-5,
+          signature("integer", "integer", "GenomicRanges", "integer"),
+  function(treatment, control, genome=GRanges(), models=3L, fdr=5e-2, eps=1e-5,
             iterations=10, procs=1L, verbose=TRUE) {
     if (models <= 2) stop("invalid number of models specified")
     if (length(treatment) != length(control)) {
@@ -332,9 +327,8 @@ setMethod("regimeR",
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
     #Get classes vector
-    classes <- as.integer(rep(NA, length(lnqvals)))
-    classes[which(lnqvals < log(fdr))] <-
-      apply(fit$lnpost[which(lnqvals < log(fdr)),2:models],1,which.max)
+    classes <- apply(fit$lnpost[,1:models],1,which.max)
+    classes[classes == 1] <- NA
 
     #NormRFit-class object
     o <- new("NormRFit", type="regimeR", n=length(treatment), ranges=genome,
@@ -354,11 +348,6 @@ setMethod("regimeR",
     }
     return(o)
 })
-#' \code{regimeR}: Enrichment regime calling for \code{treatment} (ChIP-seq) over
-#' \code{control} (Input) for two given bam filepaths. The given \code{genome}
-#' defines chromosomes which will be binned according to \code{countConfig}.
-#' @aliases regimeR
-#' @aliases regimeCall
 #' @rdname normr-methods
 #' @export
 setMethod("regimeR", signature("character", "character", "data.frame", "integer"),
@@ -371,14 +360,8 @@ setMethod("regimeR", signature("character", "character", "data.frame", "integer"
     return(regimeR(countsGr$counts[[1]][1], countsGr$counts[[2]][1],
       countsGr$gr, models, fdr, eps, iterations, procs, verbose))
 })
-#' \code{regimeR}: Enrichment regime calling for \code{treatment} (ChIP-seq) over
-#' \code{control} (Input) for two given bam filepaths. The given \code{genome}
-#' defines a UCSC genome identifier (e.g. "hg19") that is used for retrieval
-#' of chromosome annotation. Chromosomes will be binned according to
-#' \code{countConfig}.
-#' @aliases regimeR
-#' @aliases regimeCall
 #' @rdname normr-methods
+#' @export
 setMethod("regimeR", signature("character", "character", "character", "integer"),
   function(treatment, control, genome="", models=3L,
            countConfig=countConfigSingleEnd(), fdr=5e-2, eps=1e-5,
@@ -389,4 +372,3 @@ setMethod("regimeR", signature("character", "character", "character", "integer")
     return(regimeR(treatment, control, genome, models, countConfig, fdr, eps,
       iterations, procs, verbose))
 })
-

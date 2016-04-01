@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
 #' Container for a NormR fit
 #'
 #' This S4 class wraps a NormR fit containing counts, fit configuration and
@@ -77,15 +78,11 @@
 #' @seealso \code{\link{normr-methods}} for the functions that produce
 #' this object
 #' @return return values are described in the methods section.
-
-#new class uniting GenomicRanges and NULL
-setClassUnion("GenomicRangesOrNULL", c("GenomicRanges", "NULL"))
-
 #' @export
 setClass("NormRFit",
   representation = representation(type = "character",
                                   n = "integer",
-                                  ranges = "GenomicRangesOrNULL",
+                                  ranges = "GenomicRanges",
                                   k = "integer",
                                   B = "integer",
                                   map = "integer",
@@ -150,6 +147,10 @@ setValidity("NormRFit",
   }
 )
 
+###
+#DIAGNOSTIC FUNCTIONS FOR S4 DEFINED
+###
+#' @export
 setMethod("print", "NormRFit",
   function(x, digits = max(3L, getOption("digits") - 3L), ...) {
     cat("NormRFit-class object\n\n",
@@ -169,13 +170,9 @@ setMethod("print", "NormRFit",
     invisible(x)
   }
 )
-setMethod("show", "NormRFit", function(object) print(object))
 
-setMethod("plot", "NormRFit",
-  function(x, ...) {
-    stop("not implemented yet")
-  }
-)
+#' @export
+setMethod("show", "NormRFit", function(object) print(object))
 
 #' @describeIn NormRFit Number of regions analyzed.
 #' @aliases length
@@ -183,13 +180,15 @@ setMethod("plot", "NormRFit",
 setMethod("length", "NormRFit", function(x) x@n)
 
 #' @describeIn NormRFit Prints a summary of the NormRFit object.
-#' @param object A NormRFit objectect
+#' @param object A NormRFit object
+#' @param print \code{logical()} indicating if summary should be print to screen
+#' @param digits Number of digits to show in number formatting.
 #' @param ... Not used
 #' @return NULL
 #' @export
 setMethod("summary", "NormRFit",
   function(object, print=T, digits=3, ...) {
-    ans <- paste0("NormRFit-class object\n\n",
+    ans <- paste0("NormRFit-class o bject\n\n",
                   "Type:\t\t'", object@type, "'\n",
                   "Number of Regions:\t", object@n, "\n",
                   "Number of components:\t", object@k, "\n",
@@ -230,7 +229,10 @@ setMethod("summary", "NormRFit",
   }
 )
 
-#'@export
+###
+#ACCESSOR METHODS
+###
+#' @export
 setGeneric("getCounts", function(obj) standardGeneric("getCounts"))
 #' @describeIn NormRFit Retrieve read count data.
 #' @aliases getCounts
@@ -239,17 +241,17 @@ setMethod("getCounts", "NormRFit", function(obj) {
   return(list("control"=obj@counts[[1]][obj@map],"treatment"=obj@counts[[2]][obj@map]))
 })
 
-#'@export
+#' @export
 setGeneric("getRanges", function(obj) standardGeneric("getRanges"))
 #' @describeIn NormRFit Retrieve read count data.
 #' @aliases getRanges
 #' @export
 setMethod("getRanges", "NormRFit", function(obj) {
   if (is.null(obj@ranges)) return(NULL)
-  else return(as(obj@ranges, "GenomicRanges"))
+  else return(obj@ranges)
 })
 
-#'@export
+#' @export
 setGeneric("getPosteriors", function(obj) standardGeneric("getPosteriors"))
 #' @describeIn NormRFit Retrieve computed posteriors.
 #' @aliases getPosteriors
@@ -258,7 +260,7 @@ setMethod("getPosteriors", "NormRFit", function(obj) {
   return(exp(obj@lnposteriors)[obj@map,])
 })
 
-#'@export
+#' @export
 setGeneric("getEnrichment", function(obj) standardGeneric("getEnrichment"))
 #' @describeIn NormRFit Retrieve NormR calculated enrichment.
 #' @aliases getEnrichment
@@ -267,7 +269,7 @@ setMethod("getEnrichment", "NormRFit", function(obj) {
   return(obj@lnenrichment[obj@map])
 })
 
-#'@export
+#' @export
 setGeneric("getPvalues", function(obj, ...) standardGeneric("getPvalues"))
 #' @describeIn NormRFit Retrieve computed P-values.
 #' @aliases getPvalues
@@ -281,7 +283,7 @@ setMethod("getPvalues", "NormRFit", function(obj, filtered=F) {
   }
 })
 
-#'@export
+#' @export
 setGeneric("getQvalues", function(obj) standardGeneric("getQvalues"))
 #' @describeIn NormRFit Retrieve computed Q-values. See Bioconductor package
 #' \link{qvalue}.
@@ -291,7 +293,7 @@ setMethod("getQvalues", "NormRFit", function(obj) {
   exp(obj@lnqvals)[obj@map]
 })
 
-#'@export
+#' @export
 setGeneric("getClasses", function(obj) standardGeneric("getClasses"))
 #' @describeIn NormRFit Retrieve classes for each bin, i.e. enriched vs
 #' non-enriched (enrichR), differential enrichment (diffR) and enrichment
@@ -300,4 +302,113 @@ setGeneric("getClasses", function(obj) standardGeneric("getClasses"))
 #' @export
 setMethod("getClasses", "NormRFit", function(obj) {
   obj@classes[obj@map]
+})
+
+###
+#PLOTTING
+###
+setMethod("plot", "NormRFit",
+  function(x, ...) {
+    stop("not implemented yet")
+  }
+)
+
+####
+##EXPORTING
+####
+#' @export
+setGeneric("exportR", function(obj, filename, type, ...)
+           standardGeneric("exportR"))
+#' @describeIn NormRFit Export results of a \link{NormRFit} to either bed,
+#' bedGraph or bigWig.
+#' @param filename File to write results to.
+#' @param type Type of file used for exporting results.
+#' @aliases exportR
+#' @export
+setMethod("exportR", signature=c("NormRFit", "character", "character"),
+  function(obj, filename, type=c("bed", "bedGraph", "bigWig"),
+           fdr=.01, color=NA) {
+    typ <- match.arg(type)
+    filename <- path.expand(filename)
+    if (is.null(getRanges(obj)))
+      stop("no ranges set in obj. Please set via 'obj@ranges <- ranges'")
+
+    if (type == "bed") {#qualitative output
+      significant <- which(getQvalues(obj) <= fdr)
+      gr <- getRanges(obj)[significant]
+      gr$score <- as.integer(1e3-getQvalues(obj)[significant]*1e4)
+      gr$score[gr$score < 0] <- 0
+
+      #name and color dependent on type of NormRFit
+      if (obj@type == "enrichR") {
+        gr$name <- paste0("enrichR_score:", gr$score)
+        colRamp <- apply(col2rgb(colorRampPalette(c("gray75","gray0"))(9)), 2,
+                         paste, collapse=",")
+        gr$col <- colRamp[as.integer(gr$score/120+1)]
+      } else if (obj@type == "diffR") {
+        #get classes for each significant
+        clzzez <- getClasses(obj)[significant]
+        gr$name <- paste0("diffR_Cond",clzzez,"_score:", gr$score)
+        gr <- gr[!is.na(clzzez)]
+        clzzez <- clzzez[!is.na(clzzez)]
+        #Cond1 blue color
+        col <- rep(NA, length(gr))
+        colRamp <- apply(col2rgb(colorRampPalette(c("blue","darkblue"))(9)),
+                         2, paste, collapse=",")
+        col[which(clzzez==1)] <-
+          colRamp[as.integer(gr$score[which(clzzez==1)]/120+1)]
+        #Cond1 red color
+        colRamp <- apply(col2rgb(colorRampPalette(c("red","darkred"))(9)),
+                         2, paste, collapse=",")
+        col[which(clzzez==2)] <-
+          colRamp[as.integer(gr$score[which(clzzez==2)]/120+1)]
+        gr$col <- col
+      } else if (obj@type == "regimeR") {
+        #get classes for each significant
+        clzzez <- getClasses(obj)[significant]
+        gr$name <- paste0("regimeR_Regime",clzzez,"_score:", gr$score)
+        gr <- gr[!is.na(clzzez)]
+        clzzez <- clzzez[!is.na(clzzez)]
+        #Cond1 blue color
+        col <- rep(NA, length(gr))
+        pal <- rev(terrain.colors(obj@k+1))[-1]
+        for (i in 1:obj@k) {
+          colRamp <-
+            apply(col2rgb(colorRampPalette(c(adjustcolor(pal[i],alpha.f=.3),
+              pal[i]))(9)), 2, paste, collapse=",")
+          col[which(clzzez==i)] <-
+            colRamp[as.integer(gr$score[which(clzzez==i)]/120+1)]
+        }
+        gr$col <- col
+      }
+
+      #prepare for output
+      gr <- sort(gr)
+      out <- as.data.frame(gr)[,c(1,2,3,7,6,5,2,3,8)]
+      out[,c(2,7)] <- out[,c(2,7)]#correcting for bed coordinates
+      out[,6] <- "."
+
+      #writing
+      cat(paste0('track name=', basename(filename), ' description="',
+        filename, '" visibility=dense itemRgb="On"\n'), file=filename)
+      write.table(file=filename, x=out, sep="\t", col.names=F, row.names=F,
+        quote=F, append=T)
+    } else { #quantitative output
+      gr <- getRanges(obj)
+      e <- getEnrichment(obj)
+      gr$score <- as.numeric(format(e,1,1))
+      idx <- which(getCounts(obj)$control > 0 & getCounts(obj)$treatment > 0)
+      gr <- gr[idx]
+
+      if (type == "bedGraph") { #bedGraph - configure the trackline
+        cat(paste0("track type=bedGraph name='", basename(filename),
+                   "' description='", filename, "' visibility=full ",
+                   "color=128,128,128 altColor=128,128,128 autoScale=off alwaysZero=on ",
+                   "graphType=bar viewLimits=0:1.5 windowingFunction=mean\n"),
+            file=filename)
+        rtracklayer::export(object=gr, con=filename, format=type, append=T)
+      } else { #bigWig - no trackline
+        rtracklayer::export(object=gr, con=filename, format=type)
+      }
+    }
 })
