@@ -629,6 +629,10 @@ int tthreshold(const double p, const double eps=1e-5,
     }
     marg++;
   }
+
+  //deleteme: does not stop computation here! What's wrong?
+  Rcout << marg << std::endl;
+
   return marg;
 }
 
