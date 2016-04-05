@@ -2,8 +2,8 @@ Package: normr
 Type: Package
 Title: Normalization and difference calling in ChIP-seq data
 Version: 0.99.1
-Authors@R: c(person(given="Johannes",family="Helmuth", 
-        email="helmuth@molgen.mpg.de", role=c("aut", "cre")), 
+Authors@R: c(person(given="Johannes",family="Helmuth",
+        email="helmuth@molgen.mpg.de", role=c("aut", "cre")),
         person(given="Ho-Ryun",family="Chung",
         email="chung@molgen.mpg.de", role=c("aut")))
 Author: Johannes Helmuth [aut, cre], Ho-Ryun Chung [aut]
