@@ -100,6 +100,34 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// getLnP
+double getLnP(const int s, const int r, const double p, const bool twoTailed, const double eps);
+RcppExport SEXP normr_getLnP(SEXP sSEXP, SEXP rSEXP, SEXP pSEXP, SEXP twoTailedSEXP, SEXP epsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const int >::type s(sSEXP);
+    Rcpp::traits::input_parameter< const int >::type r(rSEXP);
+    Rcpp::traits::input_parameter< const double >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const bool >::type twoTailed(twoTailedSEXP);
+    Rcpp::traits::input_parameter< const double >::type eps(epsSEXP);
+    __result = Rcpp::wrap(getLnP(s, r, p, twoTailed, eps));
+    return __result;
+END_RCPP
+}
+// tthreshold
+int tthreshold(const double p, const double eps, const bool diffCall);
+RcppExport SEXP normr_tthreshold(SEXP pSEXP, SEXP epsSEXP, SEXP diffCallSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const double >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const double >::type eps(epsSEXP);
+    Rcpp::traits::input_parameter< const bool >::type diffCall(diffCallSEXP);
+    __result = Rcpp::wrap(tthreshold(p, eps, diffCall));
+    return __result;
+END_RCPP
+}
 // normr_core
 List normr_core(const IntegerVector& r, const IntegerVector& s, const int models, const double eps, const int iterations, const int bgIdx, const bool diffCall, const bool verbose, const int nthreads);
 RcppExport SEXP normr_normr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP iterationsSEXP, SEXP bgIdxSEXP, SEXP diffCallSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
