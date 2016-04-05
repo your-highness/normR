@@ -169,7 +169,7 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
 
     #Get classes vector
     classes <- apply(fit$lnpost,1,which.max)
-    classes[classes == 1] <- NA
+    classes[classes == 1] <- NA_integer_
     classes <- classes-1
 
     #NormRFit-class object
@@ -181,7 +181,7 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
              theta=exp(fit$lntheta), mixtures=exp(fit$lnprior), lnL=fit$lnL,
              eps=eps, lnposteriors=fit$lnpost, lnenrichment=fit$lnenrichment,
              lnpvals=fit$lnpvals, filteredT=fit$filteredT,
-             lnqvals=lnqvals, classes=classes)
+             lnqvals=lnqvals, classes=as.integer(classes))
 
     #Print logging information
     if (verbose) {
@@ -250,7 +250,7 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
 
     #Get classes vector
     classes <- apply(fit$lnpost[,c(1,3,2)],1,which.max)
-    classes[classes == 3] <- NA
+    classes[classes == 3] <- NA_integer_
 
     o <- new("NormRFit", type="enrichR", n=length(treatment), ranges=genome,
              k=3L, B=2L, map=fit$map$map,
@@ -260,7 +260,7 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
              theta=exp(fit$lntheta), mixtures=exp(fit$lnprior), lnL=fit$lnL,
              eps=eps, lnposteriors=fit$lnpost, lnenrichment=fit$lnenrichment,
              lnpvals=fit$lnpvals, filteredT=fit$filteredT,
-             lnqvals=lnqvals, classes=classes)
+             lnqvals=lnqvals, classes=as.integer(classes))
 
     if (verbose) {
       message("\n\n+++ OVERALL RESULT ++++\n")
@@ -328,8 +328,8 @@ setMethod("regimeR",
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
     #Get classes vector
-    classes <- apply(fit$lnpost[,1:models],1,which.max)
-    classes[classes == 1] <- NA
+    classes <- apply(fit$lnpost,1,which.max)
+    classes[classes == 1] <- NA_integer_
     classes <- classes-1#count from first regime model
 
     #NormRFit-class object
@@ -341,7 +341,7 @@ setMethod("regimeR",
              theta=exp(fit$lntheta), mixtures=exp(fit$lnprior), lnL=fit$lnL,
              eps=eps, lnposteriors=fit$lnpost, lnenrichment=fit$lnenrichment,
              lnpvals=fit$lnpvals, filteredT=fit$filteredT,
-             lnqvals=lnqvals, classes=classes)
+             lnqvals=lnqvals, classes=as.integer(classes))
 
     #Print logging information
     if (verbose) {

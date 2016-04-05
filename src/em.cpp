@@ -556,24 +556,28 @@ NumericVector computeEnrichment(const IntegerVector& r, const IntegerVector& s,
   return mapToOriginal(computeEnrichmentWithMap(lnP, m2u, theta, F, B, nthreads), m2u);
 }
 
+// [[Rcpp::export]]
 double getLnP(const int s, const int r, const double p,
-    const bool twoTailed=false) {
+    const bool twoTailed=false, const double eps = .0000001) {
   int n = r+s;
   if (twoTailed) {
     double m = n * p;
-    if (s == m) return 0;
-
+    double off = m-(double)s;
+    if (std::abs(off) < eps) return 0;
     double d = R::dbinom(s, n, p, 1);
     int y = 0;
-    if (s < m) {
+    double err = 1 + eps;
+    if (off > eps) {
       for (int i=ceil(m); i <= n; ++i) {
-        if (R::dbinom(i, n, p, 1) <= d) y++;
+        if (R::dbinom(i, n, p, 1) <= d) y+=err;
       }
       double up = R::pbinom(n-y, n, p, 0, 1);
-      return up + log(1 + exp(R::pbinom(s, n, p, 1, 1) - up));
+      double dw = R::pbinom(s, n, p, 1, 1);
+      if (up < -DBL_MAX) return dw;
+      else return up + log(1 + exp(dw - up));
     } else {
       for (int i=0; i <= floor(m); ++i) {
-        if (R::dbinom(i, n, p, 1) <= d) y++;
+        if (R::dbinom(i, n, p, 1) <= d) y+=err;
       }
       double up = R::pbinom(s-1, n, p, 0, 1);
       return up + log(1 + exp(R::pbinom(y-1, n, p, 1, 1) - up));
@@ -599,6 +603,7 @@ NumericVector getPWithMap(const List& m2u, const double theta,
 
 //a T filter implementation: What is the margin were significance can be
 //achieved?
+// [[Rcpp::export]]
 int tthreshold(const double p, const double eps=1e-5,
     const bool diffCall=false) {
   if (p < 0 || p > 1) stop("invalid p");
