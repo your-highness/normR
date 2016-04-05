@@ -75,34 +75,35 @@ test_that("enrichR() works correctly", {
   chipfiles <- system.file("extdata", paste0("K562_", c("H3K27me3", "H3K4me3"),
                            ".bam"), package="normr")
 
-  #check files first
-  sapply(c(inputfile, chipfiles), function(b) expect_true(file.exists(b)))
-  sapply(c(inputfile, chipfiles), function(b) expect_true(file.exists(paste0(b, ".bai"))))
-
-  #input:integer,interger,GRanges
-  for (chipfile in chipfiles) {
-    for (binsize in c(500, 1000)) {
-      counts_ctrl <- suppressWarnings(bamProfile(inputfile,gr,binsize))[1]
-      counts_treat <- suppressWarnings(bamProfile(chipfile,gr,binsize))[1]
-      testFit(
-        RenrichR(counts_treat, counts_ctrl),
-        enrichR(counts_treat, counts_ctrl, unlist(tile(gr, width=binsize)),
-                verbose=F),
-        paste0("enrichR-integer,integer,GRanges{", "region=",
-               seqnames(gr), ":", start(gr),"-",end(gr),
-               ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
-               inputfile, "}")
-      )
-    }
-  }
+#  #check files first
+#  sapply(c(inputfile, chipfiles), function(b) expect_true(file.exists(b)))
+#  sapply(c(inputfile, chipfiles), function(b) expect_true(file.exists(paste0(b, ".bai"))))
+#
+#  #input:integer,interger,GRanges
+#  for (chipfile in chipfiles) {
+#    for (binsize in c(500, 1000)) {
+#      counts_ctrl <- suppressWarnings(bamProfile(inputfile,gr,binsize))[1]
+#      counts_treat <- suppressWarnings(bamProfile(chipfile,gr,binsize))[1]
+#      testFit(
+#        RenrichR(counts_treat, counts_ctrl),
+#        enrichR(counts_treat, counts_ctrl, unlist(tile(gr, width=binsize)),
+#                verbose=F),
+#        paste0("enrichR-integer,integer,GRanges{", "region=",
+#               seqnames(gr), ":", start(gr),"-",end(gr),
+#               ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
+#               inputfile, "}")
+#      )
+#    }
+#  }
 
   #input:character,character,data.frame
-  genome.df <- data.frame("chr1", 25000000)
+  genome.df <- data.frame(c("chr1", "chr2"), c(25e6, 1e3))
+  binsize <- 1e3
   for (chipfile in chipfiles) {
-    gr <- GRanges("chr1", IRanges(1, 25000000))
+    gr2 <- GRanges(genome.df[,1], IRanges(1, genome.df[,2]))
     testFit(
-      RenrichR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"ignore",verbose=F))[1],
-               suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"ignore",verbose=F))[1]),
+      RenrichR(suppressWarnings(bamProfile(chipfile,gr2,250,20,0,F,"ignore",verbose=F))[1],
+               suppressWarnings(bamProfile(inputfile,gr2,250,20,0,F,"ignore",verbose=F))[1]),
       enrichR(chipfile, inputfile, genome.df, countConfigSingleEnd(), verbose=F),
       paste0("enrichR-character,character,data.frame-SingleEnd{region=",
              seqnames(gr), ":", start(gr),"-",end(gr),
@@ -111,8 +112,8 @@ test_that("enrichR() works correctly", {
     )
     fit <- enrichR(chipfile, inputfile, genome.df, countConfigPairedEnd(), verbose=F)
     testFit(
-      RenrichR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"midpoint",verbose=F))[1],
-               suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"midpoint",verbose=F))[1]),
+      RenrichR(suppressWarnings(bamProfile(chipfile,gr2,250,20,0,F,"midpoint",verbose=F))[1],
+               suppressWarnings(bamProfile(inputfile,gr2,250,20,0,F,"midpoint",verbose=F))[1]),
       fit,
       paste0("enrichR-character,character,data.frame-PairedEnd{region=",
              seqnames(gr), ":", start(gr),"-",end(gr),
@@ -129,125 +130,125 @@ test_that("enrichR() works correctly", {
   unlink("test")
 })
 
-test_that("diffR() works correctly", {
-  gr <- GRanges("chr1", IRanges(22500000, 25000000))#chr1:1-249250621
-  chipfiles <- system.file("extdata", paste0("K562_", c("H3K27me3", "H3K4me3"),
-                           ".bam"), package="normr")
-
-  #check files first
-  sapply(chipfiles, function(b) expect_true(file.exists(b)))
-  sapply(chipfiles, function(b) expect_true(file.exists(paste0(b, ".bai"))))
-
-  #input:integer,interger,GRanges
-  for (binsize in c(500, 1000)) {
-    counts_ctrl <- suppressWarnings(bamProfile(chipfiles[1],gr,binsize))[1]
-    counts_treat <- suppressWarnings(bamProfile(chipfiles[2],gr,binsize))[1]
-    testFit(
-      RdiffR(counts_treat, counts_ctrl),
-      diffR(counts_treat, counts_ctrl, unlist(tile(gr, width=binsize)),
-            verbose=F),
-      paste0("diffR-integer,integer,GRanges{", "region=",
-             seqnames(gr), ":", start(gr),"-",end(gr),
-             ", binsize=", binsize, ",chipfile=", chipfiles[2], ",inputfile=",
-             chipfiles[1], "}")
-    )
-  }
-
-  #input:character,character,data.frame
-  genome.df <- data.frame("chr1", 25000000)
-  gr <- GRanges("chr1", IRanges(1, 25000000))
-  testFit(
-    RdiffR(suppressWarnings(bamProfile(chipfiles[2],gr,250,20,0,F,"ignore",verbose=F))[1],
-             suppressWarnings(bamProfile(chipfiles[1],gr,250,20,0,F,"ignore",verbose=F))[1]),
-    diffR(chipfiles[2], chipfiles[1], genome.df, countConfigSingleEnd(), verbose=F),
-    paste0("diffR-character,character,data.frame-SingleEnd{region=",
-           seqnames(gr), ":", start(gr),"-",end(gr),
-           ", binsize=", binsize, ",chipfile=", chipfiles[2], ",inputfile=",
-           chipfiles[1], "}")
-  )
-  fit <- diffR(chipfiles[2], chipfiles[1], genome.df, countConfigPairedEnd(), verbose=F)
-  testFit(
-    RdiffR(suppressWarnings(bamProfile(chipfiles[2],gr,250,20,0,F,"midpoint",verbose=F))[1],
-             suppressWarnings(bamProfile(chipfiles[1],gr,250,20,0,F,"midpoint",verbose=F))[1]),
-    fit,
-    paste0("diffR-character,character,data.frame-PairedEnd{region=",
-           seqnames(gr), ":", start(gr),"-",end(gr),
-           ", binsize=", binsize, ",chipfile=", chipfiles[2], ",inputfile=",
-           chipfiles[1], "}")
-  )
-
-  #exporting
-  expect_silent(exportR(fit, "test", "bed"))
-  expect_silent(exportR(fit, "test", "bedGraph"))
-  expect_silent(exportR(fit, "test", "bigWig"))
-
-  #cleanup
-  unlink("test")
-})
-
-test_that("regimeR() works correctly", {
-  gr <- GRanges("chr1", IRanges(22500000, 25000000))#chr1:22500000-25000000
-  inputfile <- system.file("extdata", "K562_Input.bam", package="normr")
-  chipfiles <- system.file("extdata", paste0("K562_", c("H3K27me3", "H3K4me3"),
-                           ".bam"), package="normr")
-
-  #check files first
-  sapply(c(inputfile, chipfiles), function(b) expect_true(file.exists(b)))
-  sapply(c(inputfile, chipfiles), function(b) expect_true(file.exists(paste0(b, ".bai"))))
-  #input:integer,interger,GRanges
-  for (chipfile in chipfiles) {
-    for (binsize in c(500, 1000)) {
-      k <- 3L
-      counts_ctrl <- suppressWarnings(bamProfile(inputfile,gr,binsize))[1]
-      counts_treat <- suppressWarnings(bamProfile(chipfile,gr,binsize))[1]
-      testFit(
-              RregimeR(counts_treat, counts_ctrl, k),
-              regimeR(counts_treat, counts_ctrl, unlist(tile(gr, width=binsize)),
-                      k, verbose=F),
-              paste0("regimeR-integer,integer,GRanges{", "region=",
-                     seqnames(gr), ":", start(gr),"-",end(gr),
-                     ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
-                     inputfile, ",models=", k, "}"),
-              tolerance=5e-4
-              )
-    }
-  }
-
-  #input:character,character,data.frame
-  genome.df <- data.frame("chr1", 25000000)
-  for (chipfile in chipfiles) {
-    k <- 3L
-    gr <- GRanges("chr1", IRanges(1, 25000000))
-    testFit(
-            RregimeR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"ignore",verbose=F))[1],
-                     suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"ignore",verbose=F))[1],
-                     k),
-            regimeR(chipfile, inputfile, genome.df, k, countConfigSingleEnd(), verbose=F),
-            paste0("regimeR-character,character,data.frame-SingleEnd{region=",
-                   seqnames(gr), ":", start(gr),"-",end(gr),
-                   ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
-                   inputfile, ",models=", k, "}"),
-            tolerance=5e-4
-            )
-    fit <- regimeR(chipfile, inputfile, genome.df, k, countConfigPairedEnd(), verbose=F)
-    testFit(
-            RregimeR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"midpoint",verbose=F))[1],
-                     suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"midpoint",verbose=F))[1],
-                     k),
-            fit,
-            paste0("regimeR-character,character,data.frame-PairedEnd{region=",
-                   seqnames(gr), ":", start(gr),"-",end(gr),
-                   ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
-                   inputfile, ",models=", k, "}"),
-            tolerance=5e-4
-            )
-
-    #exporting
-    expect_silent(exportR(fit, "test", "bed"))
-    expect_silent(exportR(fit, "test", "bedGraph"))
-    expect_silent(exportR(fit, "test", "bigWig"))
-  }
-
-  #cleanup
-  unlink("test")
-})
+#test_that("diffR() works correctly", {
+#  gr <- GRanges("chr1", IRanges(22500000, 25000000))#chr1:1-249250621
+#  chipfiles <- system.file("extdata", paste0("K562_", c("H3K27me3", "H3K4me3"),
+#                           ".bam"), package="normr")
+#
+#  #check files first
+#  sapply(chipfiles, function(b) expect_true(file.exists(b)))
+#  sapply(chipfiles, function(b) expect_true(file.exists(paste0(b, ".bai"))))
+#
+#  #input:integer,interger,GRanges
+#  for (binsize in c(500, 1000)) {
+#    counts_ctrl <- suppressWarnings(bamProfile(chipfiles[1],gr,binsize))[1]
+#    counts_treat <- suppressWarnings(bamProfile(chipfiles[2],gr,binsize))[1]
+#    testFit(
+#      RdiffR(counts_treat, counts_ctrl),
+#      diffR(counts_treat, counts_ctrl, unlist(tile(gr, width=binsize)),
+#            verbose=F),
+#      paste0("diffR-integer,integer,GRanges{", "region=",
+#             seqnames(gr), ":", start(gr),"-",end(gr),
+#             ", binsize=", binsize, ",chipfile=", chipfiles[2], ",inputfile=",
+#             chipfiles[1], "}")
+#    )
+#  }
+#
+#  #input:character,character,data.frame
+#  genome.df <- data.frame("chr1", 25000000)
+#  gr <- GRanges("chr1", IRanges(1, 25000000))
+#  testFit(
+#    RdiffR(suppressWarnings(bamProfile(chipfiles[2],gr,250,20,0,F,"ignore",verbose=F))[1],
+#             suppressWarnings(bamProfile(chipfiles[1],gr,250,20,0,F,"ignore",verbose=F))[1]),
+#    diffR(chipfiles[2], chipfiles[1], genome.df, countConfigSingleEnd(), verbose=F),
+#    paste0("diffR-character,character,data.frame-SingleEnd{region=",
+#           seqnames(gr), ":", start(gr),"-",end(gr),
+#           ", binsize=", binsize, ",chipfile=", chipfiles[2], ",inputfile=",
+#           chipfiles[1], "}")
+#  )
+#  fit <- diffR(chipfiles[2], chipfiles[1], genome.df, countConfigPairedEnd(), verbose=F)
+#  testFit(
+#    RdiffR(suppressWarnings(bamProfile(chipfiles[2],gr,250,20,0,F,"midpoint",verbose=F))[1],
+#             suppressWarnings(bamProfile(chipfiles[1],gr,250,20,0,F,"midpoint",verbose=F))[1]),
+#    fit,
+#    paste0("diffR-character,character,data.frame-PairedEnd{region=",
+#           seqnames(gr), ":", start(gr),"-",end(gr),
+#           ", binsize=", binsize, ",chipfile=", chipfiles[2], ",inputfile=",
+#           chipfiles[1], "}")
+#  )
+#
+#  #exporting
+#  expect_silent(exportR(fit, "test", "bed"))
+#  expect_silent(exportR(fit, "test", "bedGraph"))
+#  expect_silent(exportR(fit, "test", "bigWig"))
+#
+#  #cleanup
+#  unlink("test")
+#})
+#
+#test_that("regimeR() works correctly", {
+#  gr <- GRanges("chr1", IRanges(22500000, 25000000))#chr1:22500000-25000000
+#  inputfile <- system.file("extdata", "K562_Input.bam", package="normr")
+#  chipfiles <- system.file("extdata", paste0("K562_", c("H3K27me3", "H3K4me3"),
+#                           ".bam"), package="normr")
+#
+#  #check files first
+#  sapply(c(inputfile, chipfiles), function(b) expect_true(file.exists(b)))
+#  sapply(c(inputfile, chipfiles), function(b) expect_true(file.exists(paste0(b, ".bai"))))
+#  #input:integer,interger,GRanges
+#  for (chipfile in chipfiles) {
+#    for (binsize in c(500, 1000)) {
+#      k <- 3L
+#      counts_ctrl <- suppressWarnings(bamProfile(inputfile,gr,binsize))[1]
+#      counts_treat <- suppressWarnings(bamProfile(chipfile,gr,binsize))[1]
+#      testFit(
+#              RregimeR(counts_treat, counts_ctrl, k),
+#              regimeR(counts_treat, counts_ctrl, unlist(tile(gr, width=binsize)),
+#                      k, verbose=F),
+#              paste0("regimeR-integer,integer,GRanges{", "region=",
+#                     seqnames(gr), ":", start(gr),"-",end(gr),
+#                     ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
+#                     inputfile, ",models=", k, "}"),
+#              tolerance=5e-4
+#              )
+#    }
+#  }
+#
+#  #input:character,character,data.frame
+#  genome.df <- data.frame("chr1", 25000000)
+#  for (chipfile in chipfiles) {
+#    k <- 3L
+#    gr <- GRanges("chr1", IRanges(1, 25000000))
+#    testFit(
+#            RregimeR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"ignore",verbose=F))[1],
+#                     suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"ignore",verbose=F))[1],
+#                     k),
+#            regimeR(chipfile, inputfile, genome.df, k, countConfigSingleEnd(), verbose=F),
+#            paste0("regimeR-character,character,data.frame-SingleEnd{region=",
+#                   seqnames(gr), ":", start(gr),"-",end(gr),
+#                   ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
+#                   inputfile, ",models=", k, "}"),
+#            tolerance=5e-4
+#            )
+#    fit <- regimeR(chipfile, inputfile, genome.df, k, countConfigPairedEnd(), verbose=F)
+#    testFit(
+#            RregimeR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"midpoint",verbose=F))[1],
+#                     suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"midpoint",verbose=F))[1],
+#                     k),
+#            fit,
+#            paste0("regimeR-character,character,data.frame-PairedEnd{region=",
+#                   seqnames(gr), ":", start(gr),"-",end(gr),
+#                   ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
+#                   inputfile, ",models=", k, "}"),
+#            tolerance=5e-4
+#            )
+#
+#    #exporting
+#    expect_silent(exportR(fit, "test", "bed"))
+#    expect_silent(exportR(fit, "test", "bedGraph"))
+#    expect_silent(exportR(fit, "test", "bigWig"))
+#  }
+#
+#  #cleanup
+#  unlink("test")
+#})
