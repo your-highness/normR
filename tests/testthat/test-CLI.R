@@ -1,4 +1,4 @@
-context("normr command line interface test")
+context("command line interface")
 
 source("utils.R")
 
