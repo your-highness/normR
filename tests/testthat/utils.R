@@ -234,7 +234,7 @@ RtfilterDiff <- function(fit, thresh=1e-5, bgIdx=1) {
     marg = marg + 1
   }
   #deleteme
-  message("Rtfilter(): margin=", marg, ", border=", border)
+  print(paste("Rtfilter(): margin=", marg, ", border=", border))
   return(which((fit$treatment + fit$control) >= marg))
 }
 RgetEnrichmentDiff <- function(post, r, s, theta) {

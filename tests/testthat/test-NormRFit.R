@@ -1,5 +1,3 @@
-context("NormRFit class and methods testing")
-
 source("utils.R")
 
 #some stub data for object generation
@@ -36,6 +34,7 @@ expect_runs <- function(expr){
   expect_that(expr, runs, label=testthat:::find_expr("expr"))
 }
 
+context("NormRFit-class")
 test_that("Test NormRFit construction, validity and accessors", {
   n <- 1000
   for(type in c("enrichR", "diffR", "regimeR")) {
