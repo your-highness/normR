@@ -113,8 +113,7 @@ handleCharCharDf <- function(treatment, control, genome, countConfig, procs) {
   }
   if (NCOL(genome) != 2) stop("invalid genome data.frame")
 
-  gr <- GRanges(genome[,1], IRanges(1,genome[,2]),
-                seqinfo=Seqinfo(as.character(genome[,1]), genome[,2]))
+  gr <- GenomicRanges::GRanges(genome[,1], IRanges(1,genome[,2]))
   counts <- parallel::mcmapply(
     bamsignals::bamProfile, bampath=c(treatment, control),
     MoreArgs=list(gr=gr, binsize=countConfig@binsize,
@@ -128,11 +127,12 @@ handleCharCharDf <- function(treatment, control, genome, countConfig, procs) {
                   verbose=F),
     mc.cores=procs, SIMPLIFY=F
   )
-  counts[[1]] <- do.call(c, as.list(counts[[1]]))
-  counts[[2]] <- do.call(c, as.list(counts[[2]]))
+  counts[[1]] <- unlist(as.list(counts[[1]]))
+  counts[[2]] <- unlist(as.list(counts[[2]]))
 
   #Give bins across the supplied genome
   gr <- unlist(tile(gr, width=countConfig@binsize))
+  seqinfo(gr) <- Seqinfo(as.character(genome[,1]), genome[,2])
 
   return(list(counts=counts, gr=gr))
 }
@@ -201,7 +201,7 @@ setMethod("enrichR", signature("character", "character", "data.frame"),
            fdr=5e-2, eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharDf(treatment, control, genome, countConfig, procs)
-    return(enrichR(countsGr$counts[[1]][1], countsGr$counts[[2]][1],
+    return(enrichR(countsGr$counts[[1]], countsGr$counts[[2]],
       countsGr$gr, fdr, eps, iterations, procs, verbose))
 })
 #' @rdname normr-methods
@@ -363,7 +363,7 @@ setMethod("regimeR", signature("character", "character", "data.frame", "integer"
     if (models <= 2) stop("invalid number of models specified")
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharDf(treatment, control, genome, countConfig, procs)
-    return(regimeR(countsGr$counts[[1]][1], countsGr$counts[[2]][1],
+    return(regimeR(countsGr$counts[[1]], countsGr$counts[[2]],
       countsGr$gr, models, fdr, eps, iterations, procs, verbose))
 })
 #' @rdname normr-methods
