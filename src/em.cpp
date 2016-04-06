@@ -613,14 +613,17 @@ int tthreshold(const double p, const double eps=1e-5,
   bool run = true;
   while (run) {
     if (getLnP(0, marg, p, diffCall) <= thresh) break;
+  Rcout << "1:" << getLnP(0, marg, p, diffCall) << std::endl;
     if ((marg-1) > 0) {
       for (int i=(marg-1); i >= 1; --i) {
         if (getLnP((marg-i), i, p, diffCall) <= thresh) {
+  Rcout << "2:" << getLnP((marg-i), i, p, diffCall) << std::endl;
           run = false;
           break;
         }
         if ((marg-i) != i) {
           if(getLnP(i, (marg-i), p, diffCall) <= thresh) {
+  Rcout << "3: " << getLnP(i, (marg-i), p, diffCall) << std::endl;
             run = false;
             break;
           }
