@@ -3,15 +3,18 @@
 \docType{methods}
 \name{normr-methods}
 \alias{diffR}
+\alias{diffR,character,character,GenomicRanges-method}
 \alias{diffR,character,character,character-method}
 \alias{diffR,character,character,data.frame-method}
 \alias{diffR,integer,integer,GenomicRanges-method}
 \alias{enrichR}
+\alias{enrichR,character,character,GenomicRanges-method}
 \alias{enrichR,character,character,character-method}
 \alias{enrichR,character,character,data.frame-method}
 \alias{enrichR,integer,integer,GenomicRanges-method}
 \alias{normr-methods}
 \alias{regimeR}
+\alias{regimeR,character,character,GenomicRanges,integer-method}
 \alias{regimeR,character,character,character,integer-method}
 \alias{regimeR,character,character,data.frame,integer-method}
 \alias{regimeR,integer,integer,GenomicRanges,integer-method}
@@ -19,9 +22,13 @@
 \usage{
 enrichR(treatment, control, genome, ...)
 
-\S4method{enrichR}{integer,integer,GenomicRanges}(treatment, control,
-  genome = GRanges(), fdr = 0.05, eps = 1e-05, iterations = 10,
-  procs = 1L, verbose = TRUE)
+\S4method{enrichR}{integer,integer,GenomicRanges}(treatment, control, genome,
+  fdr = 0.05, eps = 1e-05, iterations = 10, procs = 1L,
+  verbose = TRUE)
+
+\S4method{enrichR}{character,character,GenomicRanges}(treatment, control,
+  genome, countConfig = countConfigSingleEnd(), fdr = 0.05, eps = 1e-05,
+  iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{enrichR}{character,character,data.frame}(treatment, control, genome,
   countConfig = countConfigSingleEnd(), fdr = 0.05, eps = 1e-05,
@@ -33,9 +40,13 @@ enrichR(treatment, control, genome, ...)
 
 diffR(treatment, control, genome, ...)
 
-\S4method{diffR}{integer,integer,GenomicRanges}(treatment, control,
-  genome = GRanges(), fdr = 0.05, eps = 1e-05, iterations = 10,
-  procs = 1L, verbose = TRUE)
+\S4method{diffR}{integer,integer,GenomicRanges}(treatment, control, genome,
+  fdr = 0.05, eps = 1e-05, iterations = 10, procs = 1L,
+  verbose = TRUE)
+
+\S4method{diffR}{character,character,GenomicRanges}(treatment, control, genome,
+  countConfig = countConfigSingleEnd(), fdr = 0.05, eps = 1e-05,
+  iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{diffR}{character,character,data.frame}(treatment, control, genome,
   countConfig = countConfigSingleEnd(), fdr = 0.05, eps = 1e-05,
@@ -48,8 +59,13 @@ diffR(treatment, control, genome, ...)
 regimeR(treatment, control, genome, models, ...)
 
 \S4method{regimeR}{integer,integer,GenomicRanges,integer}(treatment, control,
-  genome = GRanges(), models = 3L, fdr = 0.05, eps = 1e-05,
-  iterations = 10, procs = 1L, verbose = TRUE)
+  genome, models = 3L, fdr = 0.05, eps = 1e-05, iterations = 10,
+  procs = 1L, verbose = TRUE)
+
+\S4method{regimeR}{character,character,GenomicRanges,integer}(treatment,
+  control, genome, models = 3L, countConfig = countConfigSingleEnd(),
+  fdr = 0.05, eps = 1e-05, iterations = 10, procs = 1L,
+  verbose = TRUE)
 
 \S4method{regimeR}{character,character,data.frame,integer}(treatment, control,
   genome, models = 3L, countConfig = countConfigSingleEnd(), fdr = 0.05,
