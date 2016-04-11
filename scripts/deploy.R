@@ -78,9 +78,10 @@ deployR <- function(pckg=".", registerFun=T, check=T) {
   vsion <- read.dcf(file.path(pckg, "DESCRIPTION"))[,"Version"]
   message(" #### Version: ", vsion)
 
-  message(" #### devtools: Entering dev_mode()")
-  library(devtools, quietly=T)
-  dev_mode()
+  #message(" #### devtools: Entering dev_mode()")
+  #library(devtools, quietly=T)
+  #dev_mode()
+  #load_all()
 
   message(" #### Rcpp: compileAttributes(pckg) to generate object files")
   library(Rcpp, quietly=T)
@@ -98,15 +99,15 @@ deployR <- function(pckg=".", registerFun=T, check=T) {
     registerFunctions(pckg, prefix="")
   }
 
-  message(" #### devtools: build_vignettes() to compile Rmarkdown") 
-  build_vignettes()
-  message(" #### devtools: test() to run testthat routines")
-  test()
+  #message(" #### devtools: build_vignettes() to compile Rmarkdown")
+  #build_vignettes()
+  #message(" #### devtools: test() to run testthat routines")
+  #test()
   setwd("../")
 
   #  try installing the package in a stub library
   tmp.lib <- paste0(pckg, "_BUILDtmp")
-  dir.create(tmp.lib) 
+  dir.create(tmp.lib)
   if (check) {
     message(" #### Testing requested: running 'R-dev CMD check'")
     system(paste0("~/R-devel/bin/R CMD check ", pckg))
