@@ -201,7 +201,7 @@ RgetPDiff <- function(s, r, p) {
     else stats::binom.test(s[i], r[i]+s[i], p, alternative="two.sided")$p.value
   }))
 }
-RtfilterDiff <- function(fit, thresh=1e-5, bgIdx=1) {
+RtfilterDiff <- function(fit, thresh=1e-5, bgIdx=2) {
   marg = 0
   r = 0
   s = 0
@@ -233,8 +233,6 @@ RtfilterDiff <- function(fit, thresh=1e-5, bgIdx=1) {
     }
     marg = marg + 1
   }
-  #deleteme
-  print(paste("Rtfilter(): margin=", marg, ", border=", border))
   return(which((fit$treatment + fit$control) >= marg))
 }
 RgetEnrichmentDiff <- function(post, r, s, theta) {
@@ -266,7 +264,7 @@ RdiffR <- function(s, r, fdr=5e-2, eps=1e-5) {
   fit$pvals[fit$pvals < 0] <- 0
 
   #Apply Rtfilter filter
-  fit$filteredT <- RtfilterDiff(fit, eps)
+  fit$filteredT <- RtfilterDiff(fit, eps, 2)
 
   #Q values
   fit$qvals <- rep(NA, length(r))
