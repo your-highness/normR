@@ -145,11 +145,11 @@ RgetEnrichment <- function(post, r, s, theta, bgIdx=1, fgIdx=2) {
     log(theta[fgIdx]/(1-theta[fgIdx])*(1-theta[bgIdx])/theta[bgIdx])
   return((foldchange + regularization)/standardization)
 }
-RenrichR <- function(s, r, fdr=5e-2, eps=1e-5, bgIdx=1) {
+RenrichR <- function(s, r, eps=1e-5, bgIdx=1) {
   fit <- RnormR(s,r)
 
   #get enrichment
-  fit$lnenrichment <- RgetEnrichment(fit$post,r,s,fit$theta)
+  fit$lnenrichment <- RgetEnrichment(fit$posteriors,r,s,fit$theta)
 
   #calculate pvalues
   fit$pvals <- RgetP(s,r,fit$theta[bgIdx])
@@ -170,26 +170,6 @@ RenrichR <- function(s, r, fdr=5e-2, eps=1e-5, bgIdx=1) {
   fit$classes <- fit$classes - 1
 
   return(fit)
-}
-
-dmp <- function(x, n, p) {
-  if (p == 0) (x == 0) else if (p == 1) (x == n) else {
-    relErr <- 1 + 0.0000001
-    d <- dbinom(x, n, p)
-    m <- n * p
-    if (x == m) 1 else if (x < m) {
-      i <- seq.int(from = ceiling(m), to = n)
-      y <- sum(dbinom(i, n, p) <= d * relErr)
-      up = pbinom(x, n, p)
-      dw = pbinom(n - y, n, p, lower.tail = FALSE)
-      message("here")
-      up+dw
-    } else {
-      i <- seq.int(from = 0, to = floor(m))
-      y <- sum(dbinom(i, n, p) <= d * relErr)
-      pbinom(y - 1, n, p) + pbinom(x - 1, n, p, lower.tail = FALSE)
-    }
-  }
 }
 
 ###
@@ -252,11 +232,11 @@ RgetEnrichmentDiff <- function(post, r, s, theta) {
   foldchange[foldchange < 0] <- foldchange[foldchange < 0]/standardizationC
   return(foldchange)
 }
-RdiffR <- function(s, r, fdr=5e-2, eps=1e-5) {
+RdiffR <- function(s, r, eps=1e-5) {
   fit <- RnormR(s,r,3)
 
   #get enrichment
-  fit$lnenrichment <- RgetEnrichmentDiff(fit$post,r,s,fit$theta)
+  fit$lnenrichment <- RgetEnrichmentDiff(fit$posteriors,r,s,fit$theta)
 
   #calculate pvalues
   fit$pvals <- RgetPDiff(s,r,fit$theta[2])
@@ -281,11 +261,11 @@ RdiffR <- function(s, r, fdr=5e-2, eps=1e-5) {
 ###
 # R regimeR methods
 ###
-RregimeR <- function(s, r, nmodels, fdr=5e-2, eps=1e-5, bgIdx=1) {
+RregimeR <- function(s, r, nmodels, eps=1e-5, bgIdx=1) {
   fit <- RnormR(s,r,nmodels)
 
   #get enrichment
-  fit$lnenrichment <- RgetEnrichment(fit$post,r,s,fit$theta,1,nmodels)
+  fit$lnenrichment <- RgetEnrichment(fit$posteriors,r,s,fit$theta,1,nmodels)
 
   #calculate pvalues
   fit$pvals <- RgetP(s,r,fit$theta[bgIdx])
@@ -306,4 +286,25 @@ RregimeR <- function(s, r, nmodels, fdr=5e-2, eps=1e-5, bgIdx=1) {
   fit$classes <- fit$classes - 1
 
   return(fit)
+}
+
+###
+# R implementation of getting classes by FDR filter
+###
+RgetClasses <- function(Rfit, fdr=.1, bgIdx=1) {
+  idx <- which(Rfit$qvals <= fdr)
+  guys <- Rfit$classes[idx]
+  na <- which(is.na(guys))
+  if (length(na) > 0) {
+    if (length(Rfit$theta) == 2) {
+      guys[na] <- 1
+    } else if (length(na) == 1) {
+      guys[na] <- which.max(Rfit$posteriors[idx,][na,-bgIdx])
+    } else{
+      guys[na] <- apply(Rfit$posteriors[idx,][na,-bgIdx], 1, which.max)
+    }
+  }
+  classes <- as.integer(rep(NA_integer_, length(Rfit$classes)))
+  classes[idx] <- guys
+  classes
 }
