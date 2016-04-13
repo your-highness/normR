@@ -1,5 +1,5 @@
 inputfile <- system.file("extdata", "K562_Input.bam", package="normr")
 chipfiles <- system.file("extdata", "K562_H3K27me3.bam", package="normr")
-gr <- GRanges("chr1", IRanges(22500000, 25000000))
-fit <- enrichR(chipfile, inputfile, genome.df, countConfigPairedEnd(), verbose=F)
+gr <- GenomicRanges::GRanges("chr1", IRanges(22500000, 25000000))
+fit <- normr::enrichR(chipfile, inputfile, genome.df, countConfigPairedEnd(), verbose=F)
 summary(fit)
