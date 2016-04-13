@@ -312,6 +312,8 @@ setMethod("getClasses", c("NormRFit"), function(obj, fdr=NA) {
     if (length(na) > 0) {
       if (obj@k == 2) {
         clzzezSignf[na] <- 1
+      } else if (length(na) == 1) {
+        clzzezSignf[na] <- which.max(obj@lnposteriors[signf,][na,-obj@B])
       } else {
         clzzezSignf[na] <-
           apply(obj@lnposteriors[signf,][na,-obj@B], 1, which.max)
