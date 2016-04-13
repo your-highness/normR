@@ -23,58 +23,54 @@
 enrichR(treatment, control, genome, ...)
 
 \S4method{enrichR}{integer,integer,GenomicRanges}(treatment, control, genome,
-  fdr = 0.05, eps = 1e-05, iterations = 10, procs = 1L,
-  verbose = TRUE)
+  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{enrichR}{character,character,GenomicRanges}(treatment, control,
-  genome, countConfig = countConfigSingleEnd(), fdr = 0.05, eps = 1e-05,
+  genome, countConfig = countConfigSingleEnd(), eps = 1e-05,
   iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{enrichR}{character,character,data.frame}(treatment, control, genome,
-  countConfig = countConfigSingleEnd(), fdr = 0.05, eps = 1e-05,
-  iterations = 10, procs = 1L, verbose = TRUE)
+  countConfig = countConfigSingleEnd(), eps = 1e-05, iterations = 10,
+  procs = 1L, verbose = TRUE)
 
 \S4method{enrichR}{character,character,character}(treatment, control, genome,
-  countConfig = countConfigSingleEnd(), fdr = 0.05, eps = 1e-05,
-  iterations = 10, procs = 1L, verbose = TRUE)
+  countConfig = countConfigSingleEnd(), eps = 1e-05, iterations = 10,
+  procs = 1L, verbose = TRUE)
 
 diffR(treatment, control, genome, ...)
 
 \S4method{diffR}{integer,integer,GenomicRanges}(treatment, control, genome,
-  fdr = 0.05, eps = 1e-05, iterations = 10, procs = 1L,
-  verbose = TRUE)
+  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{diffR}{character,character,GenomicRanges}(treatment, control, genome,
-  countConfig = countConfigSingleEnd(), fdr = 0.05, eps = 1e-05,
-  iterations = 10, procs = 1L, verbose = TRUE)
+  countConfig = countConfigSingleEnd(), eps = 1e-05, iterations = 10,
+  procs = 1L, verbose = TRUE)
 
 \S4method{diffR}{character,character,data.frame}(treatment, control, genome,
-  countConfig = countConfigSingleEnd(), fdr = 0.05, eps = 1e-05,
-  iterations = 10, procs = 1L, verbose = TRUE)
+  countConfig = countConfigSingleEnd(), eps = 1e-05, iterations = 10,
+  procs = 1L, verbose = TRUE)
 
 \S4method{diffR}{character,character,character}(treatment, control,
-  genome = "", countConfig = countConfigSingleEnd(), fdr = 0.05,
-  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
+  genome = "", countConfig = countConfigSingleEnd(), eps = 1e-05,
+  iterations = 10, procs = 1L, verbose = TRUE)
 
 regimeR(treatment, control, genome, models, ...)
 
 \S4method{regimeR}{integer,integer,GenomicRanges,integer}(treatment, control,
-  genome, models = 3L, fdr = 0.05, eps = 1e-05, iterations = 10,
-  procs = 1L, verbose = TRUE)
+  genome, models = 3L, eps = 1e-05, iterations = 10, procs = 1L,
+  verbose = TRUE)
 
 \S4method{regimeR}{character,character,GenomicRanges,integer}(treatment,
   control, genome, models = 3L, countConfig = countConfigSingleEnd(),
-  fdr = 0.05, eps = 1e-05, iterations = 10, procs = 1L,
-  verbose = TRUE)
+  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{regimeR}{character,character,data.frame,integer}(treatment, control,
-  genome, models = 3L, countConfig = countConfigSingleEnd(), fdr = 0.05,
-  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
+  genome, models = 3L, countConfig = countConfigSingleEnd(), eps = 1e-05,
+  iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{regimeR}{character,character,character,integer}(treatment, control,
   genome = "", models = 3L, countConfig = countConfigSingleEnd(),
-  fdr = 0.05, eps = 1e-05, iterations = 10, procs = 1L,
-  verbose = TRUE)
+  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
 }
 \arguments{
 \item{treatment}{A \link{integer} vector of treatment counts or a
@@ -95,8 +91,6 @@ given should be present in the bam file header. If \code{NULL}, chromosome
 names will be read from treatment bamheader. Please be aware that bamheader
 might contain irregular contigs and chrM which influence the diffR fit.
 (DEFAUlT=NULL).}
-
-\item{fdr}{The FDR threshold for class definition. See \link{NormRFit}.}
 
 \item{eps}{Threshold for EM convergence.}
 
