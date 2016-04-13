@@ -1,35 +1,5 @@
 source("utils.R")
 
-testFit <- function(Rfit, Cfit, label, tolerance=1e-5) {
-  #data vectors
-  expect_equal(label=paste0(label, " - length"), length(Rfit$treatment),
-               length(Cfit), tolerance=tolerance)
-  expect_equal(label=paste0(label, " - counts treatment"), Rfit$treatment,
-               getCounts(Cfit)[["treatment"]], tolerance=tolerance)
-  expect_equal(label=paste0(label, " - counts control"), Rfit$control,
-               getCounts(Cfit)[["control"]], tolerance=tolerance)
-  #model fit
-  expect_equal(label=paste0(label, " - thetastar"), Rfit$thetastar,
-               Cfit@thetastar, tolerance=tolerance)
-  expect_equal(label=paste0(label, " - theta"), Rfit$theta,
-               Cfit@theta, tolerance=tolerance)
-  expect_equal(label=paste0(label, " - mixtures"), Rfit$mixtures,
-               Cfit@mixtures, tolerance=tolerance)
-  expect_equal(label=paste0(label, " - posteriors"), Rfit$posteriors,
-               getPosteriors(Cfit), tolerance=tolerance)
-  #model inferred statistics
-  expect_equal(label=paste0(label, " - lnenrichment"), Rfit$lnenrichment,
-               getEnrichment(Cfit), tolerance=tolerance)
-  expect_equal(label=paste0(label, " - Pvalues"), Rfit$pvals,
-               getPvalues(Cfit), tolerance=tolerance)
-  expect_equal(label=paste0(label, " - Tfiltered"), Rfit$filteredT,
-               which(Cfit@map %in% Cfit@filteredT), tolerance=tolerance)
-  expect_equal(label=paste0(label, " - Qvalues"), Rfit$qvals,
-               getQvalues(Cfit), tolerance=tolerance)
-  expect_equal(label=paste0(label, " - Classes"), Rfit$classes,
-               getClasses(Cfit), tolerance=tolerance)
-}
-
 context("methods arguments are checked correctly")
 test_that("Function arguments are checked correctly", {
   for (func.str in c("enrichR", "diffR", "regimeR")) {
@@ -68,9 +38,49 @@ test_that("Function arguments are checked correctly", {
   expect_error(exportR(new("NormRFit"), "dmp", "bigWig"), info="Invalid format")
 })
 
+#comparing the fit computed by normR with the R implementation
+testFit <- function(Rfit, Cfit, label, tolerance=1e-4, bgIdx=1) {
+  #data vectors
+  expect_equal(label=paste0(label, " - length"), length(Rfit$treatment),
+               length(Cfit), tolerance=tolerance)
+  expect_equal(label=paste0(label, " - counts treatment"), Rfit$treatment,
+               getCounts(Cfit)[["treatment"]], tolerance=tolerance)
+  expect_equal(label=paste0(label, " - counts control"), Rfit$control,
+               getCounts(Cfit)[["control"]], tolerance=tolerance)
+  #model fit
+  expect_equal(label=paste0(label, " - thetastar"), Rfit$thetastar,
+               Cfit@thetastar, tolerance=tolerance)
+  expect_equal(label=paste0(label, " - theta"), Rfit$theta,
+               Cfit@theta, tolerance=tolerance)
+  expect_equal(label=paste0(label, " - mixtures"), Rfit$mixtures,
+               Cfit@mixtures, tolerance=tolerance)
+  expect_equal(label=paste0(label, " - posteriors"), Rfit$posteriors,
+               getPosteriors(Cfit), tolerance=tolerance)
+  #model inferred statistics
+  expect_equal(label=paste0(label, " - lnenrichment"), Rfit$lnenrichment,
+               getEnrichment(Cfit), tolerance=tolerance)
+  expect_equal(label=paste0(label, " - Pvalues"), Rfit$pvals,
+               getPvalues(Cfit), tolerance=tolerance)
+  expect_equal(label=paste0(label, " - Tfiltered"), Rfit$filteredT,
+               which(Cfit@map %in% Cfit@filteredT), tolerance=tolerance)
+  expect_equal(label=paste0(label, " - Qvalues"), Rfit$qvals,
+               getQvalues(Cfit), tolerance=1e-3)
+  expect_equal(label=paste0(label, " - Classes"), Rfit$classes,
+               getClasses(Cfit), tolerance=tolerance)
+  expect_equal(label=paste0(label, " - Number with Qvalues<=0.1"),
+               sum(Rfit$qvals <= .1), sum(getQvalues(Cfit) <= .1))
+  if (length(Rfit$theta) > 2) {#test correctness of maximum in regime posteriors
+    expect_equal(label=paste0(label, " - Maximum A Posteriori"),
+                 apply(Rfit$posteriors[,-bgIdx],1,which.max),
+                 apply(getPosteriors(Cfit)[,-bgIdx], 1, which.max))
+  }
+  expect_equal(label=paste0(label, " - Classes with Qvalues<=0.1"),
+               RgetClasses(Rfit, fdr=.1, bgIdx=bgIdx), getClasses(Cfit, fdr=.1))
+}
+
 context("enrichR() gives correct results")
 test_that("enrichR() works correctly", {
-  gr <- GRanges("chr1", IRanges(22500000, 25000000))#chr1:22500000-25000000
+  gr <- GRanges("chr1", IRanges(22500001, 25000000))#chr1:22500000-25000000
   inputfile <- system.file("extdata", "K562_Input.bam", package="normr")
   chipfiles <- system.file("extdata", paste0("K562_", c("H3K27me3", "H3K4me3"),
                            ".bam"), package="normr")
@@ -130,7 +140,7 @@ test_that("enrichR() works correctly", {
 
 context("diffR() gives correct results")
 test_that("diffR() works correctly", {
-  gr <- GRanges("chr1", IRanges(22500000, 25000000))#chr1:1-249250621
+  gr <- GRanges("chr1", IRanges(22500001, 25000000))#chr1:1-249250621
   chipfiles <- system.file("extdata", paste0("K562_", c("H3K27me3", "H3K4me3"),
                            ".bam"), package="normr")
 
@@ -145,7 +155,8 @@ test_that("diffR() works correctly", {
       paste0("diffR-integer,integer,GRanges{", "region=",
              seqnames(gr), ":", start(gr),"-",end(gr),
              ", binsize=", binsize, ",chipfile=", chipfiles[2], ",inputfile=",
-             chipfiles[1], "}")
+             chipfiles[1], "}"),
+      bgIdx=2
     )
   }
 
@@ -159,7 +170,8 @@ test_that("diffR() works correctly", {
     paste0("diffR-character,character,data.frame-SingleEnd{region=",
            seqnames(gr), ":", start(gr),"-",end(gr),
            ", binsize=", binsize, ",chipfile=", chipfiles[2], ",inputfile=",
-           chipfiles[1], "}")
+           chipfiles[1], "}"),
+    bgIdx=2
   )
   fit <- diffR(chipfiles[2], chipfiles[1], genome.df, countConfigPairedEnd(), verbose=F)
   testFit(
@@ -169,7 +181,8 @@ test_that("diffR() works correctly", {
     paste0("diffR-character,character,data.frame-PairedEnd{region=",
            seqnames(gr), ":", start(gr),"-",end(gr),
            ", binsize=", binsize, ",chipfile=", chipfiles[2], ",inputfile=",
-            chipfiles[1], "}")
+            chipfiles[1], "}"),
+    bgIdx=2
   )
 
   #exporting
@@ -180,7 +193,7 @@ test_that("diffR() works correctly", {
 
 context("regimeR() gives correct results")
 test_that("regimeR() works correctly", {
-  gr <- GRanges("chr1", IRanges(22500000, 25000000))#chr1:22500000-25000000
+  gr <- GRanges("chr1", IRanges(22500001, 25000000))#chr1:22500000-25000000
   inputfile <- system.file("extdata", "K562_Input.bam", package="normr")
   chipfiles <- system.file("extdata", paste0("K562_", c("H3K27me3", "H3K4me3"),
                            ".bam"), package="normr")
@@ -192,15 +205,15 @@ test_that("regimeR() works correctly", {
       counts_ctrl <- suppressWarnings(bamProfile(inputfile,gr,binsize))[1]
       counts_treat <- suppressWarnings(bamProfile(chipfile,gr,binsize))[1]
       testFit(
-              RregimeR(counts_treat, counts_ctrl, k),
-              regimeR(counts_treat, counts_ctrl, unlist(tile(gr, width=binsize)),
-                      k, verbose=F),
-              paste0("regimeR-integer,integer,GRanges{", "region=",
-                     seqnames(gr), ":", start(gr),"-",end(gr),
-                     ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
-                     inputfile, ",models=", k, "}"),
-              tolerance=5e-4
-              )
+        RregimeR(counts_treat, counts_ctrl, k),
+        regimeR(counts_treat, counts_ctrl, unlist(tile(gr, width=binsize)),
+                k, verbose=F),
+        paste0("regimeR-integer,integer,GRanges{", "region=",
+               seqnames(gr), ":", start(gr),"-",end(gr),
+               ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
+               inputfile, ",models=", k, "}"),
+        tolerance=5e-3
+      )
     }
   }
 
@@ -210,32 +223,32 @@ test_that("regimeR() works correctly", {
     k <- 3L
     gr <- GRanges("chr1", IRanges(1, 25000000))
     testFit(
-            RregimeR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"ignore",verbose=F))[1],
-                     suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"ignore",verbose=F))[1],
-                     k),
-            regimeR(chipfile, inputfile, genome.df, k, countConfigSingleEnd(), verbose=F),
-            paste0("regimeR-character,character,data.frame-SingleEnd{region=",
-                   seqnames(gr), ":", start(gr),"-",end(gr),
-                   ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
-                   inputfile, ",models=", k, "}"),
-            tolerance=5e-4
-            )
-    fit <- regimeR(chipfile, inputfile, genome.df, k, countConfigPairedEnd(), verbose=F)
+      RregimeR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"ignore",verbose=F))[1],
+               suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"ignore",verbose=F))[1],
+               k),
+      regimeR(chipfile, inputfile, genome.df, k, countConfigSingleEnd(), verbose=F),
+      paste0("regimeR-character,character,data.frame-SingleEnd{region=",
+             seqnames(gr), ":", start(gr),"-",end(gr),
+             ", binsize=250,chipfile=", chipfile, ",inputfile=",
+             inputfile, ",models=", k, "}"),
+      tolerance=5e-3
+    )
+    Cfit <- regimeR(chipfile, inputfile, genome.df, k, countConfigPairedEnd(), verbose=F)
     testFit(
-            RregimeR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"midpoint",verbose=F))[1],
-                     suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"midpoint",verbose=F))[1],
-                     k),
-            fit,
-            paste0("regimeR-character,character,data.frame-PairedEnd{region=",
-                   seqnames(gr), ":", start(gr),"-",end(gr),
-                   ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
-                   inputfile, ",models=", k, "}"),
-            tolerance=5e-4
-            )
+      RregimeR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"midpoint",verbose=F))[1],
+               suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"midpoint",verbose=F))[1],
+               k),
+      Cfit,
+      paste0("regimeR-character,character,data.frame-PairedEnd{region=",
+             seqnames(gr), ":", start(gr),"-",end(gr),
+             ", binsize=250,chipfile=", chipfile, ",inputfile=",
+             inputfile, ",models=", k, "}"),
+      tolerance=5e-3
+    )
 
     #exporting
-    expect_silent(exportR(fit, tempfile(), "bed"))
-    expect_silent(exportR(fit, tempfile(), "bedGraph"))
-    expect_silent(exportR(fit, tempfile(), "bigWig"))
+    expect_silent(exportR(Cfit, tempfile(), "bed"))
+    expect_silent(exportR(Cfit, tempfile(), "bedGraph"))
+    expect_silent(exportR(Cfit, tempfile(), "bigWig"))
   }
 })
