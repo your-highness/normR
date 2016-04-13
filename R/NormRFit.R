@@ -188,13 +188,13 @@ setMethod("length", "NormRFit", function(x) x@n)
 #' @export
 setMethod("summary", "NormRFit",
   function(object, print=T, digits=3, ...) {
-    ans <- paste0("NormRFit-class o bject\n\n",
-                  "Type:\t\t'", object@type, "'\n",
-                  "Number of Regions:\t", object@n, "\n",
-                  "Number of components:\t", object@k, "\n",
-                  "Theta* (naive bg):\t",
+    ans <- paste0("NormRFit-class object\n\n",
+                  "Type:                  '", object@type, "'\n",
+                  "Number of Regions:     ", object@n, "\n",
+                  "Number of components:  ", object@k, "\n",
+                  "Theta* (naive bg):     ",
                   format(object@thetastar, digits=digits), "\n",
-                  "Backgroundcomponent B:\t", object@B, "\n\n")
+                  "Backgroundcomponent B: ", object@B, "\n\n")
     if (length(object@theta)) {
       ans <- paste0(ans, "+++ Results of fit +++ \nMixture Proporitons:\n")
       ans <- paste0(ans,
@@ -220,7 +220,7 @@ setMethod("summary", "NormRFit",
                                      quote=F))
       ans <- paste0(ans, paste(cts.string, collapse="\n"), "\n")
       ans <- paste0(ans, "---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*'",
-                          " 0.05 '.' 0.1 ' ' 1 'n.s.'\n\n")
+                          " 0.05 '.' 0.1 '  ' 1 'n.s.'\n\n")
     } else {
       ans <- paste0(ans, "No results of fit.\n\n")
     }
@@ -294,14 +294,34 @@ setMethod("getQvalues", "NormRFit", function(obj) {
 })
 
 #' @export
-setGeneric("getClasses", function(obj) standardGeneric("getClasses"))
+setGeneric("getClasses", function(obj, ...) standardGeneric("getClasses"))
 #' @describeIn NormRFit Retrieve classes for each bin, i.e. enriched vs
 #' non-enriched (enrichR), differential enrichment (diffR) and enrichment
 #' regimes (regimeR).
 #' @aliases getClasses
 #' @export
-setMethod("getClasses", "NormRFit", function(obj) {
-  obj@classes[obj@map]
+setMethod("getClasses", c("NormRFit"), function(obj, fdr=NA) {
+  if (is.na(fdr)) {
+    obj@classes[obj@map]
+  } else {
+    #Filter on qvalues
+    signf <- which(obj@lnqvals <= log(fdr))
+    clzzezSignf <- obj@classes[signf]
+    #assign classes based on Maximum A Posteriori for <NA>
+    na <- which(is.na(clzzezSignf))
+    if (length(na) > 0) {
+      if (obj@k == 2) {
+        clzzezSignf[na] <- 1
+      } else {
+        clzzezSignf[na] <-
+          apply(obj@lnposteriors[signf,][na,-obj@B], 1, which.max)
+      }
+    }
+    #create output vector with reverse mapping
+    out <- rep(NA_integer_, length(obj@classes))
+    out[signf] <- clzzezSignf
+    out[obj@map]
+  }
 })
 
 ###
@@ -323,6 +343,13 @@ setGeneric("exportR", function(obj, filename, type, ...)
 #' bedGraph or bigWig.
 #' @param filename File to write results to.
 #' @param type Type of file used for exporting results.
+#' @param fdr The q-value threshold for calling a region significant. If
+#' \code{NA}, no filtering is done on q-values but regions are reported by
+#' Maximum A Posteriori.
+#' @param color Specified color(s) for printing a ped file. If obj is of type
+#' "enrichR", this argument should of length 1 #' and bed color shading will be
+#' done on this color. If \code{obj} is of type
+#' "diffR", this argument should be of length2
 #' @aliases exportR
 #' @export
 setMethod("exportR", signature=c("NormRFit", "character", "character"),
@@ -332,52 +359,68 @@ setMethod("exportR", signature=c("NormRFit", "character", "character"),
     filename <- path.expand(filename)
     if (is.null(getRanges(obj)))
       stop("no ranges set in obj. Please set via 'obj@ranges <- ranges'")
+    if (fdr < 0 | fdr > 1) stop("invalid fdr specified (0<=fdr<=1)")
 
     if (type == "bed") {#qualitative output
-      significant <- which(getQvalues(obj) <= fdr)
-      gr <- getRanges(obj)[significant]
-      gr$score <- as.integer(1e3-getQvalues(obj)[significant]*1e4)
-      gr$score[gr$score < 0] <- 0
+      #clzzez contains integers (assigned regimes) and <NA> for background
+      clzzez <- getClasses(obj, fdr)
+      nna <- which(!is.na(clzzez))
+      clzzez <- clzzez[nna]#reduce classes to integer only
+      if (is.na(fdr)) {
+        score <- as.integer(1e3-getPosteriors(obj)[nna,obj@B]*1e3)
+      } else {
+        score <- as.integer(((fdr-getQvalues(obj)[nna])/fdr)*1e3)
+      }
+      score[score < 0] <- 0
+      score[score > 1e3] <- 1e3
+
+      #retrieve coordinates
+      gr <- getRanges(obj)[nna]
+      gr$score <- score
 
       #name and color dependent on type of NormRFit
+      getColRamp <- function(col, factor=5, steps=6) {
+        colTab <- t(col2rgb(col))*factor
+        colTab[colTab > 255] <- 255
+        newCol <- rgb(colTab,maxColorValue=255)
+        pal <- colorRampPalette(c(newCol, col))(steps)
+        return(apply(col2rgb(pal), 2, paste, collapse=","))
+      }
       if (obj@type == "enrichR") {
+        if (is.na(color)) color <- "gray15"
+        if (length(color) != 1) {
+          stop("invalid color argument for type 'enrichR' (length!=1)")
+        }
         gr$name <- paste0("enrichR_score:", gr$score)
-        colRamp <- apply(col2rgb(colorRampPalette(c("gray75","gray0"))(9)), 2,
-                         paste, collapse=",")
-        gr$col <- colRamp[as.integer(gr$score/120+1)]
+        gr$col <- getColRamp(color)[as.integer(gr$score/250)+1]
+
       } else if (obj@type == "diffR") {
-        #get classes for each significant
-        clzzez <- getClasses(obj)[significant]
+        if (is.na(color)) color <- c("darkblue", "darkred")
+        if (length(color) != 2) {
+          stop("invalid color argument for type 'diffR' (length!=2)")
+        }
         gr$name <- paste0("diffR_Cond",clzzez,"_score:", gr$score)
-        gr <- gr[!is.na(clzzez)]
-        clzzez <- clzzez[!is.na(clzzez)]
-        #Cond1 blue color
         col <- rep(NA, length(gr))
-        colRamp <- apply(col2rgb(colorRampPalette(c("blue","darkblue"))(9)),
-                         2, paste, collapse=",")
+        #Cond1
         col[which(clzzez==1)] <-
-          colRamp[as.integer(gr$score[which(clzzez==1)]/120+1)]
-        #Cond1 red color
-        colRamp <- apply(col2rgb(colorRampPalette(c("red","darkred"))(9)),
-                         2, paste, collapse=",")
+          getColRamp(color[1])[as.integer(gr$score[which(clzzez==1)]/250)+1]
+        #Cond1
         col[which(clzzez==2)] <-
-          colRamp[as.integer(gr$score[which(clzzez==2)]/120+1)]
+          getColRamp(color[2])[as.integer(gr$score[which(clzzez==2)]/250)+1]
         gr$col <- col
+
       } else if (obj@type == "regimeR") {
-        #get classes for each significant
-        clzzez <- getClasses(obj)[significant]
+        if (is.na(color)) color <- rev(terrain.colors(obj@k+1))[-1]
+        if (length(color) != obj@k) {
+          stop(paste0("invalid color argument for type 'regimeR' (length!=",
+            obj@k, ")"))
+        }
         gr$name <- paste0("regimeR_Regime",clzzez,"_score:", gr$score)
-        gr <- gr[!is.na(clzzez)]
-        clzzez <- clzzez[!is.na(clzzez)]
-        #Cond1 blue color
+        #Loop through regimes and colors for creating color vector
         col <- rep(NA, length(gr))
-        pal <- rev(terrain.colors(obj@k+1))[-1]
         for (i in 1:obj@k) {
-          colRamp <-
-            apply(col2rgb(colorRampPalette(c(adjustcolor(pal[i],alpha.f=.3),
-              pal[i]))(9)), 2, paste, collapse=",")
           col[which(clzzez==i)] <-
-            colRamp[as.integer(gr$score[which(clzzez==i)]/120+1)]
+            getColRamp(color[i])[as.integer(gr$score[which(clzzez==i)]/250)+1]
         }
         gr$col <- col
       }
@@ -385,7 +428,7 @@ setMethod("exportR", signature=c("NormRFit", "character", "character"),
       #prepare for output
       gr <- sort(gr)
       out <- as.data.frame(gr)[,c(1,2,3,7,6,5,2,3,8)]
-      out[,c(2,7)] <- out[,c(2,7)]#correcting for bed coordinates
+      out[,c(2,7)] <- out[,c(2,7)]-1#0-based bed coordinates [start,end)
       out[,6] <- "."
 
       #writing
@@ -393,6 +436,7 @@ setMethod("exportR", signature=c("NormRFit", "character", "character"),
         filename, '" visibility=dense itemRgb="On"\n'), file=filename)
       write.table(file=filename, x=out, sep="\t", col.names=F, row.names=F,
         quote=F, append=T)
+
     } else { #quantitative output
       gr <- getRanges(obj)
       e <- getEnrichment(obj)
@@ -407,6 +451,7 @@ setMethod("exportR", signature=c("NormRFit", "character", "character"),
                    "graphType=bar viewLimits=0:1.5 windowingFunction=mean\n"),
             file=filename)
         rtracklayer::export(object=gr, con=filename, format=type, append=T)
+
       } else { #bigWig - no trackline
         rtracklayer::export(object=gr, con=filename, format=type)
       }
