@@ -9,10 +9,6 @@ logSumVector <- function(vec, nthreads = 1L) {
     .Call('normr_logSumVector', PACKAGE = 'normr', vec, nthreads)
 }
 
-mapToUniquePairs <- function(r, s) {
-    .Call('normr_mapToUniquePairs', PACKAGE = 'normr', r, s)
-}
-
 mapToOriginal <- function(vec, m2u) {
     .Call('normr_mapToOriginal', PACKAGE = 'normr', vec, m2u)
 }
@@ -21,20 +17,8 @@ mapToUniqueWithMap <- function(vec, m2u) {
     .Call('normr_mapToUniqueWithMap', PACKAGE = 'normr', vec, m2u)
 }
 
-computeEnrichmentWithMap <- function(lnPost, m2u, theta, F = 1L, B = 0L, diffCall = FALSE, nthreads = 1L) {
-    .Call('normr_computeEnrichmentWithMap', PACKAGE = 'normr', lnPost, m2u, theta, F, B, diffCall, nthreads)
-}
-
 computeEnrichment <- function(r, s, lnPost, theta, F = 1L, B = 0L, diffCall = FALSE, nthreads = 1L) {
     .Call('normr_computeEnrichment', PACKAGE = 'normr', r, s, lnPost, theta, F, B, diffCall, nthreads)
-}
-
-getLnP <- function(s, r, p, twoTailed = FALSE, eps = .0000001) {
-    .Call('normr_getLnP', PACKAGE = 'normr', s, r, p, twoTailed, eps)
-}
-
-tthreshold <- function(p, eps = 1e-5, diffCall = FALSE) {
-    .Call('normr_tthreshold', PACKAGE = 'normr', p, eps, diffCall)
 }
 
 normr_core <- function(r, s, models = 2L, eps = 1e-5, iterations = 5L, bgIdx = 0L, diffCall = FALSE, verbose = FALSE, nthreads = 1L) {

@@ -41,7 +41,7 @@
 
 \S4method{getQvalues}{NormRFit}(obj)
 
-\S4method{getClasses}{NormRFit}(obj)
+\S4method{getClasses}{NormRFit}(obj, fdr = NA)
 
 \S4method{exportR}{NormRFit,character,character}(obj, filename,
   type = c("bed", "bedGraph", "bigWig"), fdr = 0.01, color = NA)
@@ -57,9 +57,18 @@
 
 \item{obj}{A NormRFit object.}
 
+\item{fdr}{The q-value threshold for calling a region significant. If
+\code{NA}, no filtering is done on q-values but regions are reported by
+Maximum A Posteriori.}
+
 \item{filename}{File to write results to.}
 
 \item{type}{Type of file used for exporting results.}
+
+\item{color}{Specified color(s) for printing a ped file. If obj is of type
+"enrichR", this argument should of length 1 #' and bed color shading will be
+done on this color. If \code{obj} is of type
+"diffR", this argument should be of length2}
 
 \item{i}{\code{integer()}-index for subsetting.}
 
