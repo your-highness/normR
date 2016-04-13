@@ -55,8 +55,8 @@ as control for two ChIP-seq experiments for H3K27me3 and H3K4me3.
 ```{r}
 #Paths to files containing alignment files
 path_Input <- system.file("extdata", "K562_Input.bam", package="normr")
-path_ChIP_H3K27me3 <- system.file("extdata", "K562_H3K27me3.bam"), package="normr")
-path_ChIP_H3K4me3 <- system.file("extdata", "K562_H3K4me3.bam"), package="normr")
+path_ChIP_H3K27me3 <- system.file("extdata", "K562_H3K27me3.bam", package="normr")
+path_ChIP_H3K4me3 <- system.file("extdata", "K562_H3K4me3.bam", package="normr")
 ```
 
 That is easy. Now, we have to define our genome sequences: The
