@@ -297,7 +297,6 @@ static inline void map2uniquePairs_core(std::vector<int> r, std::vector<int> s,
 //        \item{values}{unique and sorted values of \code{r} and \code{s}}
 //        \item{map}{a vector such that
 //                   \code{cbind(r,s)[i,] = values[,map[i]]} for every i}
-// [[Rcpp::export]]
 List mapToUniquePairs(const IntegerVector& r, const IntegerVector& s){
   if (r.length() != s.length()) {
     stop("Lengths differ.");
@@ -393,7 +392,7 @@ List em(const List& m2u_sub, const int models=2, const double eps=1e-5,
   double qstar = sum(us_sub * uamount_sub) /
     sum(ur_sub * uamount_sub + us_sub * uamount_sub);
   double jitter = qstar-.01;
-  lntheta = log(rep(qstar, models) + runif(models, -.01, +.01));
+  lntheta = log(rep(qstar, models) + runif(models, -.1, +.1));
   lnftheta = log(1 - exp(lntheta));
   if (verbose) {
     message("  ...initiatilizing prior and theta (theta*=" +
@@ -476,7 +475,6 @@ List em(const List& m2u_sub, const int models=2, const double eps=1e-5,
 }
 
 ///compute posteriors with a map and a log posterior matrix on the unique values
-// [[Rcpp::export]]
 NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
      const List& m2u, const NumericVector& theta, const int F=1, const int B=0,
      const bool diffCall=false, const int nthreads=1) {
@@ -556,7 +554,6 @@ NumericVector computeEnrichment(const IntegerVector& r, const IntegerVector& s,
   return mapToOriginal(computeEnrichmentWithMap(lnP, m2u, theta, F, B, nthreads), m2u);
 }
 
-// [[Rcpp::export]]
 double getLnP(const int s, const int r, const double p,
     const bool twoTailed=false, const double eps = .0000001) {
   int n = r+s;
@@ -603,7 +600,6 @@ NumericVector getPWithMap(const List& m2u, const double theta,
 
 //a T filter implementation: What is the margin were significance can be
 //achieved?
-// [[Rcpp::export]]
 int tthreshold(const double p, const double eps=1e-5,
     const bool diffCall=false) {
   if (p < 0 || p > 1) stop("invalid p");
