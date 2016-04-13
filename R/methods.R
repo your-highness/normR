@@ -74,7 +74,6 @@ NULL
 #' (DEFAUlT=NULL).
 #' @param models Number of model components for \code{regimeR()}. Should be an
 #' \code{integer() >= 3}. (DEFAULT=3)
-#' @param fdr The FDR threshold for class definition. See \link{NormRFit}.
 #' @param eps Threshold for EM convergence.
 #' @param procs Number of threads to use
 #' @param countConfig A BamCountConfig object specifying bam counting parameters
@@ -198,7 +197,7 @@ setGeneric("enrichR", function(treatment, control, genome, ...)
 #' @rdname normr-methods
 #' @export
 setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
-  function(treatment, control, genome, fdr=5e-2, eps=1e-5, iterations=10,
+  function(treatment, control, genome, eps=1e-5, iterations=10,
            procs=1L, verbose=TRUE) {
     if (length(treatment) != length(control)) {
       stop("incompatible treatment and control count vectors")
@@ -214,7 +213,9 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
       log(qvalue(exp(normr:::mapToOriginal(fit$lnpvals, fit$map)[idx]))$qvalues)
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
-    #Get classes vector
+    #Create classes vector w/ Maximum A Posteriori (<NA> isset for background)
+    #Note that Maximum A Posteriori and P-/Q-values are sometimes not in
+    #correspondence!
     classes <- apply(fit$lnpost,1,which.max)
     classes[classes == 1] <- NA_integer_
     classes <- classes-1
@@ -241,32 +242,32 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
 #' @export
 setMethod("enrichR", signature("character", "character", "GenomicRanges"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           fdr=5e-2, eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharGR(treatment, control, genome, countConfig, procs,
                                  verbose)
-    return(enrichR(countsGr$counts[[1]], countsGr$counts[[2]],
-      genome, fdr, eps, iterations, procs, verbose))
+    return(enrichR(countsGr$counts[[1]], countsGr$counts[[2]], genome, eps,
+      iterations, procs, verbose))
 })
 #' @rdname normr-methods
 #' @export
 setMethod("enrichR", signature("character", "character", "data.frame"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           fdr=5e-2, eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharDf(treatment, control, genome, countConfig, procs,
                                  verbose)
-    return(enrichR(countsGr$counts[[1]], countsGr$counts[[2]],
-      countsGr$gr, fdr, eps, iterations, procs, verbose))
+    return(enrichR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr, eps,
+      iterations, procs, verbose))
 })
 #' @rdname normr-methods
 #' @export
 setMethod("enrichR", signature("character", "character", "character"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           fdr=5e-2, eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     genome <- handleCharCharChar(treatment, control, genome, verbose)
-    return(enrichR(treatment, control, genome, countConfig, fdr, eps,
+    return(enrichR(treatment, control, genome, countConfig, eps,
       iterations, procs, verbose))
 })
 
@@ -288,7 +289,7 @@ setGeneric("diffR", function(treatment, control, genome, ...)
 #' @rdname normr-methods
 #' @export
 setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
-  function(treatment, control, genome, fdr=5e-2, eps=1e-5, iterations=10,
+  function(treatment, control, genome, eps=1e-5, iterations=10,
            procs=1L, verbose=TRUE) {
     if (length(treatment) != length(control)) {
       stop("incompatible treatment and control count vectors")
@@ -307,11 +308,13 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
       log(qvalue(exp(normr:::mapToOriginal(fit$lnpvals, fit$map)[idx]))$qvalues)
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
-    #Get classes vector
+    #Create classes vector w/ Maximum A Posteriori (<NA> isset for background)
+    #Note that Maximum A Posteriori and P-/Q-values are sometimes not in
+    #correspondence!
     classes <- apply(fit$lnpost[,c(1,3,2)],1,which.max)
     classes[classes == 3] <- NA_integer_
 
-    o <- new("NormRFit", type="enrichR", n=length(treatment), ranges=genome,
+    o <- new("NormRFit", type="diffR", n=length(treatment), ranges=genome,
              k=3L, B=2L, map=fit$map$map,
              counts=list(as.integer(fit$map$values[1,]),
                          as.integer(fit$map$values[2,])),
@@ -331,32 +334,32 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
 #' @export
 setMethod("diffR", signature("character", "character", "GenomicRanges"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           fdr=5e-2, eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharGR(treatment, control, genome, countConfig, procs,
                                  verbose)
-    return(diffR(countsGr$counts[[1]], countsGr$counts[[2]],
-      genome, fdr, eps, iterations, procs, verbose))
+    return(diffR(countsGr$counts[[1]], countsGr$counts[[2]], genome, eps,
+      iterations, procs, verbose))
 })
 #' @rdname normr-methods
 #' @export
 setMethod("diffR", signature("character", "character", "data.frame"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           fdr=5e-2, eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharDf(treatment, control, genome, countConfig, procs,
                                  verbose)
-    return(diffR(countsGr$counts[[1]], countsGr$counts[[2]],
-      countsGr$gr, fdr, eps, iterations, procs, verbose))
+    return(diffR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr, eps,
+      iterations, procs, verbose))
 })
 #' @rdname normr-methods
 #' @export
 setMethod("diffR", signature("character", "character", "character"),
   function(treatment, control, genome="", countConfig=countConfigSingleEnd(),
-           fdr=5e-2, eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     genome <- handleCharCharChar(treatment, control, genome, verbose)
-    return(diffR(treatment, control, genome, countConfig, fdr, eps, iterations,
+    return(diffR(treatment, control, genome, countConfig, eps, iterations,
       procs, verbose))
 })
 
@@ -380,7 +383,7 @@ setGeneric("regimeR", function(treatment, control, genome, models, ...)
 #' @export
 setMethod("regimeR",
           signature("integer", "integer", "GenomicRanges", "integer"),
-  function(treatment, control, genome, models=3L, fdr=5e-2, eps=1e-5,
+  function(treatment, control, genome, models=3L, eps=1e-5,
             iterations=10, procs=1L, verbose=TRUE) {
     if (models <= 2) stop("invalid number of models specified")
     if (length(treatment) != length(control)) {
@@ -398,10 +401,12 @@ setMethod("regimeR",
       log(qvalue(exp(normr:::mapToOriginal(fit$lnpvals, fit$map)[idx]))$qvalues)
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
-    #Get classes vector
+    #Create classes vector w/ Maximum A Posteriori (<NA> isset for background)
+    #Note that Maximum A Posteriori and P-/Q-values are sometimes not in
+    #correspondence!
     classes <- apply(fit$lnpost,1,which.max)
     classes[classes == 1] <- NA_integer_
-    classes <- classes-1#count from first regime model
+    classes <- classes-1
 
     #NormRFit-class object
     o <- new("NormRFit", type="regimeR", n=length(treatment), ranges=genome,
@@ -426,36 +431,36 @@ setMethod("regimeR",
 setMethod("regimeR",
           signature("character", "character", "GenomicRanges", "integer"),
   function(treatment, control, genome, models=3L,
-           countConfig=countConfigSingleEnd(), fdr=5e-2, eps=1e-5,
+           countConfig=countConfigSingleEnd(), eps=1e-5,
            iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharGR(treatment, control, genome, countConfig, procs,
                                  verbose)
-    return(regimeR(countsGr$counts[[1]], countsGr$counts[[2]],
-      genome, models, fdr, eps, iterations, procs, verbose))
+    return(regimeR(countsGr$counts[[1]], countsGr$counts[[2]], genome, models,
+      eps, iterations, procs, verbose))
 })
 #' @rdname normr-methods
 #' @export
 setMethod("regimeR", signature("character", "character", "data.frame", "integer"),
   function(treatment, control, genome, models=3L,
-           countConfig=countConfigSingleEnd(), fdr=5e-2, eps=1e-5,
-           iterations=10, procs=1L, verbose=TRUE) {
+           countConfig=countConfigSingleEnd(), eps=1e-5, iterations=10,
+           procs=1L, verbose=TRUE) {
     if (models <= 2) stop("invalid number of models specified")
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharDf(treatment, control, genome, countConfig, procs,
                                  verbose)
-    return(regimeR(countsGr$counts[[1]], countsGr$counts[[2]],
-      countsGr$gr, models, fdr, eps, iterations, procs, verbose))
+    return(regimeR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr,
+      models, eps, iterations, procs, verbose))
 })
 #' @rdname normr-methods
 #' @export
 setMethod("regimeR", signature("character", "character", "character", "integer"),
   function(treatment, control, genome="", models=3L,
-           countConfig=countConfigSingleEnd(), fdr=5e-2, eps=1e-5,
+           countConfig=countConfigSingleEnd(), eps=1e-5,
            iterations=10, procs=1L, verbose=TRUE) {
     if (models <= 2) stop("invalid number of models specified")
     treatment <- path.expand(treatment); control <- path.expand(control)
     genome <- handleCharCharChar(treatment, control, genome, verbose)
-    return(regimeR(treatment, control, genome, models, countConfig, fdr, eps,
+    return(regimeR(treatment, control, genome, models, countConfig, eps,
       iterations, procs, verbose))
 })
