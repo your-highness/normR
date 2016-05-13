@@ -23,54 +23,54 @@
 enrichR(treatment, control, genome, ...)
 
 \S4method{enrichR}{integer,integer,GenomicRanges}(treatment, control, genome,
-  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
+  eps = 0.00001, iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{enrichR}{character,character,GenomicRanges}(treatment, control,
-  genome, countConfig = countConfigSingleEnd(), eps = 1e-05,
+  genome, countConfig = countConfigSingleEnd(), eps = 0.00001,
   iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{enrichR}{character,character,data.frame}(treatment, control, genome,
-  countConfig = countConfigSingleEnd(), eps = 1e-05, iterations = 10,
+  countConfig = countConfigSingleEnd(), eps = 0.00001, iterations = 10,
   procs = 1L, verbose = TRUE)
 
 \S4method{enrichR}{character,character,character}(treatment, control, genome,
-  countConfig = countConfigSingleEnd(), eps = 1e-05, iterations = 10,
+  countConfig = countConfigSingleEnd(), eps = 0.00001, iterations = 10,
   procs = 1L, verbose = TRUE)
 
 diffR(treatment, control, genome, ...)
 
 \S4method{diffR}{integer,integer,GenomicRanges}(treatment, control, genome,
-  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
+  eps = 0.00001, iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{diffR}{character,character,GenomicRanges}(treatment, control, genome,
-  countConfig = countConfigSingleEnd(), eps = 1e-05, iterations = 10,
+  countConfig = countConfigSingleEnd(), eps = 0.00001, iterations = 10,
   procs = 1L, verbose = TRUE)
 
 \S4method{diffR}{character,character,data.frame}(treatment, control, genome,
-  countConfig = countConfigSingleEnd(), eps = 1e-05, iterations = 10,
+  countConfig = countConfigSingleEnd(), eps = 0.00001, iterations = 10,
   procs = 1L, verbose = TRUE)
 
 \S4method{diffR}{character,character,character}(treatment, control,
-  genome = "", countConfig = countConfigSingleEnd(), eps = 1e-05,
+  genome = "", countConfig = countConfigSingleEnd(), eps = 0.00001,
   iterations = 10, procs = 1L, verbose = TRUE)
 
 regimeR(treatment, control, genome, models, ...)
 
 \S4method{regimeR}{integer,integer,GenomicRanges,integer}(treatment, control,
-  genome, models = 3L, eps = 1e-05, iterations = 10, procs = 1L,
+  genome, models = 3L, eps = 0.00001, iterations = 10, procs = 1L,
   verbose = TRUE)
 
 \S4method{regimeR}{character,character,GenomicRanges,integer}(treatment,
   control, genome, models = 3L, countConfig = countConfigSingleEnd(),
-  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
+  eps = 0.00001, iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{regimeR}{character,character,data.frame,integer}(treatment, control,
-  genome, models = 3L, countConfig = countConfigSingleEnd(), eps = 1e-05,
-  iterations = 10, procs = 1L, verbose = TRUE)
+  genome, models = 3L, countConfig = countConfigSingleEnd(),
+  eps = 0.00001, iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{regimeR}{character,character,character,integer}(treatment, control,
   genome = "", models = 3L, countConfig = countConfigSingleEnd(),
-  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
+  eps = 0.00001, iterations = 10, procs = 1L, verbose = TRUE)
 }
 \arguments{
 \item{treatment}{A \link{integer} vector of treatment counts or a
@@ -152,8 +152,8 @@ be binned according to 'countConfig' ('character,character,character').
 \examples{
 inputfile <- system.file("extdata", "K562_Input.bam", package="normr")
 chipfiles <- system.file("extdata", "K562_H3K27me3.bam", package="normr")
-gr <- GRanges("chr1", IRanges(22500000, 25000000))
-fit <- enrichR(chipfile, inputfile, genome.df, countConfigPairedEnd(), verbose=F)
+gr <- GenomicRanges::GRanges("chr1", IRanges(22500000, 25000000))
+fit <- normr::enrichR(chipfile, inputfile, genome.df, countConfigPairedEnd(), verbose=F)
 summary(fit)
 }
 \seealso{

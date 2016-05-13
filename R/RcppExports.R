@@ -17,6 +17,10 @@ mapToUniqueWithMap <- function(vec, m2u) {
     .Call('normr_mapToUniqueWithMap', PACKAGE = 'normr', vec, m2u)
 }
 
+computeEnrichmentWithMap <- function(lnPost, m2u, theta, F = 1L, B = 0L, diffCall = FALSE, nthreads = 1L) {
+    .Call('normr_computeEnrichmentWithMap', PACKAGE = 'normr', lnPost, m2u, theta, F, B, diffCall, nthreads)
+}
+
 computeEnrichment <- function(r, s, lnPost, theta, F = 1L, B = 0L, diffCall = FALSE, nthreads = 1L) {
     .Call('normr_computeEnrichment', PACKAGE = 'normr', r, s, lnPost, theta, F, B, diffCall, nthreads)
 }
