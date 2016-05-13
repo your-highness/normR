@@ -261,12 +261,13 @@ setMethod("getPosteriors", "NormRFit", function(obj) {
 })
 
 #' @export
-setGeneric("getEnrichment", function(obj) standardGeneric("getEnrichment"))
+setGeneric("getEnrichment", function(obj, ...) standardGeneric("getEnrichment"))
 #' @describeIn NormRFit Retrieve NormR calculated enrichment.
 #' @aliases getEnrichment
 #' @export
-setMethod("getEnrichment", "NormRFit", function(obj) {
-  return(obj@lnenrichment[obj@map])
+setMethod("getEnrichment", "NormRFit", function(obj, B=NULL) {
+  if (is.null(B)) return(obj@lnenrichment[obj@map])
+  else NULL
 })
 
 #' @export
@@ -327,6 +328,13 @@ setMethod("getClasses", c("NormRFit"), function(obj, fdr=NA) {
 })
 
 ###
+#EXPORTING
+###
+##' @export
+#setGeneric("recomputeR", function(obj, filename, type, ...)
+#           standardGeneric("recomputeR"))
+
+###
 #PLOTTING
 ###
 setMethod("plot", "NormRFit",
@@ -335,9 +343,9 @@ setMethod("plot", "NormRFit",
   }
 )
 
-####
-##EXPORTING
-####
+###
+#EXPORTING
+###
 #' @export
 setGeneric("exportR", function(obj, filename, type, ...)
            standardGeneric("exportR"))

@@ -475,6 +475,7 @@ List em(const List& m2u_sub, const int models=2, const double eps=1e-5,
 }
 
 ///compute posteriors with a map and a log posterior matrix on the unique values
+// [[Rcpp::export]]
 NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
      const List& m2u, const NumericVector& theta, const int F=1, const int B=0,
      const bool diffCall=false, const int nthreads=1) {

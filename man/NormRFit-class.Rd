@@ -35,7 +35,7 @@
 
 \S4method{getPosteriors}{NormRFit}(obj)
 
-\S4method{getEnrichment}{NormRFit}(obj)
+\S4method{getEnrichment}{NormRFit}(obj, B = NULL)
 
 \S4method{getPvalues}{NormRFit}(obj, filtered = F)
 
@@ -57,6 +57,8 @@
 
 \item{obj}{A NormRFit object.}
 
+\item{B}{The index of the background component.}
+
 \item{fdr}{The q-value threshold for calling a region significant. If
 \code{NA}, no filtering is done on q-values but regions are reported by
 Maximum A Posteriori.}
@@ -71,8 +73,6 @@ done on this color. If \code{obj} is of type
 "diffR", this argument should be of length2}
 
 \item{i}{\code{integer()}-index for subsetting.}
-
-\item{B}{The index of the background component.}
 }
 \value{
 return values are described in the methods section.

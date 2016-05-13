@@ -30,23 +30,37 @@ overall read statistics. Normalization requires knowledge of the regions that
 remained unchanged, such that normalization and difference calling are
 inseparable.
 
-This package, normR, follows this logic and performs normalization and
-difference calling simultaneously to identify genomic regions enriched by the
-ChIP-procedure (`normr::enrichR`). Furthermore, normR enables the comparison
-between ChIP-seq data obtained from different conditions allowing for
-unraveling genomic regions that change their association with the ChIP-target
-(`normr::diffR`). normR, is capable to differentiate multiple regimes of
-enrichment, i.e. broad domains and sharp peaks (`normr::regimeR`).
+This package, normR (**n**ormR **o**beys **r**egime **m**ixture **R**ules),
+follows this logic and performs normalization and difference calling
+simultaneously to identify genomic regions enriched by the ChIP-procedure
+(`normr::enrichR()`). In addition, normR enables the comparison between ChIP-seq
+data obtained from different conditions allowing for unraveling genomic regions
+that change their association with the ChIP-target (`normr::diffR()`). Lastly,
+normR is capable to differentiate multiple regimes of enrichment, *i.e.* broad
+domains and sharp peaks (`normr::regimeR`).
 
+This vignette explains a common workflow of normrR analysis on NGS data for
+calling enrichment, identification of differential ChIP-seq enrichment and
+stratification of enrichment regimes. Herein, we provide examples for the export of
+results to common data formats like bigWig and bed. We show how analysis
+statistics and diagnostic plots are helpful for studying results. In the last
+section, we cover more advanced topics including fitting on defined regions,
+*e.g.* promoters, or integrating CNV information in differential ChIP-seq
+enrichment calls.
 
 
 ## Calling Enrichment with an Input Control
 
-In a first assessment, we would like to call regions significantly enriched
-for reads in the ChIP-seq experiment given an Input-seq alignment.
+In this first section, we would like to call regions significantly enriched
+for reads in the ChIP-seq experiment given a Control alignment. Here, we analyze
+ChIP-seq data for both H3K4me3 (pointy enrichment) and H3K27me3 (broad
+enrichment) given an Input-seq control alignment originating from a human
+immortalised myelogenous leukemia line (K562). Using normR, we show that our
+representative region on human chromsome 1 (`chr1:22500000-25000000`) is
+enriched for H3K4me3 mostly at promoters and precludes H3K27me3 enrichment which
+is most apparent in inter-genic regions.
 
-
-### Setup toy data
+### Setting up toy data
 
 As part of the normR package, we provide 3 stripped alignment files
 containing reads for chr1:22500000-25000000. One Input-seq alignment serves
@@ -102,3 +116,7 @@ difference <- diffR(getCounts(enrichment_H3K4me3)$control,
                     getCounts(enrichment_H3K4me3)$treatment,
                     enrichment_H3K27me3@ranges)
 ```
+
+# Advanced Topics
+
+##
