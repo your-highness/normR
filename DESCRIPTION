@@ -23,7 +23,7 @@ Imports:
     IRanges,
     Rcpp (>= 0.11),
     qvalue (>= 2.2),
-    bamsignals (>= 1.2.0)
+    bamsignals (>= 1.4.1)
 Suggests:
     testthat (>= 0.9),
     knitr,

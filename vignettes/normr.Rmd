@@ -1,15 +1,14 @@
 ---
-title: "normr: normR obeys mixtures Rules - Normalization & Difference Calling
-in ChIP-seq Data"
+title: "Introduction to the normR package"
 author: "Johannes Helmuth"
 date: "`r Sys.Date()`"
-link: https://www.bioconductor.org/packages/release/bioc/html/normr.html
+link:   http://bioconductor.org/packages/normr
 output:
    BiocStyle::html_document:
       toc: true
 vignette: >
-  %\VignetteIndexEntry{Normalization of ChIP-seq Data}
-  %\VignetteEngine{rmarkdown::render}
+  %\VignetteIndexEntry{Introduction to the normR package}
+  %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
 
@@ -30,7 +29,7 @@ overall read statistics. Normalization requires knowledge of the regions that
 remained unchanged, such that normalization and difference calling are
 inseparable.
 
-This package, normR (**n**ormR **o**beys **r**egime **m**ixture **R**ules),
+This package, *normR* (**n**ormR **o**beys **r**egime **m**ixture **R**ules),
 follows this logic and performs normalization and difference calling
 simultaneously to identify genomic regions enriched by the ChIP-procedure
 (`normr::enrichR()`). In addition, normR enables the comparison between ChIP-seq
@@ -67,56 +66,59 @@ containing reads for chr1:22500000-25000000. One Input-seq alignment serves
 as control for two ChIP-seq experiments for H3K27me3 and H3K4me3.
 
 ```{r}
-#Paths to files containing alignment files
-path_Input <- system.file("extdata", "K562_Input.bam", package="normr")
-path_ChIP_H3K27me3 <- system.file("extdata", "K562_H3K27me3.bam", package="normr")
-path_ChIP_H3K4me3 <- system.file("extdata", "K562_H3K4me3.bam", package="normr")
+#Loading required package
+require(normr)
+
+#normr contains some toy data
+inputBamfile <- system.file("extdata", "K562_Input.bam", package="normr")
+k4me3Bamfile <- system.file("extdata", "K562_H3K4me3.bam", package="normr")
+k27me3Bamfile <- system.file("extdata", "K562_H3K27me3.bam", package="normr")
 ```
 
-That is easy. Now, we have to define our genome sequences: The
+Based on
 
 ```{r}
 #A toy genome definition
-genome <- data.frame("seqname"="chr1", "length"=25000000)
+genome <- data.frame("seqnames"="chr1", "length"=25000000)
 ```
+
+Now, we have all necessary 
 
 ```{r}
-#Calling enrichment with enrichR()
-enrichment_H3K27me3 <- enrichR(path_ChIP_H3K27me3, path_Input, genome, procs=1)
+#Enrichment Calling for H3K4me3 and H3K27me3
+k4me3Fit <- enrichR(treatment = k4me3Bamfile, control = inputBamfile, genome = genome, procs=1, verbose = F)
+k27me3Fit <- enrichR(treatment = k27me3Bamfile, control = inputBamfile, genome = genome, procs=1, verbose = F)
 
-#Giving some fitting results
-summary(enrichment_H3K27me3)
+#Print some fitting statistics to the screen
+summary(k4me3Fit)
+summary(k27me3Fit)
 ```
 
-```{r}
-#Calling enrichment with enrichR()
-enrichment_H3K4me3 <- enrichR(path_ChIP_H3K4me3, path_Input, genome, procs=1)
-
-#Giving some fitting results
-summary(enrichment_H3K4me3)
-```
-
-```{r, fig.show='hold', fig.cap="Density of enrichment", fig.width=5, fig.height=5}
+```{r, fig.show='hold', fig.cap="Density of enrichment", fig.width=5, fig.height=3}
 par(mfrow=c(1,2), bty="n")
-hist(getEnrichment(enrichment_H3K27me3))
+hist(getEnrichment(k4me3Fit), breaks=20, main="H3K4me3 Enrichment")
+hist(getEnrichment(k4me3Fit), breaks=20, main="H3K4me3 Enrichment")
 ```
 
 ## Calling Differential Enrichment between two Conditions
 
 ```{r}
-difference <- diffR(getCounts(enrichment_H3K27me3)$treatment,
-                    getCounts(enrichment_H3K4me3)$treatment,
-                    enrichment_H3K27me3@ranges)
 ```
 
 ## Identify Regimes of Enrichment
 
 ```{r}
-difference <- diffR(getCounts(enrichment_H3K4me3)$control,
-                    getCounts(enrichment_H3K4me3)$treatment,
-                    enrichment_H3K27me3@ranges)
 ```
 
 # Advanced Topics
 
-##
+## Analyzing Predefined Regions
+
+Genomic Ranges
+
+## Post-processing of Difference Calls with CNV information
+
+## Change Read Counting Strategy with `BamCountConfig-class`
+
+## Recomputing Significance of Enrichment Based on a User-defined Threshold
+
