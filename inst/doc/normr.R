@@ -1,8 +1,0 @@
-## ----style, echo = FALSE, results = 'asis'-------------------------------
-BiocStyle::markdown()
-
-## ---- fig.show='hold', fig.cap= "Figure caption", fig.width = 5, fig.height = 5----
-#knitr code
-plot(1:10)
-plot(10:1)
-
