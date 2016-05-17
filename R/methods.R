@@ -128,10 +128,8 @@ handleCharCharDf <- function(treatment, control, genome, countConfig, procs,
                   mapq=countConfig@mapq,
                   shift=countConfig@shift,
                   paired.end=getFilter(countConfig),
-                  #Tlen.filter not yet in Bioconductor
-                  #tlen.filter=countConfig@tlenfilter,
-                  #filteredFlag not yet in Bioconductor
-                  #filteredFlag=countConfig@filteredFlag,
+                  tlen.filter=countConfig@tlenfilter,
+                  filteredFlag=countConfig@filteredFlag,
                   verbose=F),
     mc.cores=procs, SIMPLIFY=F
   )
