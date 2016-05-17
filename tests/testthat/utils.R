@@ -244,7 +244,9 @@ RdiffR <- function(s, r, eps=1e-5) {
   fit$pvals[fit$pvals < 0] <- 0
 
   #Apply Rtfilter filter
-  fit$filteredT <- RtfilterDiff(fit, eps, 2)
+  fit2 <- RnormR(r,s,3)
+  fit$filteredT <- intersect(RtfilterDiff(fit, eps, 2),
+                             RtfilterDiff(fit2, eps, 2))
 
   #Q values
   fit$qvals <- rep(NA, length(r))

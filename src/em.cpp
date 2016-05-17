@@ -632,17 +632,17 @@ int tthreshold(const double p, const double eps=1e-5,
 
 //gives indices in R notation, i.e. >=1
 IntegerVector filterIdx(const List& m2u, const double theta,
-    const double eps=1e-5, const bool diffCall=false) {
+    int& threshold, const double eps=1e-5, const bool diffCall=false) {
   if (theta < 0 || theta > 1) stop("invalid theta");
   if (eps < 0 || eps > 1) stop("invalid eps");
 
-  int margin = tthreshold(theta, eps, diffCall);
+  threshold = tthreshold(theta, eps, diffCall);
 
   NumericVector n = as<NumericMatrix>(m2u["values"]).row(0) +
     as<NumericMatrix>(m2u["values"]).row(1);
   std::vector<int> idx;
   for (int i=0; i < n.size(); ++i) {
-    if (n[i] >= margin) {
+    if (n[i] >= threshold) {
       idx.push_back(i+1);
     }
   }
@@ -774,12 +774,14 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
     message("...applying T filter with threshold eps=" + std::to_string(eps) +
         ".");
   }
-  IntegerVector filteredT = filterIdx(m2u, exp(lntheta[bgIdx]), eps, diffCall);
+  int threshold = 0;
+  IntegerVector filteredT = filterIdx(m2u, exp(lntheta[bgIdx]), threshold, eps,
+    diffCall);
 
   if (verbose) message("[Finished] normR mixture modeling");
   return List::create(Named("qstar")=fit["qstar"], Named("map")=m2u,
       Named("lntheta")=lntheta, Named("lnprior")=lnprior,
       Named("lnposterior")=lnPost, Named("lnL")=as<NumericVector>(fit["lnL"]),
       Named("lnenrichment")=enr, Named("lnpvals")=pvals,
-      Named("filteredT")=filteredT);
+      Named("filteredT")=filteredT, Named("Tthreshold")=threshold);
 }
