@@ -21,7 +21,7 @@ biocLite("bamsignals", suppressUpdates=T)
 #fetch current diffr version from github
 install.packages("devtools")
 require(devtools)
-devtools::install_github("your-highness/diffr")
+devtools::install_github("your-highness/diffr@master")
 ```
 
 ## Use cases
