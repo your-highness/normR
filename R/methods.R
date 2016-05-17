@@ -128,7 +128,7 @@ handleCharCharDf <- function(treatment, control, genome, countConfig, procs,
                   mapq=countConfig@mapq,
                   shift=countConfig@shift,
                   paired.end=getFilter(countConfig),
-                  tlen.filter=countConfig@tlenfilter,
+                  tlenFilter=countConfig@tlenFilter,
                   filteredFlag=countConfig@filteredFlag,
                   verbose=F),
     mc.cores=procs, SIMPLIFY=F
@@ -164,10 +164,8 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
                   mapq=countConfig@mapq,
                   shift=countConfig@shift,
                   paired.end=getFilter(countConfig),
-                  #Tlen.filter not yet in Bioconductor
-                  #tlen.filter=countConfig@tlenfilter,
-                  #filteredFlag not yet in Bioconductor
-                  #filteredFlag=countConfig@filteredFlag,
+                  tlenFilter=countConfig@tlenFilter,
+                  filteredFlag=countConfig@filteredFlag,
                   verbose=F),
     mc.cores=procs, SIMPLIFY=F
   )

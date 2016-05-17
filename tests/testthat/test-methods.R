@@ -122,8 +122,8 @@ test_that("enrichR() works correctly", {
     )
     fit <- enrichR(chipfile, inputfile, genome.df, countConfigPairedEnd(), verbose=F)
     testFit(
-      RenrichR(unlist(as.list(suppressWarnings(bamProfile(chipfile,gr2,250,20,0,F,"midpoint",verbose=F)))),
-               unlist(as.list(suppressWarnings(bamProfile(inputfile,gr2,250,20,0,F,"midpoint",verbose=F))))),
+      RenrichR(unlist(as.list(suppressWarnings(bamProfile(chipfile,gr2,250,20,0,F,"midpoint",c(70,200),1024,verbose=F)))),
+               unlist(as.list(suppressWarnings(bamProfile(inputfile,gr2,250,20,0,F,"midpoint",c(70,200),1024,verbose=F))))),
       fit,
       paste0("enrichR-character,character,data.frame-PairedEnd{region=",
              seqnames(gr), ":", start(gr),"-",end(gr),
@@ -175,8 +175,8 @@ test_that("diffR() works correctly", {
   )
   fit <- diffR(chipfiles[2], chipfiles[1], genome.df, countConfigPairedEnd(), verbose=F)
   testFit(
-    RdiffR(suppressWarnings(bamProfile(chipfiles[2],gr,250,20,0,F,"midpoint",verbose=F))[1],
-             suppressWarnings(bamProfile(chipfiles[1],gr,250,20,0,F,"midpoint",verbose=F))[1]),
+    RdiffR(suppressWarnings(bamProfile(chipfiles[2],gr,250,20,0,F,"midpoint",c(70,200),1024,verbose=F))[1],
+             suppressWarnings(bamProfile(chipfiles[1],gr,250,20,0,F,"midpoint",c(70,200),1024,verbose=F))[1]),
     fit,
     paste0("diffR-character,character,data.frame-PairedEnd{region=",
            seqnames(gr), ":", start(gr),"-",end(gr),
@@ -235,8 +235,8 @@ test_that("regimeR() works correctly", {
     )
     Cfit <- regimeR(chipfile, inputfile, genome.df, k, countConfigPairedEnd(), verbose=F)
     testFit(
-      RregimeR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"midpoint",verbose=F))[1],
-               suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"midpoint",verbose=F))[1],
+      RregimeR(suppressWarnings(bamProfile(chipfile,gr,250,20,0,F,"midpoint",c(70,200),1024,verbose=F))[1],
+               suppressWarnings(bamProfile(inputfile,gr,250,20,0,F,"midpoint",c(70,200),1024,verbose=F))[1],
                k),
       Cfit,
       paste0("regimeR-character,character,data.frame-PairedEnd{region=",
