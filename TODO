@@ -28,6 +28,7 @@ DONE -output function for bigWig/bedGraph files (sizes small with new
      rtracklayer)
 DONE integrate bamsignals 1.4 features (tlenFilter, flagFilter)
 
+-diffR() should report intersect of label switched inputs
 -plotting function for NormRFit
 -recompute Enrichment for a supplied background component
 
