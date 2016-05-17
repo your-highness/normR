@@ -295,6 +295,13 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
     fit <- normr:::normr_core(control, treatment, 3L, eps, iterations, 1, T,
                               verbose, procs)
 
+    #T filter is computed for label-switched fit as well
+    fit2 <- normr:::normr_core(treatment, control, 3L, eps, iterations, 1, T,
+                               F, procs)
+    fit$filteredT <- intersect(fit$filteredT,
+                           which(colSums(fit$map$values) >= fit2$Tthreshold)
+    )
+
     #Pvalues from two sided test are marginally above 1
     fit$lnpvals[which(fit$lnpvals > 0)] <- 0
 
