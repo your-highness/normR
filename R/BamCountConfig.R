@@ -32,7 +32,7 @@
 #' This can be handy in the analysis of chip-seq data.
 #' @field midpoint A \code{logical()} indicating whether fragment midpoints
 #' instead of 5'-ends should be counted in paired end data.
-#' @field tlenfilter A filter on fragment length as estimated from alignment
+#' @field tlenFilter A filter on fragment length as estimated from alignment
 #' in paired end experiments (TLEN). If set to \code{c(min,max)} only reads are
 #' considered where \code{min <= TLEN <= max}. If \code{paired.end=="ignore"},
 #' this argument is set to \code{NULL} and no filtering is done. If
@@ -47,6 +47,9 @@
 #' object.\cr
 #' See \code{\link{bamsignals}}-package for counting in bam files.
 #' @return return values are described in the Methods section.
+
+setClassUnion("integerOrNULL", c("integer", "NULL"))
+
 #' @export
 setClass("BamCountConfig",
     representation = representation(type="character",
@@ -56,7 +59,7 @@ setClass("BamCountConfig",
                                     filteredFlag="integer",
                                     shift="integer",
                                     midpoint="logical",
-                                    tlenfilter="integer"
+                                    tlenFilter="integerOrNULL"
                                     )
 )
 
@@ -73,8 +76,8 @@ setValidity("BamCountConfig",
       }
       if (object@shift < 0) stop("invalid shift")
       if (object@type == "paired.end") {
-        if (length(object@tlenfilter) != 2) stop("invalid tlenfilter")
-        if (object@tlenfilter[1] < 0) stop("invalid tlenfilter lower bound")
+        if (length(object@tlenFilter) != 2) stop("invalid tlenFilter")
+        if (object@tlenFilter[1] < 0) stop("invalid tlenFilter lower bound")
       }
       TRUE
     }
@@ -91,8 +94,8 @@ setMethod("print", "BamCountConfig",
       if (x@type == "paired.end") {
         cat("\nPaired End Options: \n",
             "\tMidpoint counting:\t", x@midpoint, "\n",
-            "\tMinimal Fragmentlength:\t", x@tlenfilter[1], "\n",
-            "\tMaximal Fragmentlength:\t", x@tlenfilter[2], "\n"
+            "\tMinimal Fragmentlength:\t", x@tlenFilter[1], "\n",
+            "\tMaximal Fragmentlength:\t", x@tlenFilter[2], "\n"
             )
       }
       invisible(x)
@@ -108,11 +111,11 @@ setGeneric("countConfigPairedEnd", function(...)
 #' @export
 setMethod("countConfigPairedEnd",
   definition=function(binsize=250L, mapq=20L, filteredFlag=1024L, shift=0L,
-                      midpoint=T, tlenfilter=c(70L, 200L)) {
+                      midpoint=T, tlenFilter=c(70L, 200L)) {
     new("BamCountConfig", type="paired.end", binsize=as.integer(binsize),
         mapq=as.integer(mapq), filteredFlag=as.integer(filteredFlag),
         shift=as.integer(shift), midpoint=as.logical(midpoint),
-        tlenfilter=as.integer(tlenfilter))
+        tlenFilter=as.integer(tlenFilter))
 })
 
 #' @export
@@ -125,7 +128,7 @@ setMethod("countConfigSingleEnd",
   definition=function(binsize=250L, mapq=20L, filteredFlag=1024L, shift=0L) {
     new("BamCountConfig", type="single.end", binsize=as.integer(binsize),
         mapq=as.integer(mapq), filteredFlag=as.integer(filteredFlag),
-        shift=as.integer(shift))
+        shift=as.integer(shift), tlenFilter=NULL)
 })
 
 #' @export
