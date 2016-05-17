@@ -16,6 +16,24 @@ vignette: >
 BiocStyle::markdown()
 ```
 
+# tl;dr
+
+o `enrichR()` calls ChIP-seq enrichment over control
+```{r}
+#e <- enrichR("ChIP.bam", "Control.bam", "hg19")
+```
+
+o `diffR()` calls differential enrichment between two conditions
+```{r}
+#de <- diffR("ChIP1.bam", "ChIP2.bam", "hg19")
+```
+
+o `regimeR()` calls `k` enrichment regimes
+```{r}
+#re <- regimeR("ChIP.bam","Control.bam", "hg19", k)
+```
+
+
 # Introduction to normR
 
 Chromatin immunoprecipitation followed by sequencing (ChIP-seq) provides
@@ -36,7 +54,11 @@ simultaneously to identify genomic regions enriched by the ChIP-procedure
 data obtained from different conditions allowing for unraveling genomic regions
 that change their association with the ChIP-target (`normr::diffR()`). Lastly,
 normR is capable to differentiate multiple regimes of enrichment, *i.e.* broad
-domains and sharp peaks (`normr::regimeR`).
+domains and sharp peaks (`normr::regimeR`). In brief, all these routines
+encompass three steps: 
+(i) Count reads in fixed-size windows along the genome;
+(ii) Fit a binomial mixture model by Expectation Maximization;
+(iii) Assign each window a significance based on the fitted background component
 
 This vignette explains a common workflow of normrR analysis on NGS data for
 calling enrichment, identification of differential ChIP-seq enrichment and
@@ -48,7 +70,7 @@ section, we cover more advanced topics including fitting on defined regions,
 enrichment calls.
 
 
-## Calling Enrichment with an Input Control
+## `enrichR()`: Calling Enrichment with an Input Control
 
 In this first section, we would like to call regions significantly enriched
 for reads in the ChIP-seq experiment given a Control alignment. Here, we analyze
@@ -59,39 +81,67 @@ representative region on human chromsome 1 (`chr1:22500000-25000000`) is
 enriched for H3K4me3 mostly at promoters and precludes H3K27me3 enrichment which
 is most apparent in inter-genic regions.
 
-### Setting up toy data
+### To
 
-As part of the normR package, we provide 3 stripped alignment files
-containing reads for chr1:22500000-25000000. One Input-seq alignment serves
-as control for two ChIP-seq experiments for H3K27me3 and H3K4me3.
+As part of the normR package, we provide 3 alignment files in bam format (Input,
+H3K4me3 and H3K27me3 ChIP-seq) containing reads for human chr1 22.5Mb to
+25Mb. 
+
+*Firstly*, we retrieve filepaths for these toy data:
 
 ```{r}
 #Loading required package
-require(normr)
+library(normr)
 
-#normr contains some toy data
 inputBamfile <- system.file("extdata", "K562_Input.bam", package="normr")
 k4me3Bamfile <- system.file("extdata", "K562_H3K4me3.bam", package="normr")
 k27me3Bamfile <- system.file("extdata", "K562_H3K27me3.bam", package="normr")
 ```
 
-Based on
+*Secondly and lastly*, we need to specify a `genome` which is a `data.frame` with
+columns seqnames and length. You can generate this object yourself or can use
+`GenomeInfoDb` for retrieving the object from UCSC for given genome identifier:
 
 ```{r}
-#A toy genome definition
-genome <- data.frame("seqnames"="chr1", "length"=25000000)
+#Fetch chromosome information
+#genome <- GenomeInfoDb::fetchExtendedChromInfoFromUCSC("hg19")
+#
+##Filter out irregular chromosomes and delete unnecessary columns
+#idx <- which(!genome$circular & genome$SequenceRole=="assembled-molecule")
+#genome <- genome[idx,1:2]
+#
+##Toy data has only "chr1"
+#genome <- genome[genome[,1] == "chr1",]
+
+genome = data.frame("seqname"="chr1", "length"=25e6)
+genome
 ```
 
-Now, we have all necessary 
+Now, we are all set to do a enrichment call with default parameters:
 
 ```{r}
 #Enrichment Calling for H3K4me3 and H3K27me3
-k4me3Fit <- enrichR(treatment = k4me3Bamfile, control = inputBamfile, genome = genome, procs=1, verbose = F)
-k27me3Fit <- enrichR(treatment = k27me3Bamfile, control = inputBamfile, genome = genome, procs=1, verbose = F)
+k4me3Fit <- enrichR(treatment = k4me3Bamfile, control = inputBamfile, genome = genome, verbose = F)
+k27me3Fit <- enrichR(treatment = k27me3Bamfile, control = inputBamfile, genome = genome, verbose = F)
+```
 
-#Print some fitting statistics to the screen
+That was easy and fast! Let's have a look at some fitting statistics for
+H3K4me3:
+
+```{r}
+k4me3Fit
+```
+
+Theta\* describes a naive background  H3K4me3 is only enriched in 6% of the windows
+
+```{r}
+k27me3Fit
+```
+
+
+### Fitting statistics
+```{r}
 summary(k4me3Fit)
-summary(k27me3Fit)
 ```
 
 ```{r, fig.show='hold', fig.cap="Density of enrichment", fig.width=5, fig.height=3}
@@ -100,14 +150,31 @@ hist(getEnrichment(k4me3Fit), breaks=20, main="H3K4me3 Enrichment")
 hist(getEnrichment(k4me3Fit), breaks=20, main="H3K4me3 Enrichment")
 ```
 
-## Calling Differential Enrichment between two Conditions
+### Change Read Counting Strategy with `BamCountConfig-class`
+
+### Export of results
+
+
+## `diffR()`: Calling Differential Enrichment without a Control Experiment
 
 ```{r}
 ```
 
-## Identify Regimes of Enrichment
+## `regimeR()`: Identify Enrichment Regimes in ChIP-seq Experiments
 
 ```{r}
+```
+
+
+# The `norm.R` Command Line Program
+
+A lightweight RSCRIPT executale is part of the package and brings the
+functionality described above to the command line.
+
+```{r}
+#get path to executable
+inputBamfile <- system.file("extdata", "K562_Input.bam", package="normr")
+
 ```
 
 # Advanced Topics
@@ -117,8 +184,6 @@ hist(getEnrichment(k4me3Fit), breaks=20, main="H3K4me3 Enrichment")
 Genomic Ranges
 
 ## Post-processing of Difference Calls with CNV information
-
-## Change Read Counting Strategy with `BamCountConfig-class`
 
 ## Recomputing Significance of Enrichment Based on a User-defined Threshold
 
