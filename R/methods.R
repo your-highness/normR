@@ -121,7 +121,9 @@ handleCharCharDf <- function(treatment, control, genome, countConfig, procs,
                    " for specified genome coordinates..."))
   }
 
-  gr <- GenomicRanges::GRanges(genome[,1], IRanges(1,genome[,2]))
+  #as.character(genome[,1]) to prevent GRanges to set factor levels in seqinfo
+  gr <- GenomicRanges::GRanges(as.character(genome[,1]), 
+                               IRanges(1,as.integer(genome[,2])))
   counts <- parallel::mcmapply(
     bamsignals::bamProfile, bampath=c(treatment, control),
     MoreArgs=list(gr=gr, binsize=countConfig@binsize,
