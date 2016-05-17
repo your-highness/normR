@@ -22,7 +22,7 @@ Imports:
     GenomicRanges,
     IRanges,
     Rcpp (>= 0.11),
-    qvalue (>= 2.2),
+    qvalue (>= 2.4),
     bamsignals (>= 1.4)
 Suggests:
     testthat (>= 0.9),
