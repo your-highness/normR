@@ -8,3 +8,4 @@
 #Package development
 Makefile
 sandbox/
+inst/doc
