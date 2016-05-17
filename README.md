@@ -22,7 +22,7 @@ biocLite("bamsignals", suppressUpdates=T)
 #fetch current normR version from github
 install.packages("devtools")
 require(devtools)
-devtools::install_github("your-highness/normR")
+devtools::install_github("your-highness/normR@devlopment")
 ```
 
 ### Usage
