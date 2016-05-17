@@ -233,6 +233,14 @@ setMethod("summary", "NormRFit",
 #ACCESSOR METHODS
 ###
 #' @export
+setGeneric("getRanges", function(obj) standardGeneric("getRanges"))
+#' @describeIn NormRFit Retrieve read count data.
+#' @aliases getRanges
+#' @export
+setMethod("getRanges", "NormRFit", function(obj) {
+  return(obj@ranges)
+})
+#' @export
 setGeneric("getCounts", function(obj) standardGeneric("getCounts"))
 #' @describeIn NormRFit Retrieve read count data.
 #' @aliases getCounts
