@@ -337,7 +337,8 @@ setMethod("getRanges", "NormRFit", function(obj, fdr=NA, k=NULL ) {
      }
      return(gr)
    } else if (!is.na(fdr)) {
-     gr$component <- getClasses(obj, fdr) #MAP class assignments
+     gr$component <- getClasses(obj, fdr) #FDR-based class assignments
+     gr <- gr[!is.na(gr$component)]
      if (!is.null(k)) {
        gr <- gr[which(gr$component == k)]
      }
