@@ -37,11 +37,11 @@ expect_runs <- function(expr){
 context("NormRFit-class")
 test_that("Test NormRFit construction, validity and accessors", {
   n <- 1000
+  gr <- GRanges("chr1", IRanges(seq(0,n*100-1,100), width=100))
   for(type in c("enrichR", "diffR", "regimeR")) {
     d <- getData(n)
     o <- new("NormRFit", type=type, n=as.integer(n),
-             ranges=GRanges("chr1", IRanges(seq(0,n*100-1,100), width=100)),
-             k=2L, B=1L, map=d$map$map,
+             ranges=gr, k=2L, B=1L, map=d$map$map,
              counts=list(d$map$values[1,],d$map$values[2,]),
              thetastar=sum(d$s)/sum(d$r+d$s), theta=d$theta,
              mixtures=d$mixtures, lnL=seq(-n,-1,10)+rnorm(n,0,.5), eps=.001,
@@ -74,6 +74,7 @@ test_that("Test NormRFit construction, validity and accessors", {
     expect_equal(getPvalues(o), exp(d$lnpvals))
     expect_equal(getQvalues(o), exp(d$lnqvals))
     expect_equal(getClasses(o), d$classes)
+    expect_equal(getRanges(o), GRanges(gr, "component"=d$classes))
     expect_equal(sum(is.na(getQvalues(o))), n-length(d$filteredT))
 
     #output methods - not implemented yet

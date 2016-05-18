@@ -233,30 +233,12 @@ setMethod("summary", "NormRFit",
 #ACCESSOR METHODS
 ###
 #' @export
-setGeneric("getRanges", function(obj) standardGeneric("getRanges"))
-#' @describeIn NormRFit Retrieve read count data.
-#' @aliases getRanges
-#' @export
-setMethod("getRanges", "NormRFit", function(obj) {
-  return(obj@ranges)
-})
-#' @export
 setGeneric("getCounts", function(obj) standardGeneric("getCounts"))
 #' @describeIn NormRFit Retrieve read count data.
 #' @aliases getCounts
 #' @export
 setMethod("getCounts", "NormRFit", function(obj) {
   return(list("control"=obj@counts[[1]][obj@map],"treatment"=obj@counts[[2]][obj@map]))
-})
-
-#' @export
-setGeneric("getRanges", function(obj) standardGeneric("getRanges"))
-#' @describeIn NormRFit Retrieve read count data.
-#' @aliases getRanges
-#' @export
-setMethod("getRanges", "NormRFit", function(obj) {
-  if (is.null(obj@ranges)) return(NULL)
-  else return(obj@ranges)
 })
 
 #' @export
@@ -333,6 +315,34 @@ setMethod("getClasses", c("NormRFit"), function(obj, fdr=NA) {
     out[signf] <- clzzezSignf
     out[obj@map]
   }
+})
+
+#' @export
+setGeneric("getRanges", function(obj, ...) standardGeneric("getRanges"))
+#' @describeIn NormRFit Retrieve read count data.
+#' @aliases getRanges
+#' @export
+setMethod("getRanges", "NormRFit", function(obj, fdr=NA, k=NULL ) {
+   if (!is.na(fdr)) if(fdr < 0 | fdr > 1) stop("invalid fdr specified")
+   if (!is.null(k)) {
+     if(k < 0) stop("invalid k specified")
+     if (k == obj@B & !is.na(fdr)) stop("impossible to filter k with fdr")
+   }
+
+   gr <- obj@ranges
+   if (is.na(fdr)) {
+     gr$component <- getClasses(obj) #MAP class assignments
+     if (!is.null(k)) {
+       gr <- gr[gr$component == k]
+     }
+     return(gr)
+   } else if (!is.na(fdr)) {
+     gr$component <- getClasses(obj, fdr) #MAP class assignments
+     if (!is.null(k)) {
+       gr <- gr[which(gr$component == k)]
+     }
+     return(gr)
+   }
 })
 
 ###
