@@ -126,11 +126,26 @@ exportR(k27me3Fit, filename = "k27me3Fit.bed", type = "bed", fdr = 0.05)
 exportR(k4me3Fit, filename = "k4me3Fit.bw", type = "bigWig")
 exportR(k27me3Fit, filename = "k27me3Fit.bw", type = "bigWig")
 
-## ------------------------------------------------------------------------
+## ----warning=FALSE-------------------------------------------------------
+#We could use read counts from above NormRFit objects
+k4k27Dif <- diffR(treatment = getCounts(k4me3Fit)$treatment,
+                  control   = getCounts(k27me3Fit)$treatment,
+                  genome    = getRanges(k4me3Fit),
+                  verbose   = F)
+#or
+#We could count again which is unnecessary
+#k4k27Dif <- diffR(treatment = k4me3Bamfile, control = k27me3Bamfile, genome = genome, verbose = F)
 
-## ------------------------------------------------------------------------
+#summary statistics
+summary(k4k27Dif)
 
-## ------------------------------------------------------------------------
-#get path to executable
-inputBamfile <- system.file("extdata", "K562_Input.bam", package="normr")
+## ----warning=FALSE-------------------------------------------------------
+k27me3Regimes <- regimeR(treatment = getCounts(k27me3Fit)$treatment,
+                         control   = getCounts(k27me3Fit)$control,
+                         genome    = getRanges(k27me3Fit),
+                         models    = 3,
+                         verbose   = F)
+
+## ----eval=FALSE----------------------------------------------------------
+#  #TODO
 

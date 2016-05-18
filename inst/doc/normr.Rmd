@@ -64,7 +64,7 @@ genome-wide localization data for DNA-associated proteins. To infer the
 regions bound by such proteins the read densities obtained by such a ChIP-seq
 experiment are compared to the corresponding read profile obtained by a
 control experiment. A meaningful comparison requires normalization to
-mitigate the effects of technical biases, e.g. different sequencing depth.
+mitigate the effects of technical biases, *e.g.* different sequencing depth.
 But more importantly the effect of the enrichment of certain regions on the
 overall read statistics. Normalization requires knowledge of the regions that
 remained unchanged, such that normalization and difference calling are
@@ -73,12 +73,12 @@ inseparable.
 This package, *normR* (**n**ormR **o**beys **r**egime **m**ixture **R**ules),
 follows this logic and performs normalization and difference calling
 simultaneously to identify genomic regions enriched by the ChIP-procedure
-(`normr::enrichR()`). In addition, normR enables the comparison between ChIP-seq
-data obtained from different conditions allowing for unraveling genomic regions
-that change their association with the ChIP-target (`normr::diffR()`). Lastly,
-normR is capable to differentiate multiple regimes of enrichment, *i.e.* broad
-domains and sharp peaks (`normr::regimeR`). In brief, all these routines
-encompass three steps:
+(`enrichR()`). In addition, normR enables the comparison between ChIP-seq data
+obtained from different conditions allowing for unraveling genomic regions that
+change their association with the ChIP-target (`diffR()`). Lastly, normR is
+capable to differentiate multiple regimes of enrichment, *i.e.* broad domains
+and sharp peaks (`regimeR()`). In brief, all these routines encompass three
+steps:
 
 1. Count reads in fixed-size windows along the genome;
 2. Fit a binomial mixture model by Expectation Maximization;
@@ -88,10 +88,11 @@ This vignette explains a common workflow of normrR analysis on NGS data for
 calling enrichment, identification of differential ChIP-seq enrichment and
 stratification of enrichment regimes. Herein, we provide examples for the export of
 results to common data formats like bigWig and bed. We show how analysis
-statistics and diagnostic plots are helpful for studying results. In the last
-section, we cover more advanced topics including fitting on defined regions,
-*e.g.* promoters or integrating CNV information in differential ChIP-seq
-enrichment calls.
+statistics and diagnostic plots are helpful for studying results. In a latter
+section, we cover more advanced topics including the alteration of read counting
+strategies, the application of normR on user-defined regions (*e.g.*
+promoters) and the integration of Copy Number Variation information in
+differential ChIP-seq enrichment calls.
 
 
 # Toy Examples
@@ -172,8 +173,8 @@ of Components" is 2 (background and enriched) in the case of `enrichR()`. The
 parameter  $\theta^*$ ("Theta* (naive bg)") describes a naive background
 parametrization if the effect of enrichment is not taken into account. The
 actual $\theta_B$ is with $0.15$ much smaller than $\theta^*$ which allows for
-more sensitive enrichment calling.  Furthermore, by looking at the Mixture
-Proportions we find H3K4me3 is enriched in 6% of the windows. For H3K27me3, we
+more sensitive enrichment calling.  Furthermore, by looking at the "Mixture
+Proportions" we find H3K4me3 is enriched in 6% of the windows. For H3K27me3, we
 find 67% of the regions enriched.
 
 ```{r}
@@ -205,7 +206,7 @@ summary(k27me3Fit)
 
 In addition to summary statistics, a `NormRFit` object can be plotted.
 
-#TODO
+TODO:plotting
 
 Further processing of regions within R can be facilitated by getting
 significantly enriched ($FDR \le 0.05%) regions as a `GRanges` object.
@@ -286,7 +287,7 @@ It is human-readable and can be imported in common genome browsers, *e.g.*
 [UCSC genome browser](https://genome.ucsc.edu/cgi-bin/hgTracks) or
 [IGV}(http://bioviz.org/). To export the background-normalized enrichment, the
 binary [bigWig format](https://genome.ucsc.edu/FAQ/FAQformat.html#format6.1) is
-used.
+used. Check `?exportR` for more options.
 
 ```{r warning=FALSE}
 #export coordinates of significantly (FDR <= 0.05) enriched regions
@@ -298,21 +299,80 @@ exportR(k4me3Fit, filename = "k4me3Fit.bw", type = "bigWig")
 exportR(k27me3Fit, filename = "k27me3Fit.bw", type = "bigWig")
 ```
 
+![](../inst/extdata/1b.png)
+**IGV browser shot of Input (grey), H3K4me3 (green) and H3K27me3 (purple)
+alignment data (bars), normalized enrichment (lines) and enriched regions (boxes
+below respective tracks).** Note the mutual exclusivity of H3K4me3 and H3K27me3.
 
 ## `diffR()`: Calling Differential Enrichment without a Control Experiment
 
+Normalization and difference calling are inseparable in calling ChIP-seq
+enrichment. Following this notion, a direct comparison of two ChIP-seq tracks
+can be performed with `diffR()`. In many studies, researchers are interested in
+conditional changes of ChIP-seq enrichment. Below, we exemplify this analysis by
+joint analysis of H3K4me3 and H3K27me3 ChIP-seq data. Because we already counted
+`k4me3Bamfile` and `k27me3Bamfile` already in `k4me3Fit` and `k27me3Fit`,
+respectively, we can use these counts directly. Note that, in this case, the
+`genome` has be set to a `GenomicRanges` object specifying the genomic regions.
+We can extract this from either one of the `NormRFit` objects.
 
+```{r warning=FALSE}
+#We could use read counts from above NormRFit objects
+k4k27Dif <- diffR(treatment = getCounts(k4me3Fit)$treatment,
+                  control   = getCounts(k27me3Fit)$treatment,
+                  genome    = getRanges(k4me3Fit),
+                  verbose   = F)
+#or
+#We could count again which is unnecessary
+#k4k27Dif <- diffR(treatment = k4me3Bamfile, control = k27me3Bamfile, genome = genome, verbose = F)
 
-```{r}
+#summary statistics
+summary(k4k27Dif)
 ```
+
+The "Type" of the object has changed to 'diffR' because it was generated by this
+function. The "Number of Regions" did not change because we use the same binning
+strategy. However, the "Number of Components" is now 3 representing (i) H3K27me3
+enrichment without H3K4me3-enrichment, (ii) H3K27me3 and H3K4me3 (non)-enriched
+and (iii) H3K4me3 enrichment without H3K27me3-enrichment. The
+"Backgroundcomponent B" is 2 in this case: `diffR()` identifies significant
+enrichment and depletion by a two-sided test on the background. Looking at the
+"Mixture Proportions", regions are classified to (i) in 75%, (ii) in 20% and
+(iii) in 5% of the regions.
+
+4752 (4645+52+55) regions are significantly different from background with $FDR
+\le 0.05$.
+
+H3K4me3 shows 577 (70+389+57+61) regions significantly enriched for $FDR \le
+0.05$. The "T.filtered" regions are not considered for multiple testing
+correction because the counts therein fall below a computed threshold (Dialsingh
+*et al.*, Bioinformatics, 2015, 1–7). This quantity is very large in our example
+because the toy alignment files are filtered for reads within chr1 22.5Mb to
+25Mb. However, the specified genome covers chr1:0-249250621 which results in
+alot of zero counts. The summary for H3K27me3 enrichment calls confirms 5493
+(0+4831+377+285) regions significantly enriched for $FDR \le 0.05$:
+
 
 ## `regimeR()`: Identify Enrichment Regimes in ChIP-seq Experiments
 
-```{r}
+The two sections above aimed at discerning enrichment from background. The
+extendable normR approach also allows for identification of different enrichment
+regimes with `regimeR()`.
+
+
+```{r warning=FALSE}
+k27me3Regimes <- regimeR(treatment = getCounts(k27me3Fit)$treatment,
+                         control   = getCounts(k27me3Fit)$control,
+                         genome    = getRanges(k27me3Fit),
+                         models    = 3,
+                         verbose   = F)
 ```
 
 
 # Advanced Topics
+
+In addition to the information covered above and in the manpages (`?`) of normR
+functions, we would like to discuss some important points here:
 
 ## Change Read Counting Strategy with `BamCountConfig-class`
 
@@ -325,7 +385,7 @@ binding sites etc
 
 ## Post-processing of Difference Calls with CNV information
 
-## Recompute Significance Based on a User-defined Threshold
+TO BE DONE
 
 
 # For The ''`R`-lazy'': The `norm.R` Command Line Program
@@ -333,7 +393,6 @@ binding sites etc
 A lightweight RSCRIPT executale is part of the package and brings the
 functionality described above to the command line.
 
-```{r}
-#get path to executable
-inputBamfile <- system.file("extdata", "K562_Input.bam", package="normr")
+```{r eval=FALSE}
+#TODO
 ```
