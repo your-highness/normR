@@ -64,8 +64,67 @@ k27me3Fit
 ## ------------------------------------------------------------------------
 summary(k4me3Fit)
 
-## ---- fig.show='hold', fig.cap="Density of enrichment", fig.width=5, fig.height=3----
-#plot(k4me3Fit)
+## ------------------------------------------------------------------------
+summary(k27me3Fit)
+
+## ------------------------------------------------------------------------
+#integer vector with <NA> set to non-significant regions
+k4me3Classes <- getClasses(k4me3Fit, fdr = 0.05)
+k4me3Ranges <- getRanges(k4me3Fit)[!is.na(k4me3Classes)]
+#Alternatively you can extract ranges without storing the class vector
+k4me3Ranges <- getRanges(k4me3Fit, fdr = 0.05)
+
+#as expected we get 577 regions
+length(k4me3Ranges)
+
+## ----warning=FALSE-------------------------------------------------------
+#example gene annotation for representative region (chr1:22500000-25000000)
+genes <- read.delim(file = system.file("extdata", "genes.bed", package="normr"),
+                    header = F,
+                    stringsAsFactors = F)
+library(GenomicRanges)
+genes <- GRanges(seqnames = genes[, 1],
+                 ranges = IRanges(start = genes[, 2], end = genes[, 3]),
+                 strand = genes[, 6],
+                 ENSTID = genes[, 4])
+genes <- unique(genes)
+
+#Fisher-test provides significance of overlap
+#(total specifies number of bins in representative region)
+overlapOdds <- function(query, subject, total = 10000) {
+  subject <- reduce(subject, ignore.strand = T)
+  ov1 <- countOverlaps(query, subject)
+  m <- matrix(c(sum(ov1 != 0), sum(ov1 == 0),
+              ceiling(sum(width(subject))/width(query)[1]-sum(ov1 != 0)), 0),
+              ncol = 2)
+  m[2,2] <- total - sum(m)
+  fisher.test(m)
+}
+
+#Overlap of H3K4me3-enriched with genes
+overlapOdds(k4me3Ranges, genes)
+#Overlap of H3K4me3-enriched with promoters
+overlapOdds(k4me3Ranges, promoters(genes))
+
+## ------------------------------------------------------------------------
+#Overlap of H3K4me3 with H3K27me3
+k27me3Ranges <- getRanges(k27me3Fit, fdr = 0.05)
+overlapOdds(k4me3Ranges, k27me3Ranges)
+
+## ------------------------------------------------------------------------
+#Overlap of H3K27me3-enriched with genes
+overlapOdds(k27me3Ranges, genes)
+#Overlap of H3K27me3-enriched with promoters
+overlapOdds(k27me3Ranges, promoters(genes))
+
+## ----warning=FALSE-------------------------------------------------------
+#export coordinates of significantly (FDR <= 0.05) enriched regions
+exportR(k4me3Fit, filename = "k4me3Fit.bed", type = "bed", fdr = 0.05)
+exportR(k27me3Fit, filename = "k27me3Fit.bed", type = "bed", fdr = 0.05)
+
+#export background-normalized enrichment
+exportR(k4me3Fit, filename = "k4me3Fit.bw", type = "bigWig")
+exportR(k27me3Fit, filename = "k27me3Fit.bw", type = "bigWig")
 
 ## ------------------------------------------------------------------------
 
@@ -74,5 +133,4 @@ summary(k4me3Fit)
 ## ------------------------------------------------------------------------
 #get path to executable
 inputBamfile <- system.file("extdata", "K562_Input.bam", package="normr")
-
 
