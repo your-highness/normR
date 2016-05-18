@@ -65,6 +65,8 @@
 #' @slot filteredT A \code{integer()}-vector giving indices of P-values to be
 #' considered for FDR correction. These indices have been obtainted by filtering
 #' P-values using the T method.
+#' @slot thresholdT The threshold for filtering regions based on the sum of
+#' counts in treatment and control.
 #' @slot lnqvals A \code{numeric()}-vector containing ln q-values. These are
 #' P-values corrected for multiple testing using Storey's method.
 #' @slot classes A \code{integer()}-vector giving class assignments based on
@@ -97,6 +99,7 @@ setClass("NormRFit",
                                   lnenrichment = "numeric",
                                   lnpvals = "numeric",
                                   filteredT = "integer",
+                                  thresholdT = "integer",
                                   lnqvals = "numeric",
                                   classes = "integer")
 )
@@ -136,6 +139,9 @@ setValidity("NormRFit",
     }
     if (max(object@filteredT) > length(object@counts[[1]])) {
       return("invaled filteredT slot")
+    }
+    if (object@thresholdT < 0) {
+      return("invaled thresholdT slot")
     }
     if (length(object@lnqvals) != length(object@counts[[1]])) {
       return("invaled lnqvals slot")
@@ -187,8 +193,8 @@ setMethod("length", "NormRFit", function(x) x@n)
 #' @return NULL
 #' @export
 setMethod("summary", "NormRFit",
-  function(object, print=T, digits=3, ...) {
-    ans <- paste0("NormRFit-class object\n\n",
+   function(object, print=T, digits=3, ...) {
+     ans <- paste0("NormRFit-class object\n\n",
                   "Type:                  '", object@type, "'\n",
                   "Number of Regions:     ", object@n, "\n",
                   "Number of Components:  ", object@k, "\n",
@@ -196,7 +202,7 @@ setMethod("summary", "NormRFit",
                   format(object@thetastar, digits=digits), "\n",
                   "Backgroundcomponent B: ", object@B, "\n\n")
     if (length(object@theta)) {
-      ans <- paste0(ans, "+++ Results of fit +++ \nMixture Proporitons:\n")
+       ans <- paste0(ans, "+++ Results of fit +++ \nMixture Proporitons:\n")
       ans <- paste0(ans,
         paste(format(object@mixtures,digits=digits), collapse="  "))
       ans <- paste0(ans, "\nTheta:\n")
@@ -204,23 +210,41 @@ setMethod("summary", "NormRFit",
         paste(format(object@theta,digits=digits), collapse="  "))
       ans <- paste0(ans, "\nBayesian Information Criterion:\t", format(
         (-2*object@lnL[length(object@lnL)]+length(object@theta)*log(object@n)),
-        digits=digits), "\n\n",
-        "Significantly different from background B based on q-values:\n")
+        digits=digits), "\n\n")
+      
       qvals <- getQvalues(object)
-      cts <- c("***"=sum(qvals <= 0, na.rm=T),
-               "**" =sum(qvals <= 0.001, na.rm=T),
-               "*"  =sum(qvals <= 0.01, na.rm=T),
-               "."  =sum(qvals <= 0.05, na.rm=T),
-               " "  =sum(qvals <= 0.1, na.rm=T),
-               "n.s."  =sum(qvals > 0.1, na.rm=T),
-               "T.filtered" =sum(is.na(qvals)))
-      cts <- cts - c(0,cts[1:4],0,0)
+      ans <- paste0(ans, "+++ Results of binomial test +++ \n", 
+        "T-Filter threshold: ", object@thresholdT, "\n", 
+        "Number of Regions filtered out: ", sum(is.na(qvals)), "\n")
+      ans <- paste0(ans, 
+        "Significantly different from background B based on q-values:\n")
+      cts <- c(sum(qvals <= 0, na.rm=T),
+               sum(qvals <= 0.001, na.rm=T),
+               sum(qvals <= 0.01, na.rm=T),
+               sum(qvals <= 0.05, na.rm=T),
+               sum(qvals <= 0.1, na.rm=T),
+               sum(qvals > 0.1, na.rm=T))
+      names(cts) <- c("***", "**" , "*"  , "."  , " "  , "n.s." )
+      cts <- cts - c(0,cts[1:4],0)
       cts.string <-
-        capture.output(print.default(format(cts, digits=digits), print.gap=2L,
+         capture.output(print.default(format(cts, digits=digits), print.gap=2L,
                                      quote=F))
       ans <- paste0(ans, paste(cts.string, collapse="\n"), "\n")
       ans <- paste0(ans, "---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*'",
                           " 0.05 '.' 0.1 '  ' 1 'n.s.'\n\n")
+#TODO
+#      if (object@type != "diffR") { #print regime statistics
+#        for (p in c(0,.001,.01,.05,.1)) {
+#          cl = getClasses(object, p)
+#
+#        }
+#      }
+#      if (object@type != "regimeR") { #print regime statistics
+#        for (p in c(0,.001,.01,.05,.1)) {
+#          cl = getClasses(object, p)
+#
+#        }
+#      }
     } else {
       ans <- paste0(ans, "No results of fit.\n\n")
     }
@@ -405,6 +429,7 @@ setMethod("exportR", signature=c("NormRFit", "character", "character"),
 
       #retrieve coordinates
       gr <- getRanges(obj)[nna]
+      gr$component <- NULL
       gr$score <- score
 
       #name and color dependent on type of NormRFit
@@ -416,7 +441,7 @@ setMethod("exportR", signature=c("NormRFit", "character", "character"),
         return(apply(col2rgb(pal), 2, paste, collapse=","))
       }
       if (obj@type == "enrichR") {
-        if (is.na(color)) color <- "gray15"
+        if (is.na(color)) color <- "gray50"
         if (length(color) != 1) {
           stop("invalid color argument for type 'enrichR' (length!=1)")
         }
@@ -468,10 +493,12 @@ setMethod("exportR", signature=c("NormRFit", "character", "character"),
 
     } else { #quantitative output
       gr <- getRanges(obj)
-      e <- getEnrichment(obj)
-      gr$score <- as.numeric(format(e,1,1))
-      idx <- which(getCounts(obj)$control > 0 & getCounts(obj)$treatment > 0)
-      gr <- gr[idx]
+      #e <- getEnrichment(obj)
+      #gr$score <- as.numeric(format(e,1,1))
+      #idx <- which(getCounts(obj)$control > 0 & getCounts(obj)$treatment > 0)
+      #gr <- gr[idx]
+      gr$score <- getEnrichment(obj)
+      gr$score[which(abs(gr$score) < obj@eps)] <- 0
 
       if (type == "bedGraph") { #bedGraph - configure the trackline
         cat(paste0("track type=bedGraph name='", basename(filename),
