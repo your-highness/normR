@@ -158,11 +158,10 @@ setMethod("print", "NormRFit",
         "Number of Regions:\t", x@n, "\n",
         "Theta* (naive bg):\t", format(x@thetastar,digits=digits), "\n\n")
     if (length(x@theta)) {
-      cat("Results of fit\n",
-          "Mixture Proporitons:\n")
-      print.default(format(x@mixtures,digits=digits), print.gap=2L, quote=F)
-      cat("Theta:\n")
-      print.default(format(x@theta,digits=digits), print.gap=2L, quote=F)
+      cat("+++ Results of fit +++ \nMixture Proporitons:\n")
+      cat(paste(format(x@mixtures,digits=digits), collapse="  "))
+      cat("\nTheta:\n")
+      cat(paste(format(x@theta,digits=digits), collapse="  "))
     } else {
       cat("No results of fit.")
     }
