@@ -154,9 +154,10 @@ setValidity("NormRFit",
 setMethod("print", "NormRFit",
   function(x, digits = max(3L, getOption("digits") - 3L), ...) {
     cat("NormRFit-class object\n\n",
-        "Type:\t\t\t", x@type, "\n",
-        "Number of Regions:\t", x@n, "\n",
-        "Theta* (naive bg):\t", format(x@thetastar,digits=digits), "\n\n")
+        "Type:                  ", x@type, "\n",
+        "Number of Regions:     ", x@n, "\n",
+        "Theta* (naive bg):     ", format(x@thetastar,digits=digits), "\n",
+        "Backgroundcomponent B: ", x@B, "\n\n")
     if (length(x@theta)) {
       cat("+++ Results of fit +++ \nMixture Proporitons:\n")
       cat(paste(format(x@mixtures,digits=digits), collapse="  "))
@@ -190,7 +191,7 @@ setMethod("summary", "NormRFit",
     ans <- paste0("NormRFit-class object\n\n",
                   "Type:                  '", object@type, "'\n",
                   "Number of Regions:     ", object@n, "\n",
-                  "Number of components:  ", object@k, "\n",
+                  "Number of Components:  ", object@k, "\n",
                   "Theta* (naive bg):     ",
                   format(object@thetastar, digits=digits), "\n",
                   "Backgroundcomponent B: ", object@B, "\n\n")
