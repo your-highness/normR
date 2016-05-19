@@ -1,0 +1,10 @@
+samtools view -Sh /project/epigenome/K562/helmuth/in.bam chr1:22500000-25000000 > out.bam
+
+#get necessary header lines into out.reduced.sam
+
+samtools view out.bam | awk '{OFS="\t"}; {print 1,$2,$3,$4,$5,$6,$7,$8,$9,"*","*"}' >> out.reduced.sam
+
+rm out.bam
+
+samtools view -Sbh out.reduced.sam | samtools sort -l 9 -@ 8 - out
+samtools index out.bam
