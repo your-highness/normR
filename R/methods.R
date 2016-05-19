@@ -227,7 +227,8 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
              theta=exp(fit$lntheta), mixtures=exp(fit$lnprior), lnL=fit$lnL,
              eps=eps, lnposteriors=fit$lnpost, lnenrichment=fit$lnenrichment,
              lnpvals=fit$lnpvals, filteredT=fit$filteredT,
-             lnqvals=lnqvals, classes=as.integer(classes))
+             thresholdT=fit$Tthreshold, lnqvals=lnqvals,
+             classes=as.integer(classes))
 
     #Print logging information
     if (verbose) {
@@ -327,6 +328,7 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
              theta=exp(fit$lntheta), mixtures=exp(fit$lnprior), lnL=fit$lnL,
              eps=eps, lnposteriors=fit$lnpost, lnenrichment=fit$lnenrichment,
              lnpvals=fit$lnpvals, filteredT=fit$filteredT,
+             thresholdT=max(fit$Tthreshold, fit2$Tthreshold),
              lnqvals=lnqvals, classes=as.integer(classes))
 
     if (verbose) {
@@ -387,8 +389,8 @@ setGeneric("regimeR", function(treatment, control, genome, models, ...)
 #' @rdname normr-methods
 #' @export
 setMethod("regimeR",
-          signature("integer", "integer", "GenomicRanges", "integer"),
-  function(treatment, control, genome, models=3L, eps=1e-5,
+          signature("integer", "integer", "GenomicRanges", "numeric"),
+  function(treatment, control, genome, models=3, eps=1e-5,
             iterations=10, procs=1L, verbose=TRUE) {
     if (models <= 2) stop("invalid number of models specified")
     if (length(treatment) != length(control)) {
@@ -422,7 +424,8 @@ setMethod("regimeR",
              theta=exp(fit$lntheta), mixtures=exp(fit$lnprior), lnL=fit$lnL,
              eps=eps, lnposteriors=fit$lnpost, lnenrichment=fit$lnenrichment,
              lnpvals=fit$lnpvals, filteredT=fit$filteredT,
-             lnqvals=lnqvals, classes=as.integer(classes))
+             thresholdT=fit$Tthreshold, lnqvals=lnqvals,
+             classes=as.integer(classes))
 
     #Print logging information
     if (verbose) {
@@ -434,8 +437,8 @@ setMethod("regimeR",
 #' @rdname normr-methods
 #' @export
 setMethod("regimeR",
-          signature("character", "character", "GenomicRanges", "integer"),
-  function(treatment, control, genome, models=3L,
+          signature("character", "character", "GenomicRanges", "numeric"),
+  function(treatment, control, genome, models=3,
            countConfig=countConfigSingleEnd(), eps=1e-5,
            iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
@@ -446,8 +449,8 @@ setMethod("regimeR",
 })
 #' @rdname normr-methods
 #' @export
-setMethod("regimeR", signature("character", "character", "data.frame", "integer"),
-  function(treatment, control, genome, models=3L,
+setMethod("regimeR", signature("character", "character", "data.frame", "numeric"),
+  function(treatment, control, genome, models=3,
            countConfig=countConfigSingleEnd(), eps=1e-5, iterations=10,
            procs=1L, verbose=TRUE) {
     if (models <= 2) stop("invalid number of models specified")
@@ -459,8 +462,8 @@ setMethod("regimeR", signature("character", "character", "data.frame", "integer"
 })
 #' @rdname normr-methods
 #' @export
-setMethod("regimeR", signature("character", "character", "character", "integer"),
-  function(treatment, control, genome="", models=3L,
+setMethod("regimeR", signature("character", "character", "character", "numeric"),
+  function(treatment, control, genome="", models=3,
            countConfig=countConfigSingleEnd(), eps=1e-5,
            iterations=10, procs=1L, verbose=TRUE) {
     if (models <= 2) stop("invalid number of models specified")
