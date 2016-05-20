@@ -21,10 +21,6 @@ computeEnrichmentWithMap <- function(lnPost, m2u, theta, F = 1L, B = 0L, diffCal
     .Call('normr_computeEnrichmentWithMap', PACKAGE = 'normr', lnPost, m2u, theta, F, B, diffCall, nthreads)
 }
 
-computeEnrichment <- function(r, s, lnPost, theta, F = 1L, B = 0L, diffCall = FALSE, nthreads = 1L) {
-    .Call('normr_computeEnrichment', PACKAGE = 'normr', r, s, lnPost, theta, F, B, diffCall, nthreads)
-}
-
 normr_core <- function(r, s, models = 2L, eps = 1e-5, iterations = 5L, bgIdx = 0L, diffCall = FALSE, verbose = FALSE, nthreads = 1L) {
     .Call('normr_normr_core', PACKAGE = 'normr', r, s, models, eps, iterations, bgIdx, diffCall, verbose, nthreads)
 }

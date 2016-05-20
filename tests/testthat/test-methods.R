@@ -33,9 +33,9 @@ test_that("Function arguments are checked correctly", {
   expect_error(recomputeP(new("NormRFit"), 0), info="B=0")
   expect_error(recomputeP(new("NormRFit"), -1), info="B<0")
 
-  expect_error(exportR(new("NormRFit"), "dmp", "xxx"), info="Invalid format")
-  expect_error(exportR(new("NormRFit"), "dmp", "bed"), info="Invalid format")
-  expect_error(exportR(new("NormRFit"), "dmp", "bigWig"), info="Invalid format")
+  expect_error(exportR(new("NormRFit"), "dmp", type = "xxx"), info="Invalid format")
+  expect_error(exportR(new("NormRFit"), "dmp", type = "bed"), info="Invalid format")
+  expect_error(exportR(new("NormRFit"), "dmp", type = "bigWig"), info="Invalid format")
 })
 
 #comparing the fit computed by normR with the R implementation
@@ -132,9 +132,9 @@ test_that("enrichR() works correctly", {
     )
 
     #exporting
-    expect_silent(exportR(fit, tempfile(), "bed"))
-    expect_silent(exportR(fit, tempfile(), "bedGraph"))
-    expect_silent(exportR(fit, tempfile(), "bigWig"))
+    expect_silent(exportR(fit, tempfile(), type = "bed"))
+    expect_silent(exportR(fit, tempfile(), type = "bedGraph"))
+    expect_silent(exportR(fit, tempfile(), type = "bigWig"))
   }
 })
 
@@ -186,9 +186,9 @@ test_that("diffR() works correctly", {
   )
 
   #exporting
-  expect_silent(exportR(fit, tempfile(), "bed"))
-  expect_silent(exportR(fit, tempfile(), "bedGraph"))
-  expect_silent(exportR(fit, tempfile(), "bigWig"))
+  expect_silent(exportR(fit, tempfile(), type = "bed"))
+  expect_silent(exportR(fit, tempfile(), type = "bedGraph"))
+  expect_silent(exportR(fit, tempfile(), type = "bigWig"))
 })
 
 context("regimeR() gives correct results")
@@ -247,8 +247,8 @@ test_that("regimeR() works correctly", {
     )
 
     #exporting
-    expect_silent(exportR(Cfit, tempfile(), "bed"))
-    expect_silent(exportR(Cfit, tempfile(), "bedGraph"))
-    expect_silent(exportR(Cfit, tempfile(), "bigWig"))
+    expect_silent(exportR(Cfit, tempfile(), type = "bed"))
+    expect_silent(exportR(Cfit, tempfile(), type = "bedGraph"))
+    expect_silent(exportR(Cfit, tempfile(), type = "bigWig"))
   }
 })
