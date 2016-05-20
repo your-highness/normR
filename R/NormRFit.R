@@ -41,6 +41,8 @@
 #' See also \code{map2uniquePairs()} for map generation.
 #' @slot counts A \code{list()} of length 2 containing unique count pairs. Use
 #' accessor \code{\link{getCounts}} to retrieve original count matrix.
+#' @slot amount A \code{integer()} specifying the number of occurences of each
+#' count pair
 #' @slot names The corresponding names for counts.
 #' @slot thetaStar A \code{numeric()} representing a naive background
 #' estimation, i.e. \code{sum(getCounts(obj)[2,])/sum(getCounts(obj))}
@@ -89,6 +91,7 @@ setClass("NormRFit",
                                   B = "integer",
                                   map = "integer",
                                   counts = "list",
+                                  amount = "integer",
                                   names = "character",
                                   thetastar = "numeric",
                                   theta = "numeric",
@@ -113,12 +116,15 @@ setValidity("NormRFit",
     if (length(object@k) == 0 | object@k <= 0) return("invalid k slot")
     if (object@B <= 0 || object@B > object@k) return("invalid B slot")
     if (max(object@map) != length(object@counts[[1]])) {
-      return(paste(max(object@map), " ", length(object@counts[[1]])))
-      #return("incompatible map and count slot")
+      return("incompatible map and count slot")
     }
     if (length(object@counts) != 2 ||
         length(object@counts[[1]]) != length(object@counts[[2]])) {
       return("invalid counts slot")
+    }
+    if (length(object@counts[[1]]) != length(object@amount) ||
+        sum(object@amount) != object@n) {
+      return("invalid amount slot")
     }
     if (length(object@thetastar) != 1 || object@thetastar < 0 ||
         object@thetastar > 1) {
@@ -277,11 +283,21 @@ setMethod("getPosteriors", "NormRFit", function(obj) {
 #' @export
 setGeneric("getEnrichment", function(obj, ...) standardGeneric("getEnrichment"))
 #' @describeIn NormRFit Retrieve NormR calculated enrichment.
+#' @param B Index of component to compute the enrichment to. If \code{<NA>}, the
+#' background is determined by normR.(DEFAULT NA)
+#' @param procs Number of threads.
 #' @aliases getEnrichment
 #' @export
-setMethod("getEnrichment", "NormRFit", function(obj, B=NULL) {
-  if (is.null(B)) return(obj@lnenrichment[obj@map])
-  else NULL
+setMethod("getEnrichment", "NormRFit", function(obj, B=NA, procs=1) {
+  if (is.na(B)) {
+    return(obj@lnenrichment[obj@map])
+  } else {
+    if (B < 1 | B > obj@k) stop("invalid B specified")
+    e <- normr::computeEnrichmentWithMap(obj@lnposteriors, 
+      list("values"=do.call(rbind, obj@counts), "amount"=obj@amount), obj@theta,
+      (obj@k-1), (B-1), (obj@type == "diffR"), 1L)
+    return(e[obj@map])
+  }
 })
 
 #' @export
@@ -390,12 +406,11 @@ setMethod("plot", "NormRFit",
 #EXPORTING
 ###
 #' @export
-setGeneric("exportR", function(obj, filename, type, ...)
+setGeneric("exportR", function(obj, filename, ...)
            standardGeneric("exportR"))
 #' @describeIn NormRFit Export results of a \link{NormRFit} to either bed,
 #' bedGraph or bigWig.
 #' @param filename File to write results to.
-#' @param type Type of file used for exporting results.
 #' @param fdr The q-value threshold for calling a region significant. If
 #' \code{NA}, no filtering is done on q-values but regions are reported by
 #' Maximum A Posteriori.
@@ -403,18 +418,27 @@ setGeneric("exportR", function(obj, filename, type, ...)
 #' "enrichR", this argument should of length 1 #' and bed color shading will be
 #' done on this color. If \code{obj} is of type
 #' "diffR", this argument should be of length2
+#' @param type Type of file used for exporting results. If <NA>, format is
+#' guessed from \code{filename}'s extension.
 #' @aliases exportR
 #' @export
-setMethod("exportR", signature=c("NormRFit", "character", "character"),
-  function(obj, filename, type=c("bed", "bedGraph", "bigWig"),
-           fdr=.01, color=NA) {
+setMethod("exportR", signature=c("NormRFit", "character"),
+  function(obj, filename, fdr=.01, color=NA, 
+           type=c(NA, "bed", "bedGraph", "bigWig")) {
     typ <- match.arg(type)
     filename <- path.expand(filename)
     if (is.null(getRanges(obj)))
       stop("no ranges set in obj. Please set via 'obj@ranges <- ranges'")
     if (fdr < 0 | fdr > 1) stop("invalid fdr specified (0<=fdr<=1)")
+    if (is.na(typ)) {
+      ext <- tools::file_ext(filename)
+      if (ext == "bed") typ <- "bed"
+      else if (ext %in% c("bw", "bigWig")) typ <- "bigWig"
+      else if (ext %in% c("bg", "bedGraph")) typ <- "bedGraph"
+      else stop("type could not be inferred from filename extension. Specify!")
+    }
 
-    if (type == "bed") {#qualitative output
+    if (typ == "bed") {#qualitative output
       #clzzez contains integers (assigned regimes) and <NA> for background
       clzzez <- getClasses(obj, fdr)
       nna <- which(!is.na(clzzez))
@@ -500,16 +524,16 @@ setMethod("exportR", signature=c("NormRFit", "character", "character"),
       gr$score <- getEnrichment(obj)
       gr$score[which(abs(gr$score) < obj@eps)] <- 0
 
-      if (type == "bedGraph") { #bedGraph - configure the trackline
+      if (typ == "bedGraph") { #bedGraph - configure the trackline
         cat(paste0("track type=bedGraph name='", basename(filename),
                    "' description='", filename, "' visibility=full ",
                    "color=128,128,128 altColor=128,128,128 autoScale=off alwaysZero=on ",
                    "graphType=bar viewLimits=0:1.5 windowingFunction=mean\n"),
             file=filename)
-        rtracklayer::export(object=gr, con=filename, format=type, append=T)
+        rtracklayer::export(object=gr, con=filename, format=typ, append=T)
 
       } else { #bigWig - no trackline
-        rtracklayer::export(object=gr, con=filename, format=type)
+        rtracklayer::export(object=gr, con=filename, format=typ)
       }
     }
 })

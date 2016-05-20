@@ -2,7 +2,7 @@ source("utils.R")
 
 #some stub data for object generation
 getData <- function(n) {
-  r <- rbinom(n, 10, .2)
+  r <- rbinom (n, 10, .2)
   s <- r + rbinom(n, 40, .01)
   map <- map2unique(cbind(r,s))
   theta <- c(.2,.4)
@@ -43,12 +43,15 @@ test_that("Test NormRFit construction, validity and accessors", {
     o <- new("NormRFit", type=type, n=as.integer(n),
              ranges=gr, k=2L, B=1L, map=d$map$map,
              counts=list(d$map$values[1,],d$map$values[2,]),
+             amount=as.integer(table(d$map$map)),
+             names=c("treatment", "control"),
              thetastar=sum(d$s)/sum(d$r+d$s), theta=d$theta,
              mixtures=d$mixtures, lnL=seq(-n,-1,10)+rnorm(n,0,.5), eps=.001,
              lnposteriors=applyMap(d$lnpost, d$map),
              lnenrichment=applyMap(d$lnenr, d$map),
              lnpvals=applyMap(d$lnpvals, d$map),
              filteredT=sort(unique(d$map$map[d$filteredT])),
+             thresholdT=666L,
              lnqvals=applyMap(d$lnqvals, d$map),
              classes=applyMap(d$classes, d$map))
 
