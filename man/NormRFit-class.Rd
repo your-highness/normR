@@ -5,7 +5,7 @@
 \alias{NormRFit}
 \alias{NormRFit-class}
 \alias{exportR}
-\alias{exportR,NormRFit,character,character-method}
+\alias{exportR,NormRFit,character-method}
 \alias{getClasses}
 \alias{getClasses,NormRFit-method}
 \alias{getCounts}
@@ -31,11 +31,9 @@
 
 \S4method{getCounts}{NormRFit}(obj)
 
-\S4method{getRanges}{NormRFit}(obj)
-
 \S4method{getPosteriors}{NormRFit}(obj)
 
-\S4method{getEnrichment}{NormRFit}(obj, B = NULL)
+\S4method{getEnrichment}{NormRFit}(obj, B = NA, procs = 1)
 
 \S4method{getPvalues}{NormRFit}(obj, filtered = F)
 
@@ -43,8 +41,10 @@
 
 \S4method{getClasses}{NormRFit}(obj, fdr = NA)
 
-\S4method{exportR}{NormRFit,character,character}(obj, filename,
-  type = c("bed", "bedGraph", "bigWig"), fdr = 0.01, color = NA)
+\S4method{getRanges}{NormRFit}(obj, fdr = NA, k = NULL)
+
+\S4method{exportR}{NormRFit,character}(obj, filename, fdr = 0.01,
+  color = NA, type = c(NA, "bed", "bedGraph", "bigWig"))
 }
 \arguments{
 \item{object}{A NormRFit object}
@@ -59,20 +59,26 @@
 
 \item{B}{The index of the background component.}
 
+\item{procs}{Number of threads.}
+
 \item{fdr}{The q-value threshold for calling a region significant. If
 \code{NA}, no filtering is done on q-values but regions are reported by
 Maximum A Posteriori.}
 
 \item{filename}{File to write results to.}
 
-\item{type}{Type of file used for exporting results.}
-
 \item{color}{Specified color(s) for printing a ped file. If obj is of type
 "enrichR", this argument should of length 1 #' and bed color shading will be
 done on this color. If \code{obj} is of type
 "diffR", this argument should be of length2}
 
+\item{type}{Type of file used for exporting results. If <NA>, format is
+guessed from \code{filename}'s extension.}
+
 \item{i}{\code{integer()}-index for subsetting.}
+
+\item{B}{Index of component to compute the enrichment to. If \code{<NA>}, the
+background is determined by normR.(DEFAULT NA)}
 }
 \value{
 return values are described in the methods section.
@@ -96,8 +102,6 @@ can not be modified.
 
 \item \code{getCounts}: Retrieve read count data.
 
-\item \code{getRanges}: Retrieve read count data.
-
 \item \code{getPosteriors}: Retrieve computed posteriors.
 
 \item \code{getEnrichment}: Retrieve NormR calculated enrichment.
@@ -110,6 +114,8 @@ can not be modified.
 \item \code{getClasses}: Retrieve classes for each bin, i.e. enriched vs
 non-enriched (enrichR), differential enrichment (diffR) and enrichment
 regimes (regimeR).
+
+\item \code{getRanges}: Retrieve read count data.
 
 \item \code{exportR}: Export results of a \link{NormRFit} to either bed,
 bedGraph or bigWig.
@@ -135,6 +141,9 @@ See also \code{map2uniquePairs()} for map generation.}
 
 \item{\code{counts}}{A \code{list()} of length 2 containing unique count pairs. Use
 accessor \code{\link{getCounts}} to retrieve original count matrix.}
+
+\item{\code{amount}}{A \code{integer()} specifying the number of occurences of each
+count pair}
 
 \item{\code{names}}{The corresponding names for counts.}
 
@@ -169,6 +178,9 @@ component \code{B} for each unique count-tupel. Use accessor
 \item{\code{filteredT}}{A \code{integer()}-vector giving indices of P-values to be
 considered for FDR correction. These indices have been obtainted by filtering
 P-values using the T method.}
+
+\item{\code{thresholdT}}{The threshold for filtering regions based on the sum of
+counts in treatment and control.}
 
 \item{\code{lnqvals}}{A \code{numeric()}-vector containing ln q-values. These are
 P-values corrected for multiple testing using Storey's method.}

@@ -13,7 +13,7 @@
 \title{Container for counting with bamsignals}
 \usage{
 \S4method{countConfigPairedEnd}{ANY}(binsize = 250L, mapq = 20L,
-  filteredFlag = 1024L, shift = 0L, midpoint = T, tlenfilter = c(70L,
+  filteredFlag = 1024L, shift = 0L, midpoint = T, tlenFilter = c(70L,
   200L))
 
 \S4method{countConfigSingleEnd}{ANY}(binsize = 250L, mapq = 20L,
@@ -60,7 +60,7 @@ This can be handy in the analysis of chip-seq data.}
 \item{\code{midpoint}}{A \code{logical()} indicating whether fragment midpoints
 instead of 5'-ends should be counted in paired end data.}
 
-\item{\code{tlenfilter}}{A filter on fragment length as estimated from alignment
+\item{\code{tlenFilter}}{A filter on fragment length as estimated from alignment
 in paired end experiments (TLEN). If set to \code{c(min,max)} only reads are
 considered where \code{min <= TLEN <= max}. If \code{paired.end=="ignore"},
 this argument is set to \code{NULL} and no filtering is done. If
