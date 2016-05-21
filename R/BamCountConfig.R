@@ -40,13 +40,15 @@
 #'
 #' @aliases BamCountConfig
 #' @aliases BamsignalsConfig
-#; @aliases BamsignalsCountConfig
+#' @aliases BamsignalsCountConfig
 #'
 #' @import GenomicRanges
 #' @seealso \code{\link{normr-methods}} for the functions that require this
 #' object.\cr
 #' See \code{\link{bamsignals}}-package for counting in bam files.
 #' @return return values are described in the Methods section.
+setClassUnion("integerOrNULL", c("integer", "NULL"))
+
 #' @export
 setClass("BamCountConfig",
     representation = representation(type="character",
@@ -59,8 +61,6 @@ setClass("BamCountConfig",
                                     tlenFilter="integerOrNULL"
                                     )
 )
-setClassUnion("integerOrNULL", c("integer", "NULL"))
-
 
 setValidity("BamCountConfig",
     function(object) {
