@@ -2,12 +2,19 @@ CHANGES IN VERSION 0.99.1
 -------------------------
 
 FEATURES
-     o  exportR() for exporting normR fitting results to bed, bedGraph and
-        bigWig
+     o  Added examples for normr-methods, BamCountConfig-class & NormRFit-class
+     o  Moved all documentation to one manpage (normr.Rd)
+     o  Vignette: knitr-based vignette for normr finished
+     o  exportR(): Export NormRFit objects to bed, bedGraph and bigWig
+     o  plot(): Produce a small diagnostic plot for NormRFit objects
+     o  diffR(): Intersection of results for switched labels increases
+        specificity
 
 BUGFIXES
+     o  Removed deploy.log
      o  Fixed build errors and warnings
      o  Fixed failing test
+
 
 CHANGES IN VERSION 0.99.0
 -------------------------
@@ -15,8 +22,7 @@ o Initial Bioconductor Submission
 
 FEATURES
 
-     o  huge performance speedup by reducing needed operations to unique tupels
-        only
+     o  huge performance speedup by data compression to unique tupels only
      o  Kahan summation for log posterior summation to reduce numerical error
      o  Standardized enrichment computation in C++. This enrichment can be well
         compared between various ChIP-seq experiments
