@@ -473,11 +473,12 @@ setMethod("exportR", signature=c("NormRFit", "character"),
         gr$col <- getColRamp(color)[as.integer(gr$score/250)+1]
 
       } else if (obj@type == "diffR") {
-        if (is.na(color)) color <- c("darkblue", "darkred")
+        if (is.na(color)) color <- c("darkred", "darkblue")
         if (length(color) != 2) {
           stop("invalid color argument for type 'diffR' (length!=2)")
         }
-        gr$name <- paste0("diffR_Cond",clzzez,"_score:", gr$score)
+        clzzName <- c("ctrl", "treat")[clzzez]
+        gr$name <- paste0("diffR_",clzzName,"_score:", gr$score)
         col <- rep(NA, length(gr))
         #Cond1
         col[which(clzzez==1)] <-
@@ -493,7 +494,7 @@ setMethod("exportR", signature=c("NormRFit", "character"),
           stop(paste0("invalid color argument for type 'regimeR' (length!=",
             obj@k, ")"))
         }
-        gr$name <- paste0("regimeR_Regime",clzzez,"_score:", gr$score)
+        gr$name <- paste0("regimeR_",clzzez, "_score:", gr$score)
         #Loop through regimes and colors for creating color vector
         col <- rep(NA, length(gr))
         for (i in 1:obj@k) {
