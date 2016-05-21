@@ -530,31 +530,6 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
   return out;
 }
 
-// Get normalized enrichment from a diffR fit
-//
-// @param r vector of counts in control/condition1
-// @param s vector of counts in treatment/condition2
-// @param lnPost log-posterior matrix as computed by a normR routine
-// @param theta numeric vector of binomial model parameters
-// @param F column index of foreground component in posteriors (DEFAULT=1)
-// @param B column index of background component in posteriors (DEFAULT=0)
-// @param diffCall logical indicating if a difference call was performed. In
-// that case standardization is performed dependent on the sign of the fold
-// change. (DEFAULT=FALSE)
-// @return a numeric with enrichment values in log space
-// [[Rcpp::export]]
-NumericVector computeEnrichment(const IntegerVector& r, const IntegerVector& s,
-    const NumericMatrix& lnPost, const NumericVector& theta, const int F=1,
-    const int B=0, const bool diffCall=false, const int nthreads=1) {
-  //reduce data set to unique
-  List m2u = mapToUniquePairs(r, s);
-  NumericMatrix lnP(as<NumericMatrix>(m2u["values"]).ncol(), lnPost.ncol());
-  for (int i=0; i < lnPost.ncol(); ++i) {
-    lnP(_,i) = mapToUniqueWithMap(lnPost(_,i), m2u);
-  }
-  return mapToOriginal(computeEnrichmentWithMap(lnP, m2u, theta, F, B, nthreads), m2u);
-}
-
 double getLnP(const int s, const int r, const double p,
     const bool twoTailed=false, const double eps = .0000001) {
   int n = r+s;

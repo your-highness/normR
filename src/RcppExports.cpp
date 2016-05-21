@@ -70,24 +70,6 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// computeEnrichment
-NumericVector computeEnrichment(const IntegerVector& r, const IntegerVector& s, const NumericMatrix& lnPost, const NumericVector& theta, const int F, const int B, const bool diffCall, const int nthreads);
-RcppExport SEXP normr_computeEnrichment(SEXP rSEXP, SEXP sSEXP, SEXP lnPostSEXP, SEXP thetaSEXP, SEXP FSEXP, SEXP BSEXP, SEXP diffCallSEXP, SEXP nthreadsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const IntegerVector& >::type r(rSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type s(sSEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type lnPost(lnPostSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< const int >::type F(FSEXP);
-    Rcpp::traits::input_parameter< const int >::type B(BSEXP);
-    Rcpp::traits::input_parameter< const bool >::type diffCall(diffCallSEXP);
-    Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
-    __result = Rcpp::wrap(computeEnrichment(r, s, lnPost, theta, F, B, diffCall, nthreads));
-    return __result;
-END_RCPP
-}
 // normr_core
 List normr_core(const IntegerVector& r, const IntegerVector& s, const int models, const double eps, const int iterations, const int bgIdx, const bool diffCall, const bool verbose, const int nthreads);
 RcppExport SEXP normr_normr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP iterationsSEXP, SEXP bgIdxSEXP, SEXP diffCallSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
