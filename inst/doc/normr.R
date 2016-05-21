@@ -68,6 +68,29 @@ summary(k4me3Fit)
 summary(k36me3Fit)
 
 ## ------------------------------------------------------------------------
+#TODO
+
+## ------------------------------------------------------------------------
+#background normalized enrichment
+k4me3Enr <- getEnrichment(k4me3Fit)
+
+#restrict to regions with non-zero counts
+idx <- which(rowSums(do.call(cbind, getCounts(k4me3Fit))) != 0)
+summary(k4me3Enr[idx])
+
+## ----fig.width=10, fig.height=10-----------------------------------------
+x <- getEnrichment(k4me3Fit)[idx]
+y <- getEnrichment(k36me3Fit)[idx]
+d.x <- density(x); d.y <- density(y)
+layout( matrix( c(0,2,2,1,3,3,1,3,3),ncol=3) )
+plot(d.x$x, d.x$y, xlim=range(x), type='l', main="H3K36me3 normalized Enrichment", xlab="", ylab="Density")
+abline(v=0, lty=3, lwd=2, col=4)
+plot(d.y$y, d.y$x, ylim=range(y), xlim=rev(range(d.y$y)), type='l', main="H3K4me3 normalized Enrichment", xlab="Density", ylab="")
+abline(h=0, lty=3, lwd=2, col=4)
+plot(x, y, xlim=range(x), ylim=range(y), col=adjustcolor("grey10", alpha.f=.2), pch=20, xlab="", ylab="")
+abline(0, 1, lty=2, lwd=3, col=2); abline(v=0, lty=3, lwd=2, col=4); abline(h=0, lty=3, lwd=2, col=4);
+
+## ------------------------------------------------------------------------
 #integer vector with <NA> set to non-significant regions
 k4me3Classes <- getClasses(k4me3Fit, fdr = 0.05)
 k4me3Ranges <- getRanges(k4me3Fit)[!is.na(k4me3Classes)]
@@ -142,7 +165,7 @@ exportR(k36me3Fit, filename = "k36me3Fit.bw", type = "bigWig")
 k4k36Dif <- diffR(treatment = getCounts(k4me3Fit)$treatment,
                   control   = getCounts(k36me3Fit)$treatment,
                   genome    = getRanges(k4me3Fit),
-                  verbose   = F)
+                  verbose   = F) 
 #<or> (unnecessarily) count again
 #k4k36Dif <- diffR(treatment = k4me3Bamfile, control = k36me3Bamfile, genome = genome, verbose = F)
 
@@ -150,11 +173,70 @@ k4k36Dif <- diffR(treatment = getCounts(k4me3Fit)$treatment,
 summary(k4k36Dif)
 
 ## ----warning=FALSE-------------------------------------------------------
+exportR(k4k36Dif, filename = "k4k36Dif.bed", type = "bed", fdr = 0.05)
+exportR(k4k36Dif, filename = "k4k36Dif.bw", type = "bigWig")
+
+## ----warning=FALSE-------------------------------------------------------
+#Four regimes on H3K4me3 uncover potential cell/allele heterogeneity for transcriptional initiation
+k4me3Regimes <- regimeR(treatment = getCounts(k4me3Fit)$treatment,
+                         control   = getCounts(k4me3Fit)$control,
+                         genome    = getRanges(k4me3Fit),
+                         models    = 3,
+                         verbose   = F)
+summary(k4me3Regimes)
+
+#Three regimes on H3K36me3 discriminate genes of high and low expression
 k36me3Regimes <- regimeR(treatment = getCounts(k36me3Fit)$treatment,
                          control   = getCounts(k36me3Fit)$control,
                          genome    = getRanges(k36me3Fit),
                          models    = 3,
                          verbose   = F)
+summary(k36me3Regimes)
+
+## ----warning=FALSE-------------------------------------------------------
+exportR(k4me3Regimes, filename = "k4me3Regimes.bed", type = "bed", fdr = 0.05)
+exportR(k36me3Regimes, filename = "k36me3Regimes.bed", type = "bed", fdr = 0.05)
+
+## ----eval=FALSE----------------------------------------------------------
+#  #Single End:
+#  # Count in 500bp bins.
+#  # Consider only reads with Mapping Quality >= 20.
+#  # Filter reads for marked duplicates (e.g. with picard mark-duplicates)
+#  # Shift the counting position for a read 100 bp downstream.
+#  countConfigSE <- countConfigSingleEnd(binsize = 500, mapq = 20, filteredFlag = 1024, shift = 100)
+#  
+#  #Paired End:
+#  # Count in 500bp bins.
+#  # Consider only reads with Mapping Quality >= 30.
+#  # Count the midpoint of the aligned fragment instead of 5' ends.
+#  # Consider only reads corresponding to fragments with size spanning from 100 to 300bp
+#  countConfigPE <- countConfigPairdEnd(binsize = 500, mapq = 30, midpoint = T, tlenfilter = c(100, 300))
+#  
+#  #Plug in the counting configuration into normR
+#  fit <- enrichR(treatment = k4me3Bamfile, control = inputBamfile, genome = genome, countConfig = countConfigPE, verbose = F)
+
+## ----warning=FALSE-------------------------------------------------------
+#regions have identical size?
+all(width(promoters) == 4000)
+
+#count in predefined regions
+library(bamsignals)
+k4Counts <- bamCount(k4me3Bamfile, promoters)
+inputCounts <- bamCount(inputBamfile, promoters)
+
+#Fit only on promoters
+promotersFit <- enrichR(treatment = k4Counts, control = inputCounts, genome = promoters, verbose = F)
+
+## ----eval=FALSE----------------------------------------------------------
+#  #call CNVs a sufficiently large bin size
+#  cnvs <- diffR(treatment = treatmentInputBamfile, control = controlInputBamfile, genome = genome, countConfig=countConfigSingleEnd(binsize = 25000), verbose = F)
+#  
+#  #export the CNV calls
+#  exportR(cnvs, "CNVs.bed")
+#  
+#  #Filter previous ChIP-seq difference calls for CNVs
+#  idx <- which(countOverlaps(getRanges(diffFit, fdr = .05), getRanges(cnvs, fdr = .05)) == 0)
+#  cleanRanges <- getRanges(diffFit, fdr = .05)[idx]
 
 ## ----eval=FALSE----------------------------------------------------------
 #  #TODO
