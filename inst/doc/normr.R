@@ -68,9 +68,6 @@ summary(k4me3Fit)
 summary(k36me3Fit)
 
 ## ------------------------------------------------------------------------
-#TODO
-
-## ------------------------------------------------------------------------
 #background normalized enrichment
 k4me3Enr <- getEnrichment(k4me3Fit)
 
@@ -166,7 +163,7 @@ exportR(k36me3Fit, filename = "k36me3Fit.bw", type = "bigWig")
 k4k36Dif <- diffR(treatment = getCounts(k4me3Fit)$treatment,
                   control   = getCounts(k36me3Fit)$treatment,
                   genome    = getRanges(k4me3Fit),
-                  verbose   = F) 
+                  verbose   = F)
 #<or> (unnecessarily) count again
 #k4k36Dif <- diffR(treatment = k4me3Bamfile, control = k36me3Bamfile, genome = genome, verbose = F)
 
@@ -213,8 +210,11 @@ exportR(k36me3Regimes, filename = "k36me3Regimes.bed", type = "bed", fdr = 0.05)
 #  # Consider only reads corresponding to fragments with size spanning from 100 to 300bp
 #  countConfigPE <- countConfigPairdEnd(binsize = 500, mapq = 30, midpoint = T, tlenfilter = c(100, 300))
 #  
-#  #Plug in the counting configuration into normR
-#  fit <- enrichR(treatment = k4me3Bamfile, control = inputBamfile, genome = genome, countConfig = countConfigPE, verbose = F)
+#  #Plug in the counting configuration into normR, e.g. in enrichR()
+#  fit <- enrichR(treatment   = k4me3Bamfile,
+#                 control     = inputBamfile,
+#                 genome      = genome,
+#                 countConfig = countConfigPE)
 
 ## ----warning=FALSE-------------------------------------------------------
 #regions have identical size?
@@ -226,19 +226,19 @@ k4Counts <- bamCount(bampath = k4me3Bamfile, gr = promoters, verbose = F)
 inputCounts <- bamCount(bampath = inputBamfile, gr = promoters, verbose = F)
 
 #Fit only on promoters
-promotersFit <- enrichR(treatment = k4Counts, control = inputCounts, genome = promoters, verbose = F)
+promotersFit <- enrichR(treatment = k4Counts, control = inputCounts, genome = promoters)
 
 ## ----eval=FALSE----------------------------------------------------------
-#  #call CNVs a sufficiently large bin size
-#  cnvs <- diffR(treatment = treatmentInputBamfile, control = controlInputBamfile, genome = genome, countConfig=countConfigSingleEnd(binsize = 25000), verbose = F)
+#  #call CNVs a sufficiently large bin size (e.g. 10kb)
+#  cnvs <- diffR(treatment   = treatmentInputBamfile,
+#                control     = controlInputBamfile,
+#                genome      = genome,
+#                countConfig = countConfigSingleEnd(binsize = 1e4))
 #  
 #  #export the CNV calls
 #  exportR(cnvs, "CNVs.bed")
 #  
 #  #Filter previous ChIP-seq difference calls for CNVs
 #  idx <- which(countOverlaps(getRanges(diffFit, fdr = .05), getRanges(cnvs, fdr = .05)) == 0)
-#  cleanRanges <- getRanges(diffFit, fdr = .05)[idx]
-
-## ----eval=FALSE----------------------------------------------------------
-#  #TODO
+#  cnvCleanedGR <- getRanges(diffFit, fdr = .05)[idx]
 

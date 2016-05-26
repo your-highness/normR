@@ -115,7 +115,7 @@ alignment data on chr1 22.5Mb to 25Mb with genes (black) drawn.**
 As part of the normR package, we provide 3 alignment files in bam format (Input,
 H3K4me3 and H3K36me3 ChIP-seq) containing reads for human chr1 22.5Mb to
 25Mb. Note, bam files need to be sorted by read coordinates (`samtools sort
-x.bam x_sorted`) and indexed (`samtools index x_sorted.bam`). 
+x.bam x_sorted`) and indexed (`samtools index x_sorted.bam`).
 
 *Firstly*, we retrieve filepaths for toy data:
 
@@ -205,12 +205,6 @@ for $FDR \le 0.05$:
 
 ```{r}
 summary(k36me3Fit)
-```
-
-In addition to summary statistics, a `NormRFit` object can be plotted with a
-specialized implementation of `plot()`:
-```{r}
-#TODO
 ```
 
 Based on the fitted background, normR can calculate a standardized, regularized
@@ -372,7 +366,7 @@ We can extract this from either one of the `NormRFit` objects.
 k4k36Dif <- diffR(treatment = getCounts(k4me3Fit)$treatment,
                   control   = getCounts(k36me3Fit)$treatment,
                   genome    = getRanges(k4me3Fit),
-                  verbose   = F) 
+                  verbose   = F)
 #<or> (unnecessarily) count again
 #k4k36Dif <- diffR(treatment = k4me3Bamfile, control = k36me3Bamfile, genome = genome, verbose = F)
 
@@ -428,7 +422,7 @@ k36me3Regimes <- regimeR(treatment = getCounts(k36me3Fit)$treatment,
 summary(k36me3Regimes)
 ```
 
-Exporting works analogously to the cases described above. 
+Exporting works analogously to the cases described above.
 
 ```{r warning=FALSE}
 exportR(k4me3Regimes, filename = "k4me3Regimes.bed", type = "bed", fdr = 0.05)
@@ -466,8 +460,11 @@ countConfigSE <- countConfigSingleEnd(binsize = 500, mapq = 20, filteredFlag = 1
 # Consider only reads corresponding to fragments with size spanning from 100 to 300bp
 countConfigPE <- countConfigPairdEnd(binsize = 500, mapq = 30, midpoint = T, tlenfilter = c(100, 300))
 
-#Plug in the counting configuration into normR
-fit <- enrichR(treatment = k4me3Bamfile, control = inputBamfile, genome = genome, countConfig = countConfigPE, verbose = F)
+#Plug in the counting configuration into normR, e.g. in enrichR()
+fit <- enrichR(treatment   = k4me3Bamfile,
+               control     = inputBamfile,
+               genome      = genome,
+               countConfig = countConfigPE)
 ```
 
 ## Analyzing Predefined Regions
@@ -487,7 +484,7 @@ k4Counts <- bamCount(bampath = k4me3Bamfile, gr = promoters, verbose = F)
 inputCounts <- bamCount(bampath = inputBamfile, gr = promoters, verbose = F)
 
 #Fit only on promoters
-promotersFit <- enrichR(treatment = k4Counts, control = inputCounts, genome = promoters, verbose = F)
+promotersFit <- enrichR(treatment = k4Counts, control = inputCounts, genome = promoters)
 ```
 
 ## Post-processing of Difference Calls with CNV information
@@ -500,24 +497,16 @@ differences in two Input tracks to detect CNVs in a treatment respective to a
 control:
 
 ```{r eval=FALSE}
-#call CNVs a sufficiently large bin size
-cnvs <- diffR(treatment = treatmentInputBamfile, control = controlInputBamfile, genome = genome, countConfig=countConfigSingleEnd(binsize = 25000), verbose = F)
+#call CNVs a sufficiently large bin size (e.g. 10kb)
+cnvs <- diffR(treatment   = treatmentInputBamfile,
+              control     = controlInputBamfile,
+              genome      = genome,
+              countConfig = countConfigSingleEnd(binsize = 1e4))
 
 #export the CNV calls
 exportR(cnvs, "CNVs.bed")
 
 #Filter previous ChIP-seq difference calls for CNVs
 idx <- which(countOverlaps(getRanges(diffFit, fdr = .05), getRanges(cnvs, fdr = .05)) == 0)
-cleanRanges <- getRanges(diffFit, fdr = .05)[idx]
-```
-
-# For The ''`R`-lazy'': The `norm.R` Command Line Program
-
-A lightweight RSCRIPT executale is part of the package and brings the
-functionality described above to the command line.
-
-XXX
-
-```{r eval=FALSE}
-#TODO
+cnvCleanedGR <- getRanges(diffFit, fdr = .05)[idx]
 ```
