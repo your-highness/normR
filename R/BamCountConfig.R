@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+setClassUnion("integerOrNULL", c("integer", "NULL"))
+
 #' Container for counting with bamsignals
 #'
 #' This S4 class is a small wrapper for a configuration on obtaining counts
@@ -47,8 +50,6 @@
 #' object.\cr
 #' See \code{\link{bamsignals}}-package for counting in bam files.
 #' @return return values are described in the Methods section.
-setClassUnion("integerOrNULL", c("integer", "NULL"))
-
 #' @export
 setClass("BamCountConfig",
     representation = representation(type="character",
