@@ -82,7 +82,7 @@ context("enrichR() gives correct results")
 test_that("enrichR() works correctly", {
   gr <- GRanges("chr1", IRanges(22500001, 25000000))#chr1:22500000-25000000
   inputfile <- system.file("extdata", "K562_Input.bam", package="normr")
-  chipfiles <- system.file("extdata", paste0("K562_", c("H3K27me3", "H3K4me3"),
+  chipfiles <- system.file("extdata", paste0("K562_", c("H3K36me3", "H3K4me3"),
                            ".bam"), package="normr")
 
   #check files first
@@ -141,7 +141,7 @@ test_that("enrichR() works correctly", {
 context("diffR() gives correct results")
 test_that("diffR() works correctly", {
   gr <- GRanges("chr1", IRanges(22500001, 25000000))#chr1:1-249250621
-  chipfiles <- system.file("extdata", paste0("K562_", c("H3K27me3", "H3K4me3"),
+  chipfiles <- system.file("extdata", paste0("K562_", c("H3K36me3", "H3K4me3"),
                            ".bam"), package="normr")
 
   #input:integer,interger,GRanges
@@ -195,7 +195,7 @@ context("regimeR() gives correct results")
 test_that("regimeR() works correctly", {
   gr <- GRanges("chr1", IRanges(22500001, 25000000))#chr1:22500000-25000000
   inputfile <- system.file("extdata", "K562_Input.bam", package="normr")
-  chipfiles <- system.file("extdata", paste0("K562_", c("H3K27me3", "H3K4me3"),
+  chipfiles <- system.file("extdata", paste0("K562_", c("H3K36me3", "H3K4me3"),
                            ".bam"), package="normr")
 
   #input:integer,interger,GRanges
