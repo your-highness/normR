@@ -14,7 +14,7 @@ Description: Robust normalization and difference calling procedures for ChIP-seq
     user-specified number of components.
 License: GPL-2
 Depends:
-    R (>= 3.0.0)
+    R (>= 3.2.0)
 LinkingTo: Rcpp
 SystemRequirements: C++11
 Imports:
@@ -23,9 +23,10 @@ Imports:
     IRanges,
     Rcpp (>= 0.11),
     qvalue (>= 2.2),
-    bamsignals (>= 1.4)
+    bamsignals (>= 1.4),
+    rtracklayer (>= 1.32)
 Suggests:
-    testthat (>= 0.9),
+    testthat (>= 1.0),
     knitr,
     stats,
     rmarkdown
