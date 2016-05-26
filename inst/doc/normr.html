@@ -72,7 +72,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <li><a href="#analyzing-predefined-regions"><span class="toc-section-number">4.2</span> Analyzing Predefined Regions</a></li>
 <li><a href="#post-processing-of-difference-calls-with-cnv-information"><span class="toc-section-number">4.3</span> Post-processing of Difference Calls with CNV information</a></li>
 </ul></li>
-<li><a href="#for-the-r-lazy-the-norm.r-command-line-program"><span class="toc-section-number">5</span> For The ‘’<code>R</code>-lazy’’: The <code>norm.R</code> Command Line Program</a></li>
 </ul>
 </div>
 
@@ -272,8 +271,6 @@ k36me3Fit &lt;- enrichR(treatment = k36me3Bamfile, control = inputBamfile, genom
 ##    0  1994   170   168   101  6206  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 '  ' 1 'n.s.'</code></pre>
-<p>In addition to summary statistics, a <code>NormRFit</code> object can be plotted with a specialized implementation of <code>plot()</code>:</p>
-<pre class="r"><code>#TODO</code></pre>
 <p>Based on the fitted background, normR can calculate a standardized, regularized enrichment for further processing:</p>
 <pre class="r"><code>#background normalized enrichment
 k4me3Enr &lt;- getEnrichment(k4me3Fit)
@@ -448,7 +445,7 @@ exportR(k36me3Fit, filename = &quot;k36me3Fit.bw&quot;, type = &quot;bigWig&quot
 k4k36Dif &lt;- diffR(treatment = getCounts(k4me3Fit)$treatment,
                   control   = getCounts(k36me3Fit)$treatment,
                   genome    = getRanges(k4me3Fit),
-                  verbose   = F) 
+                  verbose   = F)
 #&lt;or&gt; (unnecessarily) count again
 #k4k36Dif &lt;- diffR(treatment = k4me3Bamfile, control = k36me3Bamfile, genome = genome, verbose = F)
 
@@ -571,8 +568,11 @@ countConfigSE &lt;- countConfigSingleEnd(binsize = 500, mapq = 20, filteredFlag 
 # Consider only reads corresponding to fragments with size spanning from 100 to 300bp
 countConfigPE &lt;- countConfigPairdEnd(binsize = 500, mapq = 30, midpoint = T, tlenfilter = c(100, 300))
 
-#Plug in the counting configuration into normR
-fit &lt;- enrichR(treatment = k4me3Bamfile, control = inputBamfile, genome = genome, countConfig = countConfigPE, verbose = F)</code></pre>
+#Plug in the counting configuration into normR, e.g. in enrichR()
+fit &lt;- enrichR(treatment   = k4me3Bamfile,
+               control     = inputBamfile,
+               genome      = genome,
+               countConfig = countConfigPE)</code></pre>
 </div>
 <div id="analyzing-predefined-regions" class="section level2">
 <h2><span class="header-section-number">4.2</span> Analyzing Predefined Regions</h2>
@@ -586,27 +586,128 @@ k4Counts &lt;- bamCount(bampath = k4me3Bamfile, gr = promoters, verbose = F)
 inputCounts &lt;- bamCount(bampath = inputBamfile, gr = promoters, verbose = F)
 
 #Fit only on promoters
-promotersFit &lt;- enrichR(treatment = k4Counts, control = inputCounts, genome = promoters, verbose = F)</code></pre>
+promotersFit &lt;- enrichR(treatment = k4Counts, control = inputCounts, genome = promoters)</code></pre>
+<pre><code>## [Started] normR mixture modeling</code></pre>
+<pre><code>##  ... removing (r == 0) or (s == 0) regions [265 of 265 regions kept].</code></pre>
+<pre><code>## 
+## *** Iteration 1:</code></pre>
+<pre><code>##   ...initiatilizing prior and theta (theta*=0.867648)</code></pre>
+<pre><code>##   Run 10: lnL=-138801.186606, step=0.000000, prior=( 0.516981 0.483019) theta=( 0.123820 0.929105)</code></pre>
+<pre><code>##   Run 20: lnL=-138801.186606, step=0.000000, prior=( 0.516981 0.483019) theta=( 0.123820 0.929105)</code></pre>
+<pre><code>##   Run 27: lnL=-138801.186606, step=0.000000, prior=( 0.516981 0.483019) theta=( 0.123820 0.929105)</code></pre>
+<pre><code>##   ...converged.</code></pre>
+<pre><code>## 
+## *** Iteration 2:</code></pre>
+<pre><code>##   ...initiatilizing prior and theta (theta*=0.867648)</code></pre>
+<pre><code>##   Run 10: lnL=-138801.186606, step=0.000000, prior=( 0.516981 0.483019) theta=( 0.123820 0.929105)</code></pre>
+<pre><code>##   Run 20: lnL=-138801.186606, step=0.000000, prior=( 0.516981 0.483019) theta=( 0.123820 0.929105)</code></pre>
+<pre><code>##   Run 27: lnL=-138801.186606, step=0.000000, prior=( 0.516981 0.483019) theta=( 0.123820 0.929105)</code></pre>
+<pre><code>##   ...converged.</code></pre>
+<pre><code>## 
+## *** Iteration 3:</code></pre>
+<pre><code>##   ...initiatilizing prior and theta (theta*=0.867648)</code></pre>
+<pre><code>##   Run 10: lnL=-138801.186606, step=0.000000, prior=( 0.516981 0.483019) theta=( 0.123820 0.929105)</code></pre>
+<pre><code>##   Run 20: lnL=-138801.186606, step=0.000000, prior=( 0.516981 0.483019) theta=( 0.123820 0.929105)</code></pre>
+<pre><code>##   Run 27: lnL=-138801.186606, step=0.000000, prior=( 0.516981 0.483019) theta=( 0.123820 0.929105)</code></pre>
+<pre><code>##   ...converged.</code></pre>
+<pre><code>## 
+## *** Iteration 4:</code></pre>
+<pre><code>##   ...initiatilizing prior and theta (theta*=0.867648)</code></pre>
+<pre><code>##   Run 10: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   Run 20: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   Run 27: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   ...converged.</code></pre>
+<pre><code>## 
+## *** Iteration 5:</code></pre>
+<pre><code>##   ...initiatilizing prior and theta (theta*=0.867648)</code></pre>
+<pre><code>##   Run 10: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   Run 20: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   Run 27: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   ...converged.</code></pre>
+<pre><code>## 
+## *** Iteration 6:</code></pre>
+<pre><code>##   ...initiatilizing prior and theta (theta*=0.867648)</code></pre>
+<pre><code>##   Run 10: lnL=-138801.186606, step=0.000000, prior=( 0.516981 0.483019) theta=( 0.123820 0.929105)</code></pre>
+<pre><code>##   Run 20: lnL=-138801.186606, step=0.000000, prior=( 0.516981 0.483019) theta=( 0.123820 0.929105)</code></pre>
+<pre><code>##   Run 27: lnL=-138801.186606, step=0.000000, prior=( 0.516981 0.483019) theta=( 0.123820 0.929105)</code></pre>
+<pre><code>##   ...converged.</code></pre>
+<pre><code>## 
+## *** Iteration 7:</code></pre>
+<pre><code>##   ...initiatilizing prior and theta (theta*=0.867648)</code></pre>
+<pre><code>##   Run 10: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   Run 20: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   Run 27: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   ...converged.</code></pre>
+<pre><code>## 
+## *** Iteration 8:</code></pre>
+<pre><code>##   ...initiatilizing prior and theta (theta*=0.867648)</code></pre>
+<pre><code>##   Run 10: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   Run 20: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   Run 27: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   ...converged.</code></pre>
+<pre><code>## 
+## *** Iteration 9:</code></pre>
+<pre><code>##   ...initiatilizing prior and theta (theta*=0.867648)</code></pre>
+<pre><code>##   Run 10: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   Run 20: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   Run 27: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   ...converged.</code></pre>
+<pre><code>## 
+## *** Iteration 10:</code></pre>
+<pre><code>##   ...initiatilizing prior and theta (theta*=0.867648)</code></pre>
+<pre><code>##   Run 10: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   Run 20: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   Run 27: lnL=-138801.186606, step=0.000000, prior=( 0.483019 0.516981) theta=( 0.929105 0.123820)</code></pre>
+<pre><code>##   ...converged.</code></pre>
+<pre><code>## ...computing posterior for all data.</code></pre>
+<pre><code>## ...computing enrichment.</code></pre>
+<pre><code>## ...computing P-values.</code></pre>
+<pre><code>## ...applying T filter with threshold eps=0.000010.</code></pre>
+<pre><code>## [Finished] normR mixture modeling</code></pre>
+<pre><code>## ... computing Q-values.</code></pre>
+<pre><code>## 
+## 
+## +++ OVERALL RESULT ++++</code></pre>
+<pre><code>## NormRFit-class object
+## 
+## Type:                  'enrichR'
+## Number of Regions:     265
+## Number of Components:  2
+## Theta* (naive bg):     0.868
+## Backgroundcomponent B: 1
+## 
+## +++ Results of fit +++ 
+## Mixture Proporitons:
+## 0.517  0.483
+## Theta:
+## 0.124  0.929
+## Bayesian Information Criterion:  277614
+## 
+## +++ Results of binomial test +++ 
+## T-Filter threshold: 9
+## Number of Regions filtered out: 0
+## Significantly different from background B based on q-values:
+##  ***    **     *     .        n.s.  
+##  123    21     8     1     1   111  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 '  ' 1 'n.s.'</code></pre>
 </div>
 <div id="post-processing-of-difference-calls-with-cnv-information" class="section level2">
 <h2><span class="header-section-number">4.3</span> Post-processing of Difference Calls with CNV information</h2>
 <p>Copy Number Variations (CNVs) are an important feature of cancerous cells like patient tumour samples or cell lines. The difference calling on two ChIP-seq experiments with <code>diffR()</code> is sensitive to CNVs if the underlying sequence is amplified in the genome. However, you can harness <code>diffR()</code>’s functionality to call differences in two Input tracks to detect CNVs in a treatment respective to a control:</p>
-<pre class="r"><code>#call CNVs a sufficiently large bin size
-cnvs &lt;- diffR(treatment = treatmentInputBamfile, control = controlInputBamfile, genome = genome, countConfig=countConfigSingleEnd(binsize = 25000), verbose = F)
+<pre class="r"><code>#call CNVs a sufficiently large bin size (e.g. 10kb)
+cnvs &lt;- diffR(treatment   = treatmentInputBamfile,
+              control     = controlInputBamfile,
+              genome      = genome,
+              countConfig = countConfigSingleEnd(binsize = 1e4))
 
 #export the CNV calls
 exportR(cnvs, &quot;CNVs.bed&quot;)
 
 #Filter previous ChIP-seq difference calls for CNVs
 idx &lt;- which(countOverlaps(getRanges(diffFit, fdr = .05), getRanges(cnvs, fdr = .05)) == 0)
-cleanRanges &lt;- getRanges(diffFit, fdr = .05)[idx]</code></pre>
+cnvCleanedGR &lt;- getRanges(diffFit, fdr = .05)[idx]</code></pre>
 </div>
-</div>
-<div id="for-the-r-lazy-the-norm.r-command-line-program" class="section level1">
-<h1><span class="header-section-number">5</span> For The ‘’<code>R</code>-lazy’’: The <code>norm.R</code> Command Line Program</h1>
-<p>A lightweight RSCRIPT executale is part of the package and brings the functionality described above to the command line.</p>
-<p>XXX</p>
-<pre class="r"><code>#TODO</code></pre>
 </div>
 
 
