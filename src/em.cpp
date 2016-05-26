@@ -375,6 +375,7 @@ static inline void calculatePost(NumericMatrix& lnPost, NumericVector& lnZ,
 }
 
 ///EXPECTATION MAXIMIZATION
+//[[Rcpp::export]]
 List em(const List& m2u_sub, const int models=2, const double eps=1e-5,
     const bool verbose=false, const int nthreads=1) {
   //Get values from mapToUniquePairs structure as NumericVector
@@ -392,7 +393,7 @@ List em(const List& m2u_sub, const int models=2, const double eps=1e-5,
   double qstar = sum(us_sub * uamount_sub) /
     sum(ur_sub * uamount_sub + us_sub * uamount_sub);
   double jitter = qstar-.01;
-  lntheta = log(rep(qstar, models) + runif(models, -.1, +.1));
+  lntheta = log(rep(qstar, models) - runif(models, 0, (qstar - eps)));
   lnftheta = log(1 - exp(lntheta));
   if (verbose) {
     message("  ...initiatilizing prior and theta (theta*=" +
@@ -672,7 +673,7 @@ IntegerVector filterIdx(const List& m2u, const double theta,
 List normr_core(const IntegerVector& r, const IntegerVector& s,
     const int models=2, const double eps=1e-5, const int iterations=5,
     const int bgIdx=0, const bool diffCall=false, const bool verbose=false,
-    const int nthreads=1) {
+    const int nthreads=1, const String binFilter="zero") {
   if (models < 2) {
       stop("Error: need at least 2 models (i.e. background and foreground)");
   }
@@ -689,11 +690,16 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
    * and ssub have to be NumericVectors. Recreating a new map for subset is
    * much faster than reorganizing the old one.
    */
-  LogicalVector idx = (r > 0 & s > 0);
+  LogicalVector idx(r.size(), true);
+  if (binFilter == "zero") 
+    idx = (r > 0 & s > 0);
+  else if (binFilter == "zeroSum") {
+    idx = ((r + s) > 0);
+  } 
   if (verbose) {
-     message("\t... removing (r == 0) or (s == 0) regions [" +
-         std::to_string(logical2Count(idx)) + " of " +
-         std::to_string(r.length()) +" regions kept].");
+    message("\t... removing (r == 0) or (s == 0) regions [" +
+      std::to_string(logical2Count(idx)) + " of " +
+      std::to_string(r.length()) +" regions kept].");
   }
   List m2u_sub = mapToUniquePairs(r[idx], s[idx]);
   List fit;

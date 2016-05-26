@@ -53,6 +53,21 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// em
+List em(const List& m2u_sub, const int models, const double eps, const bool verbose, const int nthreads);
+RcppExport SEXP normr_em(SEXP m2u_subSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const List& >::type m2u_sub(m2u_subSEXP);
+    Rcpp::traits::input_parameter< const int >::type models(modelsSEXP);
+    Rcpp::traits::input_parameter< const double >::type eps(epsSEXP);
+    Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
+    __result = Rcpp::wrap(em(m2u_sub, models, eps, verbose, nthreads));
+    return __result;
+END_RCPP
+}
 // computeEnrichmentWithMap
 NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost, const List& m2u, const NumericVector& theta, const int F, const int B, const bool diffCall, const int nthreads);
 RcppExport SEXP normr_computeEnrichmentWithMap(SEXP lnPostSEXP, SEXP m2uSEXP, SEXP thetaSEXP, SEXP FSEXP, SEXP BSEXP, SEXP diffCallSEXP, SEXP nthreadsSEXP) {
@@ -71,8 +86,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // normr_core
-List normr_core(const IntegerVector& r, const IntegerVector& s, const int models, const double eps, const int iterations, const int bgIdx, const bool diffCall, const bool verbose, const int nthreads);
-RcppExport SEXP normr_normr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP iterationsSEXP, SEXP bgIdxSEXP, SEXP diffCallSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
+List normr_core(const IntegerVector& r, const IntegerVector& s, const int models, const double eps, const int iterations, const int bgIdx, const bool diffCall, const bool verbose, const int nthreads, const String binFilter);
+RcppExport SEXP normr_normr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP iterationsSEXP, SEXP bgIdxSEXP, SEXP diffCallSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP, SEXP binFilterSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -85,7 +100,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const bool >::type diffCall(diffCallSEXP);
     Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
-    __result = Rcpp::wrap(normr_core(r, s, models, eps, iterations, bgIdx, diffCall, verbose, nthreads));
+    Rcpp::traits::input_parameter< const String >::type binFilter(binFilterSEXP);
+    __result = Rcpp::wrap(normr_core(r, s, models, eps, iterations, bgIdx, diffCall, verbose, nthreads, binFilter));
     return __result;
 END_RCPP
 }
