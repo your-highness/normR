@@ -28,10 +28,10 @@ DONE -output function for bigWig/bedGraph files (sizes small with new
      rtracklayer)
 DONE integrate bamsignals 1.4 features (tlenFilter, flagFilter)
 DONE diffR() should report intersect of label switched inputs
+DONE recompute Enrichment for a supplied background component
 
 -plotting function for NormRFit
--recompute Enrichment for a supplied background component
-
+-write CLI
 
 PERFORMANCE
 #############
@@ -45,9 +45,6 @@ DONE R:   a capsulated m2u structure for S4 object accessors!
 DONE C++/R: after em fit it takes a long time to end the call
        -> pvalue computation done on unique values
 
-- C++: look for places where references or pointers are possible
-
-
 STRUCTURE
 #############
 DONE rename: normalize()->enrichR(); difference->diffR();regimecall()->regimeR()
@@ -56,10 +53,6 @@ DONE R: S4 functions on DiffR (plotting, summary, print, ...)
 DONE R: labels for identified components -> NO!
 
 - READ: http://adv-r.had.co.nz/Environments.html
-- C++: adapt functions to take NormRFit-class as arguments (getEnrichment, pvals)
-- C++: flagged potential CORE module candidates with "CORE candidate" (should
-       use only C++ types)
-
 
 DEPLOYMENT
 #############
@@ -69,21 +62,17 @@ DONE write tests for NormRFit.R
 DONE write tests for methods.R  (small toy data)
 DONE fix failing tests for diffR
 DONE check correctness of getEnrichmentWithMap & getEnrichment
+DONE write vignette(enrichR(), diffR(), regimeR() with IGVshots on minimal data)
+DONE update README
 
--write exec scripts for commandline usage
--write vignette (normalization, diff-calling seperately on minimal test set or
- public data)
--update README
--update dates & LICENSE HEADER in sourcefiles
--R CMD build & R CMD install & R CMD check & R CMD biocCheck
--make release on github
-
+- add NormRFit-class::plot() to vignette
+- add CLI to vignette
+- update dates & LICENSE HEADER in sourcefiles
+- make release on github
 
 
 ADDITIONAL
 #############
--rational binomial modeling
--attach PeakHunter routine
 - READ: Question: Why does code in mclapply not allow for parallel execution?
   http://wrathematics.github.io/RparallelGuide/
   http://stats.blogoverflow.com/2011/08/using-openmp-ized-c-code-with-r/
