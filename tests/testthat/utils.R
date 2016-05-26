@@ -52,7 +52,7 @@ RnormR <- function(s, r, nmodels=2, eps=1e-5){
   N <- length(idx); n <- s + r
   mixtures <- runif(nmodels)
   thetastar <- sum(s[idx]) / sum(n[idx])
-  theta <- rep(thetastar, nmodels) + runif(nmodels, 0, .1) # q*
+  theta <- rep(thetastar, nmodels) - runif(nmodels, 0, (thetastar - eps)) # q*
   theta <- sort(theta)
   #helper functions
   logRowSum <- function(x) {
