@@ -673,7 +673,7 @@ IntegerVector filterIdx(const List& m2u, const double theta,
 List normr_core(const IntegerVector& r, const IntegerVector& s,
     const int models=2, const double eps=1e-5, const int iterations=5,
     const int bgIdx=0, const bool diffCall=false, const bool verbose=false,
-    const int nthreads=1, const String binFilter="zero") {
+    const int nthreads=1, const String binFilter="zeroSum") {
   if (models < 2) {
       stop("Error: need at least 2 models (i.e. background and foreground)");
   }
