@@ -429,7 +429,7 @@ setMethod("exportR", signature=c("NormRFit", "character"),
     filename <- path.expand(filename)
     if (is.null(getRanges(obj)))
       stop("no ranges set in obj. Please set via 'obj@ranges <- ranges'")
-    if (fdr < 0 | fdr > 1) stop("invalid fdr specified (0<=fdr<=1)")
+    if (!is.na(fdr) || fdr < 0 | fdr > 1) stop("invalid fdr specified (0<=fdr<=1)")
     if (is.na(typ)) {
       ext <- tools::file_ext(filename)
       if (ext == "bed") typ <- "bed"
