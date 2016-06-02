@@ -56,6 +56,11 @@ exportR(obj      = de,
         type     = "bigWig")
 ```
 
+* give credit if you benefit
+```{r}
+citation("normr")
+```
+
 
 # Introduction to normR
 
