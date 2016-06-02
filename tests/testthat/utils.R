@@ -48,7 +48,7 @@ applyMap <- function(v, map) {
 ###
 #the workhorse implemented in R
 RnormR <- function(s, r, nmodels=2, eps=1e-5){
-  idx <- which(s > 0 & r > 0)
+  idx <- which((s + r) > 0)
   N <- length(idx); n <- s + r
   mixtures <- runif(nmodels)
   thetastar <- sum(s[idx]) / sum(n[idx])
