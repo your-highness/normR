@@ -30,7 +30,9 @@ DONE integrate bamsignals 1.4 features (tlenFilter, flagFilter)
 DONE diffR() should report intersect of label switched inputs
 DONE recompute Enrichment for a supplied background component
 
+-summary() - plot percentage for significance, plot per regime
 -plotting function for NormRFit
+-reChIP analysis routine
 -write CLI
 
 PERFORMANCE
@@ -68,6 +70,7 @@ DONE update README
 - add NormRFit-class::plot() to vignette
 - add CLI to vignette
 - update dates & LICENSE HEADER in sourcefiles
+- add citation for bioc
 - make release on github
 
 
