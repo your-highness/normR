@@ -474,7 +474,7 @@ setMethod("exportR", signature=c("NormRFit", "character"),
         gr$col <- getColRamp(color)[as.integer(gr$score/250)+1]
 
       } else if (obj@type == "diffR") {
-        if (is.na(color)) color <- c("darkred", "darkblue")
+        if (is.na(color)) color <- c("darkblue", "darkred")
         if (length(color) != 2) {
           stop("invalid color argument for type 'diffR' (length!=2)")
         }
