@@ -1,0 +1,4 @@
+@HD	VN:1.0	SO:coordinate
+@SQ	SN:chr1	LN:249250621
+@SQ	SN:chr2	LN:249250621
+@PG	ID:bowtie2	PN:bowtie2	VN:2.1.0
