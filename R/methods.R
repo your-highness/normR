@@ -33,6 +33,16 @@
 #' a standardized enrichment for each bin is calculated based on the fitted
 #' background component.
 #'
+#' \code{enrichR}: Enrichment calling between \code{treatment} (ChIP-seq) and
+#' \code{control} (Input) for either two given read count vectors and an
+#' optional \link{GenomicRanges} object that defines the original regions
+#' ('integer,integer,GenomicRangesOrNULL'), two given bam filepaths and a
+#' genome \code{data.frame} defining chromosomes which will be binned according
+#' to 'countConfig' ('character,character,data.frame') or two given bam
+#' filepaths and a genome \code{character} specifying a UCSC genome identifier
+#' (e.g. "hg19") that is used for retrieval of chromosome annotation which will
+#' be binned according to 'countConfig' ('character,character,character').
+#'
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
 #' @param treatment A \link{integer} vector of treatment counts or a
@@ -173,22 +183,11 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
   return(list(counts=counts, gr=gr))
 }
 
-#' \code{enrichR}: Enrichment calling between \code{treatment} (ChIP-seq) and
-#' \code{control} (Input) for either two given read count vectors and an
-#' optional \link{GenomicRanges} object that defines the original regions
-#' ('integer,integer,GenomicRangesOrNULL'), two given bam filepaths and a
-#' genome \code{data.frame} defining chromosomes which will be binned according
-#' to 'countConfig' ('character,character,data.frame') or two given bam
-#' filepaths and a genome \code{character} specifying a UCSC genome identifier
-#' (e.g. "hg19") that is used for retrieval of chromosome annotation which will
-#' be binned according to 'countConfig' ('character,character,character').
-#' @aliases enrichR
-#' @aliases enrichmentCall
-#' @rdname normr
-#' @export
 setGeneric("enrichR", function(treatment, control, genome, ...)
   standardGeneric("enrichR"))
-#' @rdname enrichr
+#'  Fit a two component binomial mixture model to call
+#' enrichment.
+#'
 #' @export
 setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
   function(treatment, control, genome, eps=1e-5, iterations=10,

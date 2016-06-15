@@ -4,6 +4,7 @@
 \name{NormRFit-class}
 \alias{NormRFit}
 \alias{NormRFit-class}
+\alias{NormRfit}
 \alias{exportR}
 \alias{exportR,NormRFit,character-method}
 \alias{getClasses}
@@ -20,181 +21,241 @@
 \alias{getQvalues,NormRFit-method}
 \alias{getRanges}
 \alias{getRanges,NormRFit-method}
-\alias{length}
 \alias{length,NormRFit-method}
+\alias{normRFit}
+\alias{normrfit}
+\alias{plot,NormRFit,missing-method}
+\alias{plot.NormRFit}
+\alias{print,NormRFit-method}
+\alias{show,NormRFit-method}
 \alias{summary,NormRFit-method}
-\title{Container for a NormR fit}
+\title{Container for a fit done with normR}
 \usage{
+\S4method{exportR}{NormRFit,character}(x, filename, fdr = 0.01, color = NA,
+  type = c(NA, "bed", "bedGraph", "bigWig"))
+
+\S4method{plot}{NormRFit,missing}(x, y, ...)
+
+\S4method{getCounts}{NormRFit}(x)
+
+\S4method{getRanges}{NormRFit}(x, fdr = NA, k = NULL)
+
+\S4method{getPosteriors}{NormRFit}(x)
+
+\S4method{getEnrichment}{NormRFit}(x, B = NA, procs = 1)
+
+\S4method{getPvalues}{NormRFit}(x, filtered = F)
+
+\S4method{getQvalues}{NormRFit}(x)
+
+\S4method{getClasses}{NormRFit}(x, fdr = NA)
+
 \S4method{length}{NormRFit}(x)
 
+\S4method{print}{NormRFit}(x, digits = max(3L, getOption("digits") - 3L), ...)
+
+\S4method{show}{NormRFit}(object)
+
 \S4method{summary}{NormRFit}(object, print = T, digits = 3, ...)
-
-\S4method{getCounts}{NormRFit}(obj)
-
-\S4method{getPosteriors}{NormRFit}(obj)
-
-\S4method{getEnrichment}{NormRFit}(obj, B = NA, procs = 1)
-
-\S4method{getPvalues}{NormRFit}(obj, filtered = F)
-
-\S4method{getQvalues}{NormRFit}(obj)
-
-\S4method{getClasses}{NormRFit}(obj, fdr = NA)
-
-\S4method{getRanges}{NormRFit}(obj, fdr = NA, k = NULL)
-
-\S4method{exportR}{NormRFit,character}(obj, filename, fdr = 0.01,
-  color = NA, type = c(NA, "bed", "bedGraph", "bigWig"))
 }
 \arguments{
-\item{object}{A NormRFit object}
+\item{x}{A \code{NormRFit} object.}
 
-\item{print}{\code{logical()} indicating if summary should be print to screen}
+\item{filename}{A \code{character} specifying the file to write to.}
+
+\item{fdr}{\code{NA} or a \code{numeric} between \code{0} and \code{1}
+specifying a FDR-level. Only regions with a q-value smaller than \code{fdr}
+will be returned. If set to \code{NA}, all regions analyzed will be
+returned (\code{\link{getRanges}}), classes are assigned by Maximum A
+Posteriori (\code{\link{exportR}}).}
+
+\item{color}{Specified color(s) when printing a bed file. If \code{x@type ==
+"enrichR"}, \code{color} should of length 1 and color shading will be done
+on this color. If \code{x@type == "diffR"}, \code{color} should be of length
+2 giving, firstly, the color for \code{control} and, secondly, the color for
+\code{treatment}. If \code{x@type == "regimeR"}, \code{color} should be of
+length \code{x@k-1}, specifying a color for each enrichment component. Per
+default an appropriate color palette is used.}
+
+\item{type}{A \code{character} specifying the filetype for exporting
+results. If \code{NA}, format is guessed from \code{filename}'s extension.}
+
+\item{k}{\code{NULL} or a \code{integer} specifying a model component for
+which regions have to be returned. If set to \code{NULL}, regions are not
+filtered on component assignments. If \code{fdr} is set and \code{k == x@B},
+the function stops.}
+
+\item{B}{An \code{integer} specifying the index of a mixture component. The
+enrichment is calculated relative to this component used as a background
+component. If \code{<NA>} (default), the background is determined by normR.}
+
+\item{procs}{An \code{integer} specifying the number of threads to use.}
+
+\item{filtered}{A \code{logical} specifying if T-filtered or all
+(default) P-values should be returned.}
 
 \item{digits}{Number of digits to show in number formatting.}
 
-\item{...}{Not used}
+\item{object}{A \code{NormRCountConfig} object.}
 
-\item{obj}{A NormRFit object.}
-
-\item{B}{The index of the background component.}
-
-\item{procs}{Number of threads.}
-
-\item{fdr}{The q-value threshold for calling a region significant. If
-\code{NA}, no filtering is done on q-values but regions are reported by
-Maximum A Posteriori.}
-
-\item{filename}{File to write results to.}
-
-\item{color}{Specified color(s) for printing a ped file. If obj is of type
-"enrichR", this argument should of length 1 #' and bed color shading will be
-done on this color. If \code{obj} is of type
-"diffR", this argument should be of length2}
-
-\item{type}{Type of file used for exporting results. If <NA>, format is
-guessed from \code{filename}'s extension.}
-
-\item{i}{\code{integer()}-index for subsetting.}
-
-\item{B}{Index of component to compute the enrichment to. If \code{<NA>}, the
-background is determined by normR.(DEFAULT NA)}
+\item{print}{\code{logical()} indicating if summary should be print to screen}
 }
 \value{
-return values are described in the methods section.
+getCounts: A \code{list} of length 2 with \code{integer} for control
+and treatment each.
+
+getRanges: A \code{GenomicRanges} object.
+
+getPosteriors: A \code{matrix} of posteriors for \code{x@k} mixture
+components
+
+getEnrichment: A \code{numeric} of length \code{length(x@n)} giving
+the normR computed enrichment.
+
+getPvalues: A \code{numeric} of length \code{length(x@n)} giving
+the normR computed Pvalues.
+
+getQvalues: A \code{numeric} of length \code{length(x@filteredT)}
+giving the FDR-corrected q-values using Storey's method.
+
+getClasses: A \code{integer} specifying assignments of regions to
+the mixture model. If \code{x@type == "enrichR"}, it contains \code{1} for
+enriched regions and \code{NA} for non-enriched regions. If \code{x@type ==
+"diffR"}, it contains \code{1} for control-enriched regions, \code{2} for
+treatment-enriched regions and \code{NA} for non-enriched regions. If
+\code{x@type == "regimeR"}, it contains \code{>= 1} for regime-enriched
+regions and \code{NA} for non-enriched regions.
 }
 \description{
-This S4 class wraps a NormR fit containing counts, fit configuration and
-results of the fit.
+This S4class wraps a normR fit containing counts, fit configuration and
+results of the fit. Herein, functions for printing, summarization and
+accessing are provided. It is recommended to only use functions to access
+contents of this object. Internally, the class holds a map structure of
+unique elements to reduce memory requirements.
 }
 \details{
-This class provides printing, summary and accessor methods for retrieving
-data from the object. Internally this class uses a map structure which saves
-memory, such that accessing data through \code{slot()} gives undesired
-output. Please use accessor methods. A NormRFit object is read-only, i.e. it
-can not be modified.
+The functions \code{link{enrichR}}, \code{\link{diffR}} and
+\code{\link{regimeR}} generate a container of this class to save results of
+a normR binomial mixture fitting. Please refer to their documentation for
+conventional usage of the normR package.
 }
 \section{Methods (by generic)}{
 \itemize{
-\item \code{length}: Number of regions analyzed.
+\item \code{exportR}: Export results of a normR fit to common file formats.
 
-\item \code{summary}: Prints a summary of the NormRFit object.
+\item \code{plot}: Plot a NormRFit.
 
-\item \code{getCounts}: Retrieve read count data.
+\item \code{getCounts}: Get count data for control and treatment.
 
-\item \code{getPosteriors}: Retrieve computed posteriors.
+\item \code{getRanges}: Get the genomic coordinates of regions analyzed with
+information about component assignment.
 
-\item \code{getEnrichment}: Retrieve NormR calculated enrichment.
+\item \code{getPosteriors}: Get computed posteriors for each mixture component.
 
-\item \code{getPvalues}: Retrieve computed P-values.
+\item \code{getEnrichment}: Get normalized enrichment.
 
-\item \code{getQvalues}: Retrieve computed Q-values. See Bioconductor package
-\link{qvalue}.
+\item \code{getPvalues}: Get normR-computed P-values.
 
-\item \code{getClasses}: Retrieve classes for each bin, i.e. enriched vs
-non-enriched (enrichR), differential enrichment (diffR) and enrichment
-regimes (regimeR).
+\item \code{getQvalues}: Get FDR-corrected q-values.
 
-\item \code{getRanges}: Retrieve read count data.
+\item \code{getClasses}: Get component assignments for each region analyzed.
 
-\item \code{exportR}: Export results of a \link{NormRFit} to either bed,
-bedGraph or bigWig.
+\item \code{length}: Returns the number of regions analyzed.
+
+\item \code{print}: Prints a small summary on a NormRFit.
+
+\item \code{show}: Shows a small summary on a NormRFit.
+
+\item \code{summary}: Prints a concise summary of a NormRFit.
 }}
 \section{Slots}{
 
 \describe{
-\item{\code{type}}{A \code{character()} representing the type of fit ("enrichR",
-"diffR", "regimeR")}
+\item{\code{type}}{A \code{character} representing the type of fit. One of
+\code{c("enrichR","diffR", "regimeR")}.}
 
-\item{\code{n}}{Number of regions analyzed in total.}
+\item{\code{n}}{An \code{integer} specifying the number of regions.}
 
-\item{\code{ranges}}{A \code{GenomicRanges}-object specifying the analysed regions.}
+\item{\code{ranges}}{A \code{GenomicRanges} specifying the genomic coordinates of the
+regions.}
 
-\item{\code{k}}{An \code{integer()} giving the number of binomial mixture
-components to be fit to the data.}
+\item{\code{k}}{An \code{integer} giving the number of binomial mixture components.}
 
-\item{\code{B}}{The index of the background component.}
+\item{\code{B}}{An \code{integer} specifying the index of the background component.}
 
-\item{\code{map}}{A \code{integer}-vector to map back \code{counts},
-\code{lnposteriors}, \code{lnenrichment}, \code{lnpvals} and \code{lnqvals}.
-See also \code{map2uniquePairs()} for map generation.}
+\item{\code{map}}{A vector of \code{integer} holding a map to map back \code{counts},
+\code{lnposteriors}, \code{lnenrichment}, \code{lnpvals}, \code{lnqvals} and
+\code{classes}. See low level function \code{normr:::map2uniquePairs} for
+how the map is generated.}
 
-\item{\code{counts}}{A \code{list()} of length 2 containing unique count pairs. Use
-accessor \code{\link{getCounts}} to retrieve original count matrix.}
+\item{\code{counts}}{A \code{list} of length two containing a vector of
+\code{integer} holding unique counts for control and treatment each. Use
+\code{\link{getCounts}} to retrieve original count matrix.}
 
-\item{\code{amount}}{A \code{integer()} specifying the number of occurences of each
-count pair}
+\item{\code{amount}}{A vector of \code{integer} specifying the number of occurences
+of each unique control / treatment count pair.}
 
-\item{\code{names}}{The corresponding names for counts.}
+\item{\code{names}}{A \code{character} of length two specifying the names for control
+and treatment.}
 
-\item{\code{thetaStar}}{A \code{numeric()} representing a naive background
-estimation, i.e. \code{sum(getCounts(obj)[2,])/sum(getCounts(obj))}}
+\item{\code{thetaStar}}{A \code{numeric} giving the calculated naive background
+estimation, \emph{i.e.} \code{sum(getCounts(obj)[2,])/sum(getCounts(obj))}}
 
-\item{\code{theta}}{A \code{k}-length \code{numeric()}-vector representing
-NormR-fitted parametrization of binomial mixture components.}
+\item{\code{theta}}{A \code{numeric} of length \code{k} giving the normR fitted
+parametrization of \code{k} binomial mixture components.}
 
-\item{\code{mixtures}}{A \code{k}-length \code{numeric()}-vector representing
-NormR-fitted mixture proportions of binomial mixture
-components.}
+\item{\code{mixtures}}{A \code{numeric} of length \code{k} giving the normR fitted
+mixture proportions of \code{k} binomial mixture components. Should add up to
+one.}
 
-\item{\code{lnL}}{A \code{numeric()}-vector representing the log-likelihood-trace of
-the NormR model fit.}
+\item{\code{lnL}}{A vector of \code{numeric} holding the log-likelihood-trace of
+a normR model fit.}
 
-\item{\code{eps}}{A \code{numeric{}} representing preset threshold for NormR fit
-convergence.}
+\item{\code{eps}}{A \code{numeric} used as threshold for normR fit EM convergence.}
 
-\item{\code{lnposteriors}}{A \code{k}-dimensional \code{matrix()} containing ln
-posterior probabilities for every unique \code{n} 2-tupel in counts given
-each \code{theta} and \code{mixtures}. Use accessor
-\code{getPosteriors()} to get the complete posterior matrix.}
+\item{\code{lnposteriors}}{A \code{matrix} with \code{length(amount)} rows and
+\code{k} columns. It contains the ln posterior probabilities for each unique
+control / treatment count pair. Use \code{\link{getPosteriors}} to get the
+posterior matrix for the original data.}
 
-\item{\code{lnenrichment}}{A \code{numeric()}-vector of normalized ln enrichment over
-component \code{B} for each unique count-tupel. Use accessor
-\code{\link{getEnrichment}} to retrieve enrichment for original count sequence.}
+\item{\code{lnenrichment}}{A \code{numeric} of length \code{length(amount)} holding
+calculared normalized enrichment for each unique control / treatment count
+pair. The enrichment is calculated with respect to the fitted component
+\code{B}. Use \code{\link{getEnrichment}} to retrieve enrichment for the
+original data.}
 
-\item{\code{lnpvals}}{A \code{numeric()}-vector containing ln P-values every unique
-2-tupel in counts given \code{theta} of \code{B}.}
+\item{\code{lnpvals}}{A \code{numeric} of length \code{length(amount)} holding ln
+P-values for each unique control / treatment count pair. Given
+\code{theta} of \code{B} the signifcane of enrichment is assigned. Use
+\code{\link{getPvalues}} to retrieve Pvalues for original data.}
 
-\item{\code{filteredT}}{A \code{integer()}-vector giving indices of P-values to be
-considered for FDR correction. These indices have been obtainted by filtering
-P-values using the T method.}
+\item{\code{thresholdT}}{An \code{integer} giving the threshold used to filter
+P-values for FDR correction. The T-Filter threshold is a calculated
+population size for which the null hypothesis (\code{theta} of \code{B}) can
+be rejected. \code{eps} specifies the significance level.}
 
-\item{\code{thresholdT}}{The threshold for filtering regions based on the sum of
-counts in treatment and control.}
+\item{\code{filteredT}}{A vector of \code{integer} giving indices of P-values
+passing \code{thresholdT}. Only these P-values will be considered for FDR
+correction.}
 
-\item{\code{lnqvals}}{A \code{numeric()}-vector containing ln q-values. These are
-P-values corrected for multiple testing using Storey's method.}
+\item{\code{lnqvals}}{A \code{numeric} of length \code{length(filteredT)} holding
+ln q-values (FDR correction). P-values are corrected for multiple testing
+using Storey's method.}
 
-\item{\code{classes}}{A \code{integer()}-vector giving class assignments based on
-model fit. For \code{obj@type == "enrichR"}, this vector contains either
-\code{NA} (not enriched) or \code{1} (enriched). For \code{obj@type ==
-"diffR"}, this vector contains \code{NA} (unchanged), \code{1} (differential
-in ChIP-seq 1) and \code{2} (differential in ChIP-seq 2). For
-\code{obj@type == "regimeR"}, this vector contains \code{NA} (not enriched)
-and an arbitary number of enrichment class \code{>= 1}.}
+\item{\code{classes}}{A \code{integer} of length \code{length(amount)} specifying
+the class assignments for each unique control / treatment count pair. These
+class assignments are based on the normR model fit. For \code{type ==
+"enrichR"}, this vector contains either \code{NA} (not enriched) or \code{1}
+(enriched). For \code{type == "diffR"}, this vector contains \code{NA}
+(unchanged), \code{1} (differential in ChIP-seq 1) and \code{2}
+(differential in ChIP-seq 2). For \code{type == "regimeR"}, this vector
+contains \code{NA} (not enriched) and an arbitary number of enrichment class
+\code{>= 1}.}
 }}
+\examples{
+
+}
 \seealso{
-\code{\link{normr-methods}} for the functions that produce
-this object
+\link{normr} for function creating this container
 }
 
