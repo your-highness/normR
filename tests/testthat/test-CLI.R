@@ -1,5 +1,4 @@
-context("command line interface")
-
+context("Command Line Interface Usage")
 source("utils.R")
 
 test_that("generating CLI executable works", {
