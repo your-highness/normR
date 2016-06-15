@@ -9,7 +9,6 @@
 \alias{diffR,character,character,character-method}
 \alias{diffR,character,character,data.frame-method}
 \alias{diffR,integer,integer,GenomicRanges-method}
-\alias{enrichR}
 \alias{normR,}
 \alias{normr}
 \alias{normr-package}
@@ -20,8 +19,6 @@
 \alias{regimeR,integer,integer,GenomicRanges,numeric-method}
 \title{Enrichment, Difference and Regime Calling in ChIP-seq data.}
 \usage{
-enrichR(treatment, control, genome, ...)
-
 \S4method{diffR}{integer,integer,GenomicRanges}(treatment, control, genome,
   eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
 
@@ -98,16 +95,6 @@ A binomial mixture model with a given number of components is fit and used
 for identifying enriched or depleted regions in two given data tracks.
 Log-space multinomial model is fit by Expectation maximization in C++.
 
-\code{enrichR}: Enrichment calling between \code{treatment} (ChIP-seq) and
-\code{control} (Input) for either two given read count vectors and an
-optional \link{GenomicRanges} object that defines the original regions
-('integer,integer,GenomicRangesOrNULL'), two given bam filepaths and a
-genome \code{data.frame} defining chromosomes which will be binned according
-to 'countConfig' ('character,character,data.frame') or two given bam
-filepaths and a genome \code{character} specifying a UCSC genome identifier
-(e.g. "hg19") that is used for retrieval of chromosome annotation which will
-be binned according to 'countConfig' ('character,character,character').
-
 \code{regimeR}: Enrichment regime calling between \code{treatment}
 (ChIP-seq 1) and \code{control} (ChIP-seq 2) with with \code{models} number
 of models for either two given read count vectors and an optional
@@ -129,6 +116,16 @@ the minimum change in model loglikelihood. After the model is fit, every bin
 is tested for significance against the fitted background component. Moreover,
 a standardized enrichment for each bin is calculated based on the fitted
 background component.
+
+\code{enrichR}: Enrichment calling between \code{treatment} (ChIP-seq) and
+\code{control} (Input) for either two given read count vectors and an
+optional \link{GenomicRanges} object that defines the original regions
+('integer,integer,GenomicRangesOrNULL'), two given bam filepaths and a
+genome \code{data.frame} defining chromosomes which will be binned according
+to 'countConfig' ('character,character,data.frame') or two given bam
+filepaths and a genome \code{character} specifying a UCSC genome identifier
+(e.g. "hg19") that is used for retrieval of chromosome annotation which will
+be binned according to 'countConfig' ('character,character,character').
 }
 \examples{
 require(GenomicRanges)

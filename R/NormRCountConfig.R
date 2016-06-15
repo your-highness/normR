@@ -15,33 +15,37 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 setClassUnion("integerOrNULL", c("integer", "NULL"))
 
-#' Container for configuration of read counting with bamsignals
+#' Container for configuration of read counting with bamsignals in normR
 #'
 #' This S4 class is a small wrapper for a configuration on obtaining counts
-#' from bamfiles with \code{\link[bamsignals]{bamsignals::bamProfile()}}.
+#' from bamfiles with \code{\link[bamsignals]{bamProfile}}. Herein, two
+#' functions provide help for creating an instance of this class:
+#' \code{\link{countConfigSingleEnd}} creates a configuration for single
+#' end reads; and \code{\link{countConfigPairedEnd}} creates a configuration for
+#' paired end reads.
 #'
-#' @slot type A \code{character()} of value \code{paired.end} or
+#' @slot type A \code{character} of value \code{paired.end} or
 #' \code{single.end}.
-#' @slot binsize An \code{integer()} specifying the binsize in bp.
-#' @slot mapq An \code{integer()} specifying the minimal mapping quality for a
+#' @slot binsize An \code{integer} specifying the binsize in bp.
+#' @slot mapq An \code{integer} specifying the minimal mapping quality for a
 #' read to be counted.
-#' @slot filteredFlag An \code{integer()} to filter for in the SAMFLAG field.
+#' @slot filteredFlag An \code{integer} to filter for in the SAMFLAG field.
 #' For example, 1024 filters out marked duplicates (default). Refer to
 #' \url{https://broadinstitute.github.io/picard/explain-flags.html} for details.
-#' @slot shift An \code{integer()} specifing a shift of the read counting 
+#' @slot shift An \code{integer} specifing a shift of the read counting
 #' position in 3'-direction. This can be handy in the analysis of chip-seq data.
-#' @slot midpoint Paired End data only: A \code{logical()} indicating whether
+#' @slot midpoint Paired End data only: A \code{logical} indicating whether
 #' fragment midpoints instead of 5'-ends should be counted.
-#' @slot tlenFilter An \code{integer()} of length two specifying the lower and
-#' upper length bound for a fragment to be considered. The fragment length as 
-#' estimated from alignment in paired end experiments and written into the TLEN
-#' column.
+#' @slot tlenFilter Paired End data only: An \code{integer} of length two 
+#' specifying the lower and upper length bound for a fragment to be considered. 
+#' The fragment length as estimated from alignment in paired end experiments and
+#' written into the TLEN column.
 #'
 #' @aliases NormRCountConfig BamsignalsConfig BamsignalsCountConfig
 #' @seealso \link{normr} for functions that use this object.
 #'
 #' @example inst/examples/NormRCountConfig_example.R
-#' 
+#'
 #' @include methods.R
 #' @export
 setClass("NormRCountConfig",
@@ -73,52 +77,9 @@ setValidity("NormRCountConfig",
     }
 )
 
-#' @describeIn NormRCountConfig Prints a given BamCounConfig
-#'
-#' @param x A \code{NormRCountConfig} object.
-#' 
-#' @export
-setMethod("print", "NormRCountConfig",
-    function(x) {
-      cat("NormRCountConfig-class object\n\n",
-          "Type:\t\t\t", x@type, "\n",
-          "Binsize:\t\t", x@binsize, " bp\n",
-          "Minimal MAPQ:\t\t", x@mapq, "\n",
-          "Filtered SAMFLAG:\t", x@filteredFlag, "\n",
-          "Shift of anchor:\t", x@shift, " bp \n")
-      if (x@type == "paired.end") {
-        cat("\nPaired End Options: \n",
-            "\tMidpoint counting:\t", x@midpoint, "\n",
-            "\tMinimal Fragmentlength:\t", x@tlenFilter[1], "\n",
-            "\tMaximal Fragmentlength:\t", x@tlenFilter[2], "\n"
-            )
-      }
-      invisible(x)
-    }
-)
-#' @describeIn NormRCountConfig Shows a given BamCounConfig
-#'
-#' @param object A \code{NormRCountConfig} object.
-#' 
-#' @export
-setMethod("show", "NormRCountConfig", function(object) print(object))
-
-#' @export
-setGeneric("getFilter", function(x) standardGeneric("getFilter"))
-#' @describeIn NormRCountConfig Get the filter compliant to
-#' \code{\link[bamsignals]{bamsignals::bamProfile()}}
-#' @export
-setMethod("getFilter", "NormRCountConfig",
-    function(x) {
-      if (x@type == "single.end") return("ignore")
-      if (x@type == "paired.end" & !x@midpoint) return("filter")
-      if (x@type == "paired.end" & x@midpoint) return("midpoint")
-    }
-)
-
 setGeneric("countConfigSingleEnd", function(...)
   standardGeneric("countConfigSingleEnd"))
-#' @describeIn NormRCountConfig Setup a Single End counting configuration
+#' @describeIn NormRCountConfig Setup single end count configuration
 #'
 #' @param binsize An \code{integer()} specifying the binsize in bp.
 #' @param mapq An \code{integer()} specifying the minimal mapping quality for a
@@ -126,28 +87,32 @@ setGeneric("countConfigSingleEnd", function(...)
 #' @param filteredFlag An \code{integer()} to filter for in the SAMFLAG field.
 #' For example, 1024 filters out marked duplicates (default). Refer to
 #' \url{https://broadinstitute.github.io/picard/explain-flags.html} for details.
-#' @param shift An \code{integer()} specifing a shift of the read counting 
+#' @param shift An \code{integer()} specifing a shift of the read counting
 #' position in 3'-direction. This can be handy in the analysis of chip-seq data.
+#'
+#' @aliases countConfigSingleEnd configSingleEnd
 #'
 #' @export
 setMethod("countConfigSingleEnd",
   definition=function(binsize=250L, mapq=20L, filteredFlag=1024L, shift=0L) {
     new("NormRCountConfig", type="single.end", binsize=as.integer(binsize),
         mapq=as.integer(mapq), filteredFlag=as.integer(filteredFlag),
-        shift=as.integer(shift), tlenFilter=NULL) 
+        shift=as.integer(shift), tlenFilter=NULL)
 })
 
 setGeneric("countConfigPairedEnd", function(...)
   standardGeneric("countConfigPairedEnd"))
-#' @describeIn NormRCountConfig Setup a Paired End counting configuration
-#' 
+#' @describeIn NormRCountConfig Setup paired end count configuration
+#'
 #' @param midpoint Paired End data only: A \code{logical()} indicating whether
 #' fragment midpoints instead of 5'-ends should be counted.
 #' @param tlenFilter An \code{integer()} of length two specifying the lower and
-#' upper length bound for a fragment to be considered. The fragment length as 
+#' upper length bound for a fragment to be considered. The fragment length as
 #' estimated from alignment in paired end experiments and written into the TLEN
 #' column.
-#' 
+#'
+#' @aliases countConfigPairedEnd configPairedEnd
+#'
 #' @export
 setMethod("countConfigPairedEnd",
   definition=function(binsize=250L, mapq=20L, filteredFlag=1024L, shift=0L,
@@ -157,3 +122,48 @@ setMethod("countConfigPairedEnd",
         shift=as.integer(shift), midpoint=as.logical(midpoint),
         tlenFilter=as.integer(tlenFilter))
 })
+
+setGeneric("getFilter", function(x) standardGeneric("getFilter"))
+#' @describeIn NormRCountConfig Get the filter compliant to
+#' \code{\link[bamsignals]{bamProfile}}
+#'
+#' @aliases getFilter getBamsignalsFilter getNormRCountConfigFilter
+#'
+#' @export
+setMethod("getFilter", "NormRCountConfig",
+    function(x) {
+      if (x@type == "single.end") return("ignore")
+      if (x@type == "paired.end" & !x@midpoint) return("filter")
+      if (x@type == "paired.end" & x@midpoint) return("midpoint")
+    }
+)
+
+#' @describeIn NormRCountConfig Prints a given BamCounConfig
+#'
+#' @param x A \code{NormRCountConfig} object.
+#'
+#' @export
+setMethod("print", "NormRCountConfig", function(x, ...) {
+      cat("NormRCountConfig-class object\n\n",
+          "Type:\t\t\t", x@type, "\n",
+          "Binsize:\t\t", x@binsize, "bp\n",
+          "Minimum MAPQ:\t\t", x@mapq, "\n",
+          "Filtered SAMFLAG:\t", x@filteredFlag, "\n",
+          "Shift of anchor:\t", x@shift, "bp \n")
+      if (x@type == "paired.end") {
+        cat("\nPaired End Options: \n",
+            "\tMidpoint counting:\t", x@midpoint, "\n",
+            "\tMinimal Fragmentlength:\t", x@tlenFilter[1], "bp\n",
+            "\tMaximal Fragmentlength:\t", x@tlenFilter[2], "bp\n"
+            )
+      }
+      invisible(x)
+    }
+)
+
+#' @describeIn NormRCountConfig Shows a given BamCounConfig
+#'
+#' @param object A \code{NormRCountConfig} object.
+#'
+#' @export
+setMethod("show", "NormRCountConfig", function(object) print(object))
