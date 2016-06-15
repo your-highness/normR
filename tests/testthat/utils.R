@@ -74,7 +74,8 @@ RnormR <- function(s, r, nmodels=2, eps=1e-5){
     posteriors <- exp(likelihood - lnZ)
     mixtures <- colSums(posteriors, na.rm=TRUE)
     mixtures <- mixtures / sum(mixtures)
-    theta <- colSums( posteriors * s[idx], na.rm=T) / colSums( posteriors * n[idx], na.rm=T)
+    theta <- colSums( posteriors * s[idx], na.rm=T) / 
+               colSums( posteriors * n[idx], na.rm=T)
     o <- order(theta)
     theta <- theta[o]
     mixtures <- mixtures[o]
@@ -92,7 +93,8 @@ RnormR <- function(s, r, nmodels=2, eps=1e-5){
   lnZ <- logRowSum(likelihood)
   posteriors <- exp(likelihood - lnZ)
   list(control=r, treatment=s, idx=idx, thetastar=thetastar, theta=theta,
-       mixtures=mixtures, lnL=log(sum(exp(lnZ))), eps=eps, posteriors=posteriors)
+       mixtures=mixtures, lnL=log(sum(exp(lnZ))), eps=eps,
+       posteriors=posteriors)
 }
 
 ###
