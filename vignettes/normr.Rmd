@@ -34,7 +34,7 @@ de <- diffR(treatment = "ChIP1.bam",
             genome    = "hg19")
 ```
 
-* `regimeR()` calls `k` enrichment regimes a ChIP-seq experiment over control
+* `regimeR()` calls `k` enrichment regimes in a ChIP-seq experiment over control
 ```{r eval=FALSE}
 re <- regimeR(treatment = "ChIP.bam",
               control   = "Control.bam",
@@ -87,17 +87,17 @@ steps:
 
 1. Count reads in fixed-size windows along the genome;
 2. Fit a binomial mixture model by Expectation Maximization;
-3. Assign each window a significance based on the fitted background component
+3. Assign each window a significance based on the fitted background component.
 
-This vignette explains a common workflow of normrR analysis on NGS data for
+This vignette explains a common workflow of normR analysis on NGS data for
 calling enrichment, identification of differential ChIP-seq enrichment and
-stratification of enrichment regimes. Herein, we provide examples for the export of
-results to common data formats like bigWig and bed. We show how analysis
+stratification of enrichment regimes. Herein, we provide examples for the export
+of results to common data formats like bigWig and bed. We show how analysis
 statistics and diagnostic plots are helpful for studying results. In a latter
 section, we cover more advanced topics including the alteration of read counting
-strategies, the application of normR on user-defined regions (*e.g.*
-promoters) and the integration of Copy Number Variation information in
-differential ChIP-seq enrichment calls.
+strategies, the application of normR on user-defined regions (*e.g.* promoters)
+and the integration of Copy Number Variation information in differential
+ChIP-seq enrichment calls.
 
 
 # Toy Examples
@@ -111,7 +111,7 @@ enrichment) given an Input-seq control alignment originating from a human
 immortalized myelogenous leukemia line (K562). Using normR, we show that our
 representative region on human chromsome 1 (chr1:22500000-25000000) is
 enriched for H3K4me3 mostly at promoters and precludes H3K36me3 enrichment which
-is overrepresented in intra-genic regions.
+is overrepresented in gene bodies.
 
 ![](../inst/extdata/1a.png)
 **IGV browser shot of Input (grey), H3K4me3 (green) and H3K36me3 (purple)
@@ -119,8 +119,9 @@ alignment data on chr1 22.5Mb to 25Mb with genes (black) drawn.**
 
 As part of the normR package, we provide 3 alignment files in bam format (Input,
 H3K4me3 and H3K36me3 ChIP-seq) containing reads for human chr1 22.5Mb to
-25Mb. Note, bam files need to be sorted by read coordinates (`samtools sort
-x.bam x_sorted`) and indexed (`samtools index x_sorted.bam`).
+25Mb. Note, bam files used in normR need to be sorted by read coordinates
+(`samtools sort x.bam x_sorted`) and indexed (`samtools index x_sorted.bam`).
+Our example files already fullfil this criteria.
 
 *Firstly*, we retrieve filepaths for toy data:
 
@@ -158,13 +159,16 @@ genome
 
 ```{r warning=FALSE}
 #Enrichment Calling for H3K4me3 and H3K36me3
-k4me3Fit <- enrichR(treatment = k4me3Bamfile, control = inputBamfile, genome = genome, verbose = F)
-k36me3Fit <- enrichR(treatment = k36me3Bamfile, control = inputBamfile, genome = genome, verbose = F)
+k4me3Fit <- enrichR(treatment = k4me3Bamfile, control = inputBamfile,
+                    genome = genome, verbose = F)
+k36me3Fit <- enrichR(treatment = k36me3Bamfile, control = inputBamfile,
+                     genome = genome, verbose = F)
 ```
 
-That was easy and fast! You must know that all results are stored as `NormRFit`
-objects. They provide convenient access to count data and fitting results. For
-example, let's have a look at some simple fitting statistics for H3K4me3:
+That was easy and fast! You must know that all results are stored as
+`NormRFit-class` objects. They provide convenient access to count data and
+fitting results. For example, let's have a look at some simple fitting
+statistics for H3K4me3:
 
 ```{r}
 k4me3Fit
@@ -176,10 +180,10 @@ number of 250bp bins along the specified genome (default binsize). The "Number
 of Components" is 2 (background and enriched) in the case of `enrichR()`. The
 parameter  $\theta^*$ ("Theta* (naive bg)") describes a naive background
 parametrization if the effect of enrichment is not taken into account. The
-actual $\theta_B$ is with $0.15$ much smaller than $\theta^*$ which allows for
+actual $\theta_B$ is with $0.09$ much smaller than $\theta^*$ which allows for
 more sensitive enrichment calling.  Furthermore, by looking at the "Mixture
-Proportions" we find H3K4me3 is enriched in 6% of the windows. For H3K36me3, we
-find 28% of the regions enriched.
+Proportions" we find H3K4me3 is enriched in 5% of the windows. For H3K36me3, we
+find 22% of the regions enriched.
 
 ```{r}
 k36me3Fit
@@ -189,24 +193,24 @@ k36me3Fit
 
 We can use some methods provided by the `NormRFit-class` to get a grasp on the
 quality of our normR call, *e.g.* print a more concise summary that gives the
-number of significant regions under different False Discovery Rates (FDR).
+number of significant regions under different False Discovery Rates ($FDR$).
 
 ```{r}
 summary(k4me3Fit)
 ```
 
 Note, `summary()` prints an additional section containing information on the
-statistical testing. The "T-Filter threshold" defines regions that are not
-considered for multiple testing correction where the sum of counts in treatment
-and control is less than this quantity (Dialsingh *et al.*, Bioinformatics,
-2015, 1–7). The "Number of Regions filtered out" is very large in our example
-because the toy alignment files are filtered for reads within chr1 22.5Mb to
-25Mb. However, the specified genome covers chr1:0-249250621 which results in
-alot of zero counts. This does not influence the fit but for testing the regions
-are filtered. Based on computed q-vlaues, H3K4me3 shows 577 (70+389+57+61)
-regions significantly enriched for $FDR \le 0.05$. The summary for H3K36me3
-enrichment calls confirms 2332 (0+1994+170+168) regions significantly enriched
-for $FDR \le 0.05$:
+statistical testing. The "T-Filter threshold" filters out regions that are not
+considered for multiple testing correction due to low power. The sum of counts
+in treatment and control is less than this quantity (Dialsingh *et al.*,
+Bioinformatics, 2015, 1–7). The "Number of Regions filtered out" is very large
+in our example because the toy alignment files are filtered for reads within
+chr1 22.5Mb to 25Mb. However, the specified genome covers chr1:0-249250621 which
+results in alot of zero counts. This does not influence the fit but for testing
+the regions are filtered. Based on computed q-vlaues, H3K4me3 shows 380
+(49+234+41+56) regions significantly enriched for $FDR \le 0.05$. The summary
+for H3K36me3 enrichment calls confirms 1324 (0+1127+110+87) regions
+  significantly enriched for $FDR \le 0.05$:
 
 ```{r}
 summary(k36me3Fit)
@@ -228,32 +232,56 @@ If we compare H3K4me3 and H3K36me3 enrichment in non-zero regions, we can see
 some mutual exclusivity of both marks represented by off-diagonal elements):
 
 ```{r fig.width=10, fig.height=10}
-x <- getEnrichment(k4me3Fit)[idx]
+x <- k4me3Enr[idx]
 y <- getEnrichment(k36me3Fit)[idx]
 d.x <- density(x); d.y <- density(y)
 limits <- range(x,y)
 layout( matrix( c(0,2,2,1,3,3,1,3,3),ncol=3) )
-plot(d.x$x, d.x$y, xlim=limits, type='l', main="H3K36me3 normalized Enrichment", xlab="", ylab="Density")
+plot(d.x$x, d.x$y, xlim=limits, type='l',
+     main="H3K36me3 normalized Enrichment", xlab="", ylab="Density")
 abline(v=0, lty=3, lwd=2, col=4)
-plot(d.y$y, d.y$x, ylim=limits, xlim=rev(range(d.y$y)), type='l', main="H3K4me3 normalized Enrichment", xlab="Density", ylab="")
+plot(d.y$y, d.y$x, ylim=limits, xlim=rev(range(d.y$y)), type='l',
+     main="H3K4me3 normalized Enrichment", xlab="Density", ylab="")
 abline(h=0, lty=3, lwd=2, col=4)
-plot(x, y, xlim=limits, ylim=limits, col=adjustcolor("grey10", alpha.f=.2), pch=20, xlab="", ylab="")
-abline(0, 1, lty=2, lwd=3, col=2); abline(v=0, lty=3, lwd=2, col=4); abline(h=0, lty=3, lwd=2, col=4);
+color <- rep("grey10", length(idx))
+plot(x, y, xlim=limits, ylim=limits, pch=20, xlab="", ylab="",
+     col=adjustcolor(color, alpha.f=.2))
+abline(0, 1, lty=2, lwd=3, col=2)
+abline(v=0, lty=3, lwd=2, col=4)
+abline(h=0, lty=3, lwd=2, col=4)
 ```
 
 To analyze mutually exclusivity of H3K4me3 and H3K36me3, we would like to
-recover the regions signficantly enriched in `k4me3Fit` and `k36me3Fit`.
-Processing of regions within R can be facilitated by getting significantly
-enriched ($FDR \le 0.05%) regions as a `GRanges` object:
+recover the regions signficantly enriched in `k4me3Fit` and `k36me3Fit` and
+color these regions in the scatter plot above.
 
-```{r}
+```{r fig.width=10, fig.height=10}
 #integer vector with <NA> set to non-significant regions
 k4me3Classes <- getClasses(k4me3Fit, fdr = 0.05)
+k36me3Classes <- getClasses(k36me3Fit, fdr = 0.05)
+
+#Color scatter plot based on enrichment
+color[!is.na(k4me3Classes[idx])] <- "#2C9500"
+color[!is.na(k36me3Classes[idx])] <- "#990099"
+color[!is.na(k4me3Classes+k36me3Classes)[idx]] <- "#971621"
+plot(x, y, xlim=limits, ylim=limits, pch=20,
+     col=adjustcolor(color, alpha.f=.5), xlab="H3K4me3 normalized Enrichment",
+     ylab="H3K36me3 normalized Enrichment")
+legend("topright", pch=20, col=unique(color), cex=.6, bg="white",
+  legend=c("Background", "H3K36me3 enriched", "H3K4me3 enriched",
+           "H3K4me3/K36me3 enriched")
+  )
+```
+
+Processing of regions within R can be facilitated by getting significantly
+enriched ($FDR \le 0.05%$) regions as a `GRanges` object:
+
+```{r}
 k4me3Ranges <- getRanges(k4me3Fit)[!is.na(k4me3Classes)]
 #Alternatively you can extract ranges without storing the class vector
 k4me3Ranges <- getRanges(k4me3Fit, fdr = 0.05)
 
-#as expected we get 577 regions
+#as expected we get 380 regions
 length(k4me3Ranges)
 ```
 
@@ -266,7 +294,7 @@ start with H3K4me3:
 genes <- read.delim(file = system.file("extdata", "genes.bed", package="normr"),
                     header = F,
                     stringsAsFactors = F)
-library(GenomicRanges)
+library(GenomicRanges, verbose = F)
 genes <- GRanges(seqnames = genes[, 1],
                  ranges = IRanges(start = genes[, 2], end = genes[, 3]),
                  strand = genes[, 6],
@@ -295,10 +323,13 @@ overlapOdds(k4me3Ranges, promoters)
 
 It is known that promoters are marked by H3K4me3 if their gene's expression is
 initiated. Our analysis above shows that H3K4me3-enriched regions are indeed
-significantly overrepresented within genes and, more pronounced (higher odds),
-in promoter regions. By comparing H3K36me3 and H3K4me3 enrichment, we can
-identify significant overlap of H3K36me3 and H3K4me3 that is occuring with
-higher odds in promoter regions than compared to gene bodies.
+significantly overrepresented within genes (Fisher's signed-exact test; P<0.001;
+odds ratio = 6.01) and, more pronounced, in promoter regions (odds ratio =
+14.74).
+
+By comparing H3K36me3 and H3K4me3 ranges, we can identify significant overlap of
+H3K36me3 and H3K4me3 that most pronounced in promoter regions (odds ratio =
+27.75) than compared to gene bodies (odds ratio = 8.17).
 
 ```{r}
 #Overlap of H3K36me3 with H3K4me3
@@ -315,8 +346,9 @@ overlapOdds(k36me3Ranges[countOverlaps(k36me3Ranges, genes) != 0],
 ```
 
 H3K36me3 is associated to transcriptional elongation in the gene body. The
-presence of H3K36me3 within the gene body marks expressed genes.  Actually,
-H3K36me3 enrichment is significantly overrepresented at genes and promoters.
+presence of H3K36me3 within the gene body marks transcribed genes.  Indeed,
+H3K36me3 enrichment is significantly overrepresented mostly at genes (odds ratio
+= 19.12) and, to a lower extend, at promoters (odds ratio = 8.19).
 
 ```{r}
 #Overlap of H3K36me3 in genes
@@ -335,7 +367,7 @@ coordinates of enriched regions, the widely used
 [BED format](https://genome.ucsc.edu/FAQ/FAQformat.html#format1) is applicable.
 It is human-readable and can be imported in common genome browsers, *e.g.*
 [UCSC genome browser](https://genome.ucsc.edu/cgi-bin/hgTracks) or
-[IGV}(http://bioviz.org/). To export the background-normalized enrichment, the
+[IGV](http://bioviz.org/). To export the background-normalized enrichment, the
 binary [bigWig format](https://genome.ucsc.edu/FAQ/FAQformat.html#format6.1) is
 used. Check `?exportR` for more options.
 
@@ -351,15 +383,15 @@ exportR(k36me3Fit, filename = "k36me3Fit.bw", type = "bigWig")
 
 ![](../inst/extdata/1b.png)
 **IGV browser shot of Input (grey), H3K4me3 (green) and H3K36me3 (purple)
-alignment data (bars), normalized enrichment (lines) and enriched regions (boxes
-below respective tracks).**
+alignment data (bars), normalized enrichment, _i.e._ "bigWig" files, (lines) and
+enriched regions, _i.e._ "bed" files (boxes below respective tracks).**
 
 ## `diffR()`: Calling Differential Enrichment without a Control Experiment
 
 Normalization and difference calling are inseparable in calling ChIP-seq
 enrichment. Following this notion, a direct comparison of two ChIP-seq tracks
 can be performed with `diffR()`. In many studies, researchers are interested in
-conditional changes of ChIP-seq enrichment. Below, we exemplify this analysis by
+conditional changes in ChIP-seq enrichment. Below, we exemplify this analysis by
 joint analysis of H3K4me3 and H3K36me3 ChIP-seq data. Because we already counted
 `k4me3Bamfile` and `k36me3Bamfile` already in `k4me3Fit` and `k36me3Fit`,
 respectively, we can use these counts directly. Note that, in this case, the
@@ -373,7 +405,8 @@ k4k36Dif <- diffR(treatment = getCounts(k4me3Fit)$treatment,
                   genome    = getRanges(k4me3Fit),
                   verbose   = F)
 #<or> (unnecessarily) count again
-#k4k36Dif <- diffR(treatment = k4me3Bamfile, control = k36me3Bamfile, genome = genome, verbose = F)
+#k4k36Dif <- diffR(treatment = k4me3Bamfile, control = k36me3Bamfile,
+#                  genome = genome, verbose = F)
 
 #summary statistics
 summary(k4k36Dif)
@@ -386,8 +419,8 @@ enrichment without H3K4me3-enrichment, (ii) H3K36me3 and H3K4me3 (non)-enriched
 and (iii) H3K4me3 enrichment without H3K36me3-enrichment. The
 "Backgroundcomponent B" is 2 in this case: `diffR()` identifies significant
 enrichment and depletion by a two-sided test on the background. Looking at the
-"Mixture Proportions", regions are classified to (i) in 31%, (ii) in 60% and
-(iii) in 9% of the regions. 2164 (0+2096+37+31) regions are significantly
+"Mixture Proportions", regions are classified to (i) in 44%, (ii) in 37% and
+(iii) in 19% of the regions. 1,090 (0+1047+22+21) regions are significantly
 different from background with $FDR \le 0.05$. These regions are either
 H3K4me3-positive or H3K36me3 positive. We can export these regions and the
 normalized enrichment with `exportR`:
@@ -399,9 +432,9 @@ exportR(k4k36Dif, filename = "k4k36Dif.bw", type = "bigWig")
 
 ![](../inst/extdata/2.png)
 **IGV browser shot of Input (grey), H3K4me3 (green) and H3K36me3 (purple)
-alignment data. Background normalized difference is plotted as a heatmap and
-differential regions are plotted as boxes (blue: treatment (H3K4me3) enriched,
-red: control (H3K36me3) enriched).**
+alignment data. Background normalized difference is plotted as a heatmap, _i.e._
+"bigWig" file, and differential regions are plotted as boxes, _i.e._ "bed" file
+(blue: treatment (H3K4me3) enriched, red: control (H3K36me3) enriched).**
 
 ## `regimeR()`: Identify Enrichment Regimes in ChIP-seq Experiments
 
@@ -409,16 +442,26 @@ The two sections above aimed at discerning enrichment from background. The
 extendable normR approach also allows for identification of different enrichment
 regimes with `regimeR()` by increasing the number of model components.
 
+Let's start with 3 components (Background + 2 Enrichment Regimes) for H3K4me3.
+By using two enrichment regimes, we may uncover effects of sample heterogeneity
+affecting transcriptional initiation of certian genes.
+
 ```{r warning=FALSE}
-#Four regimes on H3K4me3 uncover potential cell/allele heterogeneity for transcriptional initiation
 k4me3Regimes <- regimeR(treatment = getCounts(k4me3Fit)$treatment,
                          control   = getCounts(k4me3Fit)$control,
                          genome    = getRanges(k4me3Fit),
                          models    = 3,
                          verbose   = F)
 summary(k4me3Regimes)
+```
 
-#Three regimes on H3K36me3 discriminate genes of high and low expression
+12% of the regions show enrichment which gets segmented into 9% low and
+3% high enrichment. 478 (50+272+63+93) regions are significant ($FDR \le 0.05$).
+
+Now, we would like to use two enrichment regimes for H3K36me3. In this way, we
+might be able to classify genes of low and high transcriptional rates:
+
+```{r warning=FALSE}
 k36me3Regimes <- regimeR(treatment = getCounts(k36me3Fit)$treatment,
                          control   = getCounts(k36me3Fit)$control,
                          genome    = getRanges(k36me3Fit),
@@ -427,7 +470,8 @@ k36me3Regimes <- regimeR(treatment = getCounts(k36me3Fit)$treatment,
 summary(k36me3Regimes)
 ```
 
-Exporting works analogously to the cases described above.
+We can now export the called regimes as bed files for browser display. This is
+done analogously to the cases described above:
 
 ```{r warning=FALSE}
 exportR(k4me3Regimes, filename = "k4me3Regimes.bed", type = "bed", fdr = 0.05)
@@ -444,10 +488,10 @@ In addition to the information covered above, it is recommend to have a look at
 help pages (`?`) of normR functions. Here, we would like to discuss three
 important points:
 
-## Change Read Counting Strategy with `BamCountConfig-class`
+## Change Read Counting Strategy with `NormRCountConfig-class`
 
 It is very important how we count reads contained in the bamfile. The
-`BamCountConfig-class` provides methods to define the counting strategy on
+`NormRCountConfig-class` provides methods to define the counting strategy on
 single-end and paired-end alignment data:
 
 ```{r eval=FALSE}
@@ -456,14 +500,16 @@ single-end and paired-end alignment data:
 # Consider only reads with Mapping Quality >= 20.
 # Filter reads for marked duplicates (e.g. with picard mark-duplicates)
 # Shift the counting position for a read 100 bp downstream.
-countConfigSE <- countConfigSingleEnd(binsize = 500, mapq = 20, filteredFlag = 1024, shift = 100)
+countConfigSE <- countConfigSingleEnd(binsize = 500, mapq = 20,
+                                      filteredFlag = 1024, shift = 100)
 
 #Paired End:
 # Count in 500bp bins.
 # Consider only reads with Mapping Quality >= 30.
 # Count the midpoint of the aligned fragment instead of 5' ends.
-# Consider only reads corresponding to fragments with size spanning from 100 to 300bp
-countConfigPE <- countConfigPairdEnd(binsize = 500, mapq = 30, midpoint = T, tlenfilter = c(100, 300))
+# Consider only reads corresponding to fragments with size from 100 to 300bp
+countConfigPE <- countConfigPairdEnd(binsize = 500, mapq = 30, midpoint = T,
+                                     tlenfilter = c(100, 300))
 
 #Plug in the counting configuration into normR, e.g. in enrichR()
 fit <- enrichR(treatment   = k4me3Bamfile,
@@ -482,36 +528,40 @@ same size.
 ```{r warning=FALSE}
 #regions have identical size?
 all(width(promoters) == 4000)
+```
 
+```{r eval=FALSE}
 #count in predefined regions
 library(bamsignals)
 k4Counts <- bamCount(bampath = k4me3Bamfile, gr = promoters, verbose = F)
 inputCounts <- bamCount(bampath = inputBamfile, gr = promoters, verbose = F)
 
 #Fit only on promoters
-promotersFit <- enrichR(treatment = k4Counts, control = inputCounts, genome = promoters)
+promotersFit <- enrichR(treatment = k4Counts, control = inputCounts,
+                        genome = promoters, verbose = F)
 ```
 
 ## Post-processing of Difference Calls with CNV information
 
-Copy Number Variations (CNVs) are an important feature of cancerous cells like patient
-tumour samples or cell lines. The difference calling on two ChIP-seq experiments
-with `diffR()` is sensitive to CNVs if the underlying sequence is amplified in
-the genome. However, you can harness `diffR()`'s functionality to call
-differences in two Input tracks to detect CNVs in a treatment respective to a
-control:
+Copy Number Variations (CNVs) are an important feature of cancerous cells like
+tumour samples. The difference calling on two ChIP-seq
+experiments with `diffR()` is sensitive to CNVs if the underlying sequence is
+amplified in the genome. However, you can harness `diffR()`'s functionality to
+call differences in two Input tracks to detect CNVs in a treatment respective to
+a control. To allow for coarse-grained detection of difference in Input, a
+sufficiently large binsize has to be used, _e.g._ 22kb.
 
 ```{r eval=FALSE}
-#call CNVs a sufficiently large bin size (e.g. 10kb)
 cnvs <- diffR(treatment   = treatmentInputBamfile,
               control     = controlInputBamfile,
               genome      = genome,
-              countConfig = countConfigSingleEnd(binsize = 1e4))
+              countConfig = countConfigSingleEnd(binsize = 2.5e4))
 
 #export the CNV calls
 exportR(cnvs, "CNVs.bed")
 
 #Filter previous ChIP-seq difference calls for CNVs
-idx <- which(countOverlaps(getRanges(diffFit, fdr = .05), getRanges(cnvs, fdr = .05)) == 0)
+ov <- countOverlaps(getRanges(diffFit, fdr = .05), getRanges(cnvs, fdr = .05))
+idx <- which(ov == 0)
 cnvCleanedGR <- getRanges(diffFit, fdr = .05)[idx]
 ```
