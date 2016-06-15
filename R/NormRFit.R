@@ -78,7 +78,9 @@
 #' in ChIP-seq 1) and \code{2} (differential in ChIP-seq 2). For
 #' \code{obj@type == "regimeR"}, this vector contains \code{NA} (not enriched)
 #' and an arbitary number of enrichment class \code{>= 1}.
+#'
 #' @aliases NormRFit
+#'
 #' @seealso \code{\link{normr-methods}} for the functions that produce
 #' this object
 #' @return return values are described in the methods section.

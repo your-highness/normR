@@ -13,47 +13,39 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
 setClassUnion("integerOrNULL", c("integer", "NULL"))
 
-#' Container for counting with bamsignals
+#' Container for configuration of read counting with bamsignals
 #'
 #' This S4 class is a small wrapper for a configuration on obtaining counts
-#' from bamfiles with bamsignals::bamProfile().
+#' from bamfiles with \code{\link[bamsignals]{bamsignals::bamProfile()}}.
 #'
-#' @field type A \code{character()} representing the type of bamfile
-#' ("paired.end", "single.end").
-#' @field chromosomes GenomicRanges object used to specify the chromosomes.
-#' @field binsize An \code{integer()} giving the binsize to count in (in bp).
-#' @field mapq discard reads with mapping quality strictly lower than this
-#' parameter. The value 0 ensures that no read will be discarded, the value 254
-#' that only reads with the highest possible mapping quality will be considered.
-#' @field filteredFlag An \code{integer()} to filter for when counting reads (SAMFLAG).
-#' For example, 1024 filters out marked duplicates (default), see
-#' \url{https://broadinstitute.github.io/picard/explain-flags.html}
-#' @field shift shift the read position by a user-defined number of basepairs.
-#' This can be handy in the analysis of chip-seq data.
-#' @field midpoint A \code{logical()} indicating whether fragment midpoints
-#' instead of 5'-ends should be counted in paired end data.
-#' @field tlenFilter A filter on fragment length as estimated from alignment
-#' in paired end experiments (TLEN). If set to \code{c(min,max)} only reads are
-#' considered where \code{min <= TLEN <= max}. If \code{paired.end=="ignore"},
-#' this argument is set to \code{NULL} and no filtering is done. If
-#' \code{paired.end!="ignore"}, this argument defaults to \code{c(0,1000)}.
+#' @slot type A \code{character()} of value \code{paired.end} or
+#' \code{single.end}.
+#' @slot binsize An \code{integer()} specifying the binsize in bp.
+#' @slot mapq An \code{integer()} specifying the minimal mapping quality for a
+#' read to be counted.
+#' @slot filteredFlag An \code{integer()} to filter for in the SAMFLAG field.
+#' For example, 1024 filters out marked duplicates (default). Refer to
+#' \url{https://broadinstitute.github.io/picard/explain-flags.html} for details.
+#' @slot shift An \code{integer()} specifing a shift of the read counting 
+#' position in 3'-direction. This can be handy in the analysis of chip-seq data.
+#' @slot midpoint Paired End data only: A \code{logical()} indicating whether
+#' fragment midpoints instead of 5'-ends should be counted.
+#' @slot tlenFilter An \code{integer()} of length two specifying the lower and
+#' upper length bound for a fragment to be considered. The fragment length as 
+#' estimated from alignment in paired end experiments and written into the TLEN
+#' column.
 #'
-#' @aliases BamCountConfig
-#' @aliases BamsignalsConfig
-#' @aliases BamsignalsCountConfig
+#' @aliases NormRCountConfig BamsignalsConfig BamsignalsCountConfig
+#' @seealso \link{normr} for functions that use this object.
 #'
-#' @import GenomicRanges
-#' @seealso \code{\link{normr-methods}} for the functions that require this
-#' object.\cr
-#' See \code{\link{bamsignals}}-package for counting in bam files.
-#' @return return values are described in the Methods section.
+#' @example inst/examples/NormRCountConfig_example.R
+#' 
+#' @include methods.R
 #' @export
-setClass("BamCountConfig",
+setClass("NormRCountConfig",
     representation = representation(type="character",
-                                    chromosomes="GRanges",
                                     binsize="integer",
                                     mapq="integer",
                                     filteredFlag="integer",
@@ -62,13 +54,11 @@ setClass("BamCountConfig",
                                     tlenFilter="integerOrNULL"
                                     )
 )
-
-setValidity("BamCountConfig",
+setValidity("NormRCountConfig",
     function(object) {
       if (!(object@type %in% c("single.end", "paired.end"))) {
         stop("invalid type")
       }
-      if (is.null(object@chromosomes)) stop("invalid chromosomes")
       if (object@binsize <= 0) stop("invalid binsize")
       if (object@mapq < 0 | object@mapq > 255) stop("invalid mapq")
       if (object@filteredFlag < -1 | object@filteredFlag > 4095) {
@@ -83,9 +73,14 @@ setValidity("BamCountConfig",
     }
 )
 
-setMethod("print", "BamCountConfig",
+#' @describeIn NormRCountConfig Prints a given BamCounConfig
+#'
+#' @param x A \code{NormRCountConfig} object.
+#' 
+#' @export
+setMethod("print", "NormRCountConfig",
     function(x) {
-      cat("BamCountConfig-class object\n\n",
+      cat("NormRCountConfig-class object\n\n",
           "Type:\t\t\t", x@type, "\n",
           "Binsize:\t\t", x@binsize, " bp\n",
           "Minimal MAPQ:\t\t", x@mapq, "\n",
@@ -101,45 +96,64 @@ setMethod("print", "BamCountConfig",
       invisible(x)
     }
 )
-setMethod("show", "BamCountConfig", function(object) print(object))
+#' @describeIn NormRCountConfig Shows a given BamCounConfig
+#'
+#' @param object A \code{NormRCountConfig} object.
+#' 
+#' @export
+setMethod("show", "NormRCountConfig", function(object) print(object))
 
 #' @export
+setGeneric("getFilter", function(x) standardGeneric("getFilter"))
+#' @describeIn NormRCountConfig Get the filter compliant to
+#' \code{\link[bamsignals]{bamsignals::bamProfile()}}
+#' @export
+setMethod("getFilter", "NormRCountConfig",
+    function(x) {
+      if (x@type == "single.end") return("ignore")
+      if (x@type == "paired.end" & !x@midpoint) return("filter")
+      if (x@type == "paired.end" & x@midpoint) return("midpoint")
+    }
+)
+
+setGeneric("countConfigSingleEnd", function(...)
+  standardGeneric("countConfigSingleEnd"))
+#' @describeIn NormRCountConfig Setup a Single End counting configuration
+#'
+#' @param binsize An \code{integer()} specifying the binsize in bp.
+#' @param mapq An \code{integer()} specifying the minimal mapping quality for a
+#' read to be counted.
+#' @param filteredFlag An \code{integer()} to filter for in the SAMFLAG field.
+#' For example, 1024 filters out marked duplicates (default). Refer to
+#' \url{https://broadinstitute.github.io/picard/explain-flags.html} for details.
+#' @param shift An \code{integer()} specifing a shift of the read counting 
+#' position in 3'-direction. This can be handy in the analysis of chip-seq data.
+#'
+#' @export
+setMethod("countConfigSingleEnd",
+  definition=function(binsize=250L, mapq=20L, filteredFlag=1024L, shift=0L) {
+    new("NormRCountConfig", type="single.end", binsize=as.integer(binsize),
+        mapq=as.integer(mapq), filteredFlag=as.integer(filteredFlag),
+        shift=as.integer(shift), tlenFilter=NULL) 
+})
+
 setGeneric("countConfigPairedEnd", function(...)
   standardGeneric("countConfigPairedEnd"))
-#' @describeIn BamCountConfig Setup a paired end counting configuration
-#' @aliases countConfigPairedEnd
+#' @describeIn NormRCountConfig Setup a Paired End counting configuration
+#' 
+#' @param midpoint Paired End data only: A \code{logical()} indicating whether
+#' fragment midpoints instead of 5'-ends should be counted.
+#' @param tlenFilter An \code{integer()} of length two specifying the lower and
+#' upper length bound for a fragment to be considered. The fragment length as 
+#' estimated from alignment in paired end experiments and written into the TLEN
+#' column.
+#' 
 #' @export
 setMethod("countConfigPairedEnd",
   definition=function(binsize=250L, mapq=20L, filteredFlag=1024L, shift=0L,
                       midpoint=T, tlenFilter=c(70L, 200L)) {
-    new("BamCountConfig", type="paired.end", binsize=as.integer(binsize),
+    new("NormRCountConfig", type="paired.end", binsize=as.integer(binsize),
         mapq=as.integer(mapq), filteredFlag=as.integer(filteredFlag),
         shift=as.integer(shift), midpoint=as.logical(midpoint),
         tlenFilter=as.integer(tlenFilter))
 })
-
-#' @export
-setGeneric("countConfigSingleEnd", function(...)
-  standardGeneric("countConfigSingleEnd"))
-#' @describeIn BamCountConfig Setup a single end counting configuration
-#' @aliases countConfigSingleEnd
-#' @export
-setMethod("countConfigSingleEnd",
-  definition=function(binsize=250L, mapq=20L, filteredFlag=1024L, shift=0L) {
-    new("BamCountConfig", type="single.end", binsize=as.integer(binsize),
-        mapq=as.integer(mapq), filteredFlag=as.integer(filteredFlag),
-        shift=as.integer(shift), tlenFilter=NULL)
-})
-
-#' @export
-setGeneric("getFilter", function(obj) standardGeneric("getFilter"))
-#' @describeIn BamCountConfig Get the bamsignals relevant filter
-#' @aliases getFilter
-#' @export
-setMethod("getFilter", "BamCountConfig",
-    function(obj) {
-      if (obj@type == "single.end") return("ignore")
-      if (obj@type == "paired.end" & !obj@midpoint) return("filter")
-      if (obj@type == "paired.end" & obj@midpoint) return("midpoint")
-    }
-)

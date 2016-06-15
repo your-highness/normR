@@ -13,7 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#' Normalization and difference calling in ChIP-seq data
+
+#' Enrichment, Difference and Regime Calling in ChIP-seq data.
 #'
 #' Robust normalization and difference calling procedures for ChIP-seq and
 #' alike data. Count vectors can be obtained from experiment bam files in two
@@ -21,30 +22,6 @@
 #' A binomial mixture model with a given number of components is fit and used
 #' for identifying enriched or depleted regions in two given data tracks.
 #' Log-space multinomial model is fit by Expectation maximization in C++.
-#'
-#' @name normr
-#' @aliases normR
-#' @aliases diffR
-#' @aliases enrichR
-#' @aliases PeakCalling
-#' @aliases DifferentialPeakCalling
-#' @aliases EnrichmentCalling
-#' @import GenomicRanges
-#' @import GenomeInfoDb
-#' @import IRanges
-#' @import Rcpp
-#' @import qvalue
-#' @import parallel
-#' @import bamsignals
-#' @docType package
-#' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
-#' @seealso \code{\link{normr-methods}} for available functions
-#' @include NormRFit.R
-#' @include BamCountConfig.R
-#' @useDynLib normr, .registration=TRUE
-NULL
-
-#' Enrichment, Difference and Regime Calling in ChIP-seq data.
 #'
 #' A correct background estimation is crucial for calling enrichment in ChIP-seq
 #' data.  These functions implement the mixture modeling for two given ChIP-seq
@@ -55,6 +32,8 @@ NULL
 #' is tested for significance against the fitted background component. Moreover,
 #' a standardized enrichment for each bin is calculated based on the fitted
 #' background component.
+#'
+#' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
 #' @param treatment A \link{integer} vector of treatment counts or a
 #' \link{character} pointing to the treatment bam file. In the latter case an
@@ -76,15 +55,32 @@ NULL
 #' \code{integer() >= 3}. (DEFAULT=3)
 #' @param eps Threshold for EM convergence.
 #' @param procs Number of threads to use
-#' @param countConfig A BamCountConfig object specifying bam counting parameters
-#' for read count retrieval. See \link{BamCountConfig}.
+#' @param countConfig A \code{\link{NormRCountConfig}} object specifying bam counting parameters
+#' for read count retrieval.
 #' @param verbose A logical value indicating whether verbose output is desired
 #' @return a \link{NormRFit} object
 #'
-#' @seealso BamCountConfig-class
-#' @seealso NormRFit-class
-#' @name normr-methods
+#' @seealso \code{\link{NormRFit-class}} and \code{\link{NormRCountConfig}} for available functions
+#'
+#' @name normr
+#' @aliases normR, PeakCalling, DifferentialPeakCalling, EnrichmentCalling
+#'
 #' @example inst/examples/methods_example.R
+#'
+#' @import bamsignals
+#' @import GenomeInfoDb
+#' @import GenomicRanges
+#' @import IRanges
+#' @import parallel
+#' @import qvalue
+#' @import Rcpp
+#' @import rtracklayer
+#'
+#' @include NormRFit.R
+#' @include NormRCountConfig.R
+#'
+#' @docType package
+#' @useDynLib normr, .registration=TRUE
 NULL
 
 #HELPER FUNCTIONS
@@ -188,11 +184,11 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
 #' be binned according to 'countConfig' ('character,character,character').
 #' @aliases enrichR
 #' @aliases enrichmentCall
-#' @rdname normr-methods
+#' @rdname normr
 #' @export
 setGeneric("enrichR", function(treatment, control, genome, ...)
   standardGeneric("enrichR"))
-#' @rdname normr-methods
+#' @rdname enrichr
 #' @export
 setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
   function(treatment, control, genome, eps=1e-5, iterations=10,
@@ -238,7 +234,6 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
     }
     return(o)
 })
-#' @rdname normr-methods
 #' @export
 setMethod("enrichR", signature("character", "character", "GenomicRanges"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
@@ -249,7 +244,6 @@ setMethod("enrichR", signature("character", "character", "GenomicRanges"),
     return(enrichR(countsGr$counts[[1]], countsGr$counts[[2]], genome, eps,
       iterations, procs, verbose))
 })
-#' @rdname normr-methods
 #' @export
 setMethod("enrichR", signature("character", "character", "data.frame"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
@@ -260,7 +254,6 @@ setMethod("enrichR", signature("character", "character", "data.frame"),
     return(enrichR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr, eps,
       iterations, procs, verbose))
 })
-#' @rdname normr-methods
 #' @export
 setMethod("enrichR", signature("character", "character", "character"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
@@ -282,11 +275,11 @@ setMethod("enrichR", signature("character", "character", "character"),
 #' be binned according to 'countConfig' ('character,character,character').
 #' @aliases diffR
 #' @aliases differenceCall
-#' @rdname normr-methods
+#' @rdname diffr
 #' @export
 setGeneric("diffR", function(treatment, control, genome, ...)
   standardGeneric("diffR"))
-#' @rdname normr-methods
+#' @rdname normr
 #' @export
 setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
   function(treatment, control, genome, eps=1e-5, iterations=10,
@@ -339,7 +332,7 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
     }
     return(o)
 })
-#' @rdname normr-methods
+#' @rdname normr
 #' @export
 setMethod("diffR", signature("character", "character", "GenomicRanges"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
@@ -350,7 +343,7 @@ setMethod("diffR", signature("character", "character", "GenomicRanges"),
     return(diffR(countsGr$counts[[1]], countsGr$counts[[2]], genome, eps,
       iterations, procs, verbose))
 })
-#' @rdname normr-methods
+#' @rdname normr
 #' @export
 setMethod("diffR", signature("character", "character", "data.frame"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
@@ -361,7 +354,7 @@ setMethod("diffR", signature("character", "character", "data.frame"),
     return(diffR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr, eps,
       iterations, procs, verbose))
 })
-#' @rdname normr-methods
+#' @rdname normr
 #' @export
 setMethod("diffR", signature("character", "character", "character"),
   function(treatment, control, genome="", countConfig=countConfigSingleEnd(),
@@ -384,11 +377,11 @@ setMethod("diffR", signature("character", "character", "character"),
 #' be binned according to 'countConfig' ('character,character,character').
 #' @aliases regimeR
 #' @aliases regimeCall
-#' @rdname normr-methods
+#' @rdname normr
 #' @export
 setGeneric("regimeR", function(treatment, control, genome, models, ...)
   standardGeneric("regimeR"))
-#' @rdname normr-methods
+#' @rdname normr
 #' @export
 setMethod("regimeR",
           signature("integer", "integer", "GenomicRanges", "numeric"),
@@ -437,7 +430,7 @@ setMethod("regimeR",
     }
     return(o)
 })
-#' @rdname normr-methods
+#' @rdname normr
 #' @export
 setMethod("regimeR",
           signature("character", "character", "GenomicRanges", "numeric"),
@@ -450,7 +443,7 @@ setMethod("regimeR",
     return(regimeR(countsGr$counts[[1]], countsGr$counts[[2]], genome, models,
       eps, iterations, procs, verbose))
 })
-#' @rdname normr-methods
+#' @rdname normr
 #' @export
 setMethod("regimeR", signature("character", "character", "data.frame", "numeric"),
   function(treatment, control, genome, models=3,
@@ -463,7 +456,7 @@ setMethod("regimeR", signature("character", "character", "data.frame", "numeric"
     return(regimeR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr,
       models, eps, iterations, procs, verbose))
 })
-#' @rdname normr-methods
+#' @rdname normr
 #' @export
 setMethod("regimeR", signature("character", "character", "character", "numeric"),
   function(treatment, control, genome="", models=3,
