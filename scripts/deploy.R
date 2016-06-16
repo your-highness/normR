@@ -118,8 +118,8 @@ deployR <- function(pckg=".", registerFun=T, check=T) {
   system(paste0("~/R-devel/bin/R CMD build ", pckg))
   install.packages(paste0(pckg, "_", vsion, ".tar.gz"), lib=tmp.lib)
 
-  message(" #### Trying to load the package")
-  library(pckg, character.only=T, quietly=T)
+  #message(" #### Trying to load the package")
+  #library(pckg, character.only=T, quietly=T)
   #unlink(tmp.lib, recursive=T)
 
   if (chgDir) {
