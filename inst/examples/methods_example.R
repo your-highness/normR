@@ -12,7 +12,7 @@ countConfiguration <- countConfigSingleEnd(binsize = 1000,
 #invoke enrichR to call enrichment
 enrich <- enrichR(treatment = chipK4, control = inputfile,
                   genome = gr,  countConfig = countConfiguration,
-                  iterations = 10, procs = 1, verbose = T)
+                  iterations = 10, procs = 1, verbose = TRUE)
 #inspect the fit
 enrich
 summary(enrich)
@@ -28,11 +28,11 @@ exportR(enrich, filename = "enrich.bw")
 chipK36 <- system.file("extdata", "K562_H3K36me3.bam", package="normr")
 diff <- diffR(treatment = chipK36, control = chipK4,
               genome = gr,  countConfig = countConfiguration,
-              iterations = 10, procs = 1, verbose = T)
+              iterations = 10, procs = 1, verbose = TRUE)
 summary(diff)
 
 ### regimeR(): Identification of broad and peak enrichment
-regime <- regimeR(treatment = chipK36, control = chipK4, models = 3
+regime <- regimeR(treatment = chipK36, control = chipK4, models = 3,
                   genome = gr,  countConfig = countConfiguration,
-                  iterations = 10, procs = 1, verbose = T)
+                  iterations = 10, procs = 1, verbose = TRUE)
 summary(regime)
