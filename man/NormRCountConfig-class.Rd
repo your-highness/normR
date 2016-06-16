@@ -56,6 +56,9 @@ column.}
 
 \item{x}{A \code{NormRCountConfig} object.}
 
+\item{...}{optional arguments to be passed directly to the inherited
+function without alteration and with the original names preserved.}
+
 \item{object}{A \code{NormRCountConfig} object.}
 }
 \description{
@@ -100,8 +103,8 @@ position in 3'-direction. This can be handy in the analysis of chip-seq data.}
 \item{\code{midpoint}}{Paired End data only: A \code{logical} indicating whether
 fragment midpoints instead of 5'-ends should be counted.}
 
-\item{\code{tlenFilter}}{Paired End data only: An \code{integer} of length two 
-specifying the lower and upper length bound for a fragment to be considered. 
+\item{\code{tlenFilter}}{Paired End data only: An \code{integer} of length two
+specifying the lower and upper length bound for a fragment to be considered.
 The fragment length as estimated from alignment in paired end experiments and
 written into the TLEN column.}
 }}
@@ -110,7 +113,7 @@ written into the TLEN column.}
 # 250bp bins; single end reads; MAPQ>=10; no duplicates
 countConfig <- new("NormRCountConfig", 
                    type = "single.end", binsize = 250L, mapq = 10L, 
-                   filteredFlag = 1024L, shift = 0L, midpoint = F, 
+                   filteredFlag = 1024L, shift = 0L, midpoint = FALSE, 
                    tlenFilter = NULL)
 
 ### Counting configuration for Single End alignment files
@@ -120,9 +123,12 @@ countConfigurationSE
 
 ### Counting configuration for Paired End alignment files
 # 250bp bins; count center of fragments; only fragments with 70bp<=length<=200
-countConfigurationPE <- countConfigPairedEnd(midpoint = T,
+countConfigurationPE <- countConfigPairedEnd(midpoint = TRUE,
                                              tlenFilter = c(70, 200))
 countConfigurationPE
+}
+\author{
+Johannes Helmuth \email{helmuth@molgen.mpg.de}
 }
 \seealso{
 \link{normr} for functions that use this object.

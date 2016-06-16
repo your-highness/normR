@@ -80,6 +80,11 @@ default an appropriate color palette is used.}
 \item{type}{A \code{character} specifying the filetype for exporting
 results. If \code{NA}, format is guessed from \code{filename}'s extension.}
 
+\item{y}{not used.}
+
+\item{...}{optional arguments to be passed directly to the inherited
+function without alteration and with the original names preserved.}
+
 \item{k}{\code{NULL} or a \code{integer} specifying a model component for
 which regions have to be returned. If set to \code{NULL}, regions are not
 filtered on component assignments. If \code{fdr} is set and \code{k == x@B},
@@ -127,17 +132,18 @@ treatment-enriched regions and \code{NA} for non-enriched regions. If
 regions and \code{NA} for non-enriched regions.
 }
 \description{
-This S4class wraps a normR fit containing counts, fit configuration and
-results of the fit. Herein, functions for printing, summarization and
-accessing are provided. It is recommended to only use functions to access
-contents of this object. Internally, the class holds a map structure of
-unique elements to reduce memory requirements.
-}
-\details{
-The functions \code{link{enrichR}}, \code{\link{diffR}} and
+This S4 class wraps a \code{\link{normR}} fit containing counts, fit
+configuration and results of the fit. Herein, functions for printing,
+summarization and accessing are provided. The
+functions \code{\link{enrichR}}, \code{\link{diffR}} and
 \code{\link{regimeR}} generate a container of this class to save results of
 a normR binomial mixture fitting. Please refer to their documentation for
 conventional usage of the normR package.
+}
+\details{
+When working with instances of this S4 class, it is recommended to only use
+functions to access contents of this object. Internally, the class holds a
+map structure of unique elements to reduce memory requirements. #'
 }
 \section{Methods (by generic)}{
 \itemize{
@@ -198,7 +204,7 @@ of each unique control / treatment count pair.}
 \item{\code{names}}{A \code{character} of length two specifying the names for control
 and treatment.}
 
-\item{\code{thetaStar}}{A \code{numeric} giving the calculated naive background
+\item{\code{thetastar}}{A \code{numeric} giving the calculated naive background
 estimation, \emph{i.e.} \code{sum(getCounts(obj)[2,])/sum(getCounts(obj))}}
 
 \item{\code{theta}}{A \code{numeric} of length \code{k} giving the normR fitted
@@ -253,7 +259,44 @@ contains \code{NA} (not enriched) and an arbitary number of enrichment class
 \code{>= 1}.}
 }}
 \examples{
+require(GenomicRanges)
 
+#Create a toy instance of type 'enrichR'
+fit <- new("NormRFit",
+           type="enrichR", n=10L,
+           ranges=GRanges("chr1", IRanges(seq(1,100,10), width=10)),
+           k=2L, B=1L, map=rep(1:5,2), counts=list(1:5, 1:5),
+           amount=rep(2L,5), names=c("chip", "input"), thetastar=.35,
+           theta=c(.15,.55), mixtures=c(.9,.1), lnL=seq(-50,-1,10), eps=.001,
+           lnposteriors=log(matrix(runif(10), ncol=2)),
+           lnenrichment=log(runif(5,0,.2)), lnpvals=log(runif(5)),
+           filteredT=2:5, thresholdT=1L, lnqvals=log(runif(5,0,.2)),
+           classes=sample(1:2,5,T))
+
+#print some statistics on fits
+fit
+summary(fit)
+
+## Not run:
+#write significant regions to bed
+exportR(fit, filename = "enrich.bed", fdr = 0.1)
+#write normalized enrichment to bigWig
+exportR(fit, filename = "enrich.bw")
+## End(**Not run**)
+
+###AccessorMethods
+#get original counts
+getCounts(fit)
+#get genomic coordinates for significant ranges as a GenomicRanges instance
+getRanges(fit, fdr = .1)
+getPosteriors(fit)
+getEnrichment(fit)
+getPvalues(fit)
+getQvalues(fit)
+getClasses(fit)
+}
+\author{
+Johannes Helmuth \email{helmuth@molgen.mpg.de}
 }
 \seealso{
 \link{normr} for function creating this container

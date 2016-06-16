@@ -16,67 +16,75 @@
 
 #' Enrichment, Difference and Regime Calling in ChIP-seq data.
 #'
-#' Robust normalization and difference calling procedures for ChIP-seq and
-#' alike data. Count vectors can be obtained from experiment bam files in two
-#' experiments. Counts are jointly modeled as a multinomial sampling trial.
-#' A binomial mixture model with a given number of components is fit and used
-#' for identifying enriched or depleted regions in two given data tracks.
-#' Log-space multinomial model is fit by Expectation maximization in C++.
+#' A correct background estimation is crucial for calling enrichment and
+#' differences in ChIP-seq data. \code{\link{normR}} provides robust
+#' normalization and difference calling in ChIP-seq and alike data. In brief, a
+#' binomial mixture model with a given number of components is fit to read
+#' count data for a treatment and control experiment. Therein, computational
+#' performance is improved by fitting a log-space model via Expectation
+#' Maximization in C++. Convergence is achieved by a threshold on
+#' the minimum change in model loglikelihood. After the model fit has converged,
+#' a robust background estimate is obtained. This estimate accounts for the
+#' effect of enrichment in certain regions and, therefore, represents an
+#' appropriate null hypothesis. This robust background is used to identify
+#' significantly enriched or depleted regions with respect to
+#' control. Moreover, a standardized enrichment for each bin is calculated
+#' based on the fitted background component. For convenience, read count
+#' vectors can be obtained directly from bam files when a compliant chromosome
+#' annotation is given. Please refer to the individual documentations of
+#' functions for enrichment calling (\code{\link{enrichR}}), difference calling
+#' (\code{\link{diffR}}) and enrichment regime calling (\code{\link{regimeR}}).
 #'
-#' A correct background estimation is crucial for calling enrichment in ChIP-seq
-#' data.  These functions implement the mixture modeling for two given ChIP-seq
-#' tracks by joint multinomial modeling. A predefined number of model components
-#' is fit simultaneously to binned read count data via an efficient Expectation
-#' Maximization implementation in C++. Convergence is achieved by a threshold on
-#' the minimum change in model loglikelihood. After the model is fit, every bin
-#' is tested for significance against the fitted background component. Moreover,
-#' a standardized enrichment for each bin is calculated based on the fitted
-#' background component.
+#' Supplied count vectors for treatment and control should be of same length
+#' and of type \code{integer}.
 #'
-#' \code{enrichR}: Enrichment calling between \code{treatment} (ChIP-seq) and
-#' \code{control} (Input) for either two given read count vectors and an
-#' optional \link{GenomicRanges} object that defines the original regions
-#' ('integer,integer,GenomicRangesOrNULL'), two given bam filepaths and a
-#' genome \code{data.frame} defining chromosomes which will be binned according
-#' to 'countConfig' ('character,character,data.frame') or two given bam
-#' filepaths and a genome \code{character} specifying a UCSC genome identifier
-#' (e.g. "hg19") that is used for retrieval of chromosome annotation which will
-#' be binned according to 'countConfig' ('character,character,character').
+#' For convenience, read count vectors can be obtained directly from bam files.
+#' In this case, please specify a bam file for treatment and control each and a
+#' \code{genome}. Bam files should be indexed using samtools (\emph{i.e.}
+#' samtools index file file.bai). Furthermore, bam files should contain a valid
+#' header with given chromosome names. If \code{genome == NULL}(default),
+#' chromosome names will be read from treatment bamheader. Please be aware that
+#' bamheader might contain irregular contigs and chrM which influence the fit.
+#' Also be sure that treatment and control contain the same chromosomes.
+#' Otherwise an error will be thrown. If \code{genome} is a \code{character},
+#' \code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to resolve
+#' this to a valid UCSC genome identifier (see
+#' \url{https://genome.ucsc.edu/cgi-bin/hgGateway} for available genomes). In
+#' this case, only assembled molecules will be considered (no circular). Please
+#' check if your bam files obey this annotation. If \code{genome} is a
+#' \code{data.frame}, it represents the chromosome specification. The first
+#' column will be used as chromosome ID and the second column will be used as
+#' the chromosome lengths.
 #'
-#' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
+#' The computational performance is improved by fitting a log-space model in
+#' C++. Parallization is achieved in C++ via OpenMP (\url{http://openmp.org}).
 #'
-#' @param treatment A \link{integer} vector of treatment counts or a
-#' \link{character} pointing to the treatment bam file. In the latter case an
-#' \code{treatment}.bai index file should exist in the same folder. Should be
-#' consistent with control.
-#' @param control A \link{integer} vector of control counts or a
+#' @param treatment An \code{integer} vector of treatment counts or a
+#' \code{character} pointing to the treatment bam file. In the latter case an
+#' "\code{treatment}.bai" index file should exist in the same folder.
+#' @param control An \code{integer} vector of control counts or a
 #' \link{character} pointing to the control bam file. In the latter case an
-#' \code{control}.bai index file should exist in the same folder. Should be
-#' consistent with treatment.
-#' @param genome Either \code{NULL}, an USCS genome identifier for
-#' \code{GenomeInfoDb::fetchExtendedChromInfoFromUCSC} (only assembled
-#' molecules, circular omitted) or a \link{data.frame} consisting of two
-#' columns(1st column=chromosome names, 2nd column=lengths). Chromosome names
-#' given should be present in the bam file header. If \code{NULL}, chromosome
-#' names will be read from treatment bamheader. Please be aware that bamheader
-#' might contain irregular contigs and chrM which influence the diffR fit.
-#' (DEFAUlT=NULL).
-#' @param models Number of model components for \code{regimeR()}. Should be an
-#' \code{integer() >= 3}. (DEFAULT=3)
-#' @param eps Threshold for EM convergence.
-#' @param procs Number of threads to use
-#' @param countConfig A \code{\link{NormRCountConfig}} object specifying bam counting parameters
-#' for read count retrieval.
-#' @param verbose A logical value indicating whether verbose output is desired
-#' @return a \link{NormRFit} object
+#' "\code{control}.bai" index file should exist in the same folder.
+#' @param genome Either \code{NULL} (default), a \code{character} specifying a
+#' USCS genome identifier  or a \link{data.frame} consisting of two columns
+#' (see Details).
+#' @param models An \code{integer} specifying the number of mixture
+#' components to fit [\code{\link{regimeR}} only]. Default is \code{3}.
+#' @param ... Arguments passed down to the respective functions See
+#' \code{\link{enrichR}}, \code{\link{diffR}} and \code{\link{regimeR}}.
 #'
-#' @seealso \code{\link{NormRFit-class}} and \code{\link{NormRCountConfig}} for available functions
+#' @return A \code{\link{NormRFit}} container holding results of the fit.
 #'
-#' @name normr
-#' @aliases normR, PeakCalling, DifferentialPeakCalling, EnrichmentCalling
+#' @seealso \code{\link{NormRFit-class}} for functions on accessing and
+#' exporting the normR fit. \code{\link{NormRCountConfig-class}} for
+#' configuration of the read counting procedure (binsize, mapping quality,...).
+#'
+#' @name normR
+#' @aliases normr PeakCalling DifferentialPeakCalling EnrichmentCalling
 #'
 #' @example inst/examples/methods_example.R
 #'
+#' @import methods
 #' @import bamsignals
 #' @import GenomeInfoDb
 #' @import GenomicRanges
@@ -89,9 +97,36 @@
 #' @include NormRFit.R
 #' @include NormRCountConfig.R
 #'
+#' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
+#'
 #' @docType package
 #' @useDynLib normr, .registration=TRUE
 NULL
+
+#' \code{\link{enrichR}}: Enrichment calling between \code{treatment}
+#' (\emph{e.g.} ChIP-seq) and \code{control} (\emph{e.g.} Input).
+#'
+#' @rdname normR
+#' @export
+setGeneric("enrichR", function(treatment, control, genome, ...)
+  standardGeneric("enrichR"))
+#' \code{\link{diffR}}: Difference calling between \code{treatment}
+#' (\emph{e.g.} ChIP-seq condition 1) and \code{control} (\emph{e.g.} ChIP-seq
+#' condition 2).
+#'
+#' @rdname normR
+#' @export
+setGeneric("diffR", function(treatment, control, genome, ...)
+  standardGeneric("diffR"))
+#' \code{\link{regimeR}}: Enrichment regime calling between \code{treatment}
+#' (\emph{e.g.} ChIP-seq) and \code{control} (\emph{e.g.} Input) with a
+#' given number of model components. For example, 3 regimes recover background,
+#' broad and peak enrichment.
+#'
+#' @rdname normR
+#' @export
+setGeneric("regimeR", function(treatment, control, genome, models, ...)
+  standardGeneric("regimeR"))
 
 #HELPER FUNCTIONS
 handleCharCharChar <- function(treatment, control, genome, verbose) {
@@ -128,7 +163,7 @@ handleCharCharDf <- function(treatment, control, genome, countConfig, procs,
   }
 
   #as.character(genome[,1]) to prevent GRanges to set factor levels in seqinfo
-  gr <- GenomicRanges::GRanges(as.character(genome[,1]), 
+  gr <- GenomicRanges::GRanges(as.character(genome[,1]),
                                IRanges(1,as.integer(genome[,2])))
   counts <- parallel::mcmapply(
     bamsignals::bamProfile, bampath=c(treatment, control),
@@ -183,10 +218,78 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
   return(list(counts=counts, gr=gr))
 }
 
-setGeneric("enrichR", function(treatment, control, genome, ...)
-  standardGeneric("enrichR"))
-#'  Fit a two component binomial mixture model to call
-#' enrichment.
+#' Enrichment Calling on ChIP-seq data in normR with enrichR
+#'
+#' Enrichment calling between \code{treatment} (ChIP-seq) and \code{control}
+#' (Input) in normR is done by fitting background and enrichment
+#' simultaenously.  Therefore, a mixture of two binomials is fit to the data
+#' with Expectation Maximization (EM). After convergence of the EM, the fitted
+#' background component is used to calculate significance for treatment and
+#' control count pair. Based on this statistic, user can extract significantly
+#' enriched regions with a desired significance level. These regions can be
+#' further analyzed within R or exported (see \code{\link{NormRFit-class}}).
+#' Furthermore, enrichR calculates a standardized enrichment given the fitted
+#' background component. See also Details
+#'
+#' Supplied count vectors for treatment and control should be of same length
+#' and of type \code{integer}.
+#'
+#' For convenience, read count vectors can be obtained directly from bam files.
+#' In this case, please specify a bam file for treatment and control each and a
+#' \code{genome}. Bam files should be indexed using samtools (\emph{i.e.}
+#' samtools index file file.bai). Furthermore, bam files should contain a valid
+#' header with given chromosome names. If \code{genome == NULL}(default),
+#' chromosome names will be read from treatment bamheader. Please be aware that
+#' bamheader might contain irregular contigs and chrM which influence the fit.
+#' Also be sure that treatment and control contain the same chromosomes.
+#' Otherwise an error will be thrown. If \code{genome} is a \code{character},
+#' \code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to resolve
+#' this to a valid UCSC genome identifier (see
+#' \url{https://genome.ucsc.edu/cgi-bin/hgGateway} for available genomes). In
+#' this case, only assembled molecules will be considered (no circular). Please
+#' check if your bam files obey this annotation. If \code{genome} is a
+#' \code{data.frame}, it represents the chromosome specification. The first
+#' column will be used as chromosome ID and the second column will be used as
+#' the chromosome lengths.
+#'
+#' \code{bamCountConfig} is an instance of class \code{\link{NormRCountConfig}}
+#' specifying settings for read counting on bam files. You can specify the
+#' binsize, minimum mapping quality, shifting of read ends etc.. Please refer
+#' to \code{\link{NormRFit-class}} for details.
+#'
+#' @param treatment An \code{integer} vector of treatment counts or a
+#' \code{character} pointing to the treatment bam file. In the latter case an
+#' "\code{treatment}.bai" index file should exist in the same folder.
+#' @param control An \code{integer} vector of control counts or a
+#' \link{character} pointing to the control bam file. In the latter case an
+#' "\code{control}.bai" index file should exist in the same folder.
+#' @param genome Either \code{NULL} (default), a \code{character} specifying a
+#' USCS genome identifier  or a \link{data.frame} consisting of two columns
+#' (see Details).
+#' @param countConfig A \code{\link{NormRCountConfig}} object specifying bam
+#' counting parameters for read count retrieval. See Details.
+#' @param eps A \code{numeric} specifying the Threshold for EM convergence,
+#' \emph{i.e.} the minimal difference in log-likelihood in two consecutive
+#' steps.
+#' @param iterations An \code{integer} specifying how many times the EM is
+#' initialized with random model parameters.
+#' @param procs An \code{integer} giving the number of parallel threads to
+#' use.
+#' @param verbose A \code{logical} indicating whether verbose output is
+#' desired.
+#'
+#' @return A \code{\link{NormRFit}} container holding results of the fit
+#' with type \code{enrichR}.
+#'
+#' @seealso \code{\link{NormRFit-class}} for functions on accessing and
+#' exporting the enrichR fit. \code{\link{NormRCountConfig-class}} for
+#' configuration of the read counting procedure (binsize, mapping quality,...).
+#'
+#' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
+#'
+#' @rdname normR-enrichR
+#'
+#' @aliases enrichR enrichr
 #'
 #' @export
 setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
@@ -233,6 +336,8 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
     }
     return(o)
 })
+#' @rdname normR-enrichR
+#'
 #' @export
 setMethod("enrichR", signature("character", "character", "GenomicRanges"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
@@ -243,6 +348,8 @@ setMethod("enrichR", signature("character", "character", "GenomicRanges"),
     return(enrichR(countsGr$counts[[1]], countsGr$counts[[2]], genome, eps,
       iterations, procs, verbose))
 })
+#' @rdname normR-enrichR
+#'
 #' @export
 setMethod("enrichR", signature("character", "character", "data.frame"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
@@ -253,6 +360,8 @@ setMethod("enrichR", signature("character", "character", "data.frame"),
     return(enrichR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr, eps,
       iterations, procs, verbose))
 })
+#' @rdname normR-enrichR
+#'
 #' @export
 setMethod("enrichR", signature("character", "character", "character"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
@@ -263,22 +372,80 @@ setMethod("enrichR", signature("character", "character", "character"),
       iterations, procs, verbose))
 })
 
-#' \code{diffR}: Difference calling between \code{treatment} (ChIP-seq 1) and
-#' \code{control} (ChIP-seq 2) for either two given read count vectors and an
-#' optional \link{GenomicRanges} object that defines the original regions
-#' ('integer,integer,GenomicRangesOrNULL'), two given bam filepaths and a
-#' genome \code{data.frame} defining chromosomes which will be binned according
-#' to 'countConfig' ('character,character,data.frame') or two given bam
-#' filepaths and a genome \code{character} specifying a UCSC genome identifier
-#' (e.g. "hg19") that is used for retrieval of chromosome annotation which will
-#' be binned according to 'countConfig' ('character,character,character').
-#' @aliases diffR
-#' @aliases differenceCall
-#' @rdname diffr
-#' @export
-setGeneric("diffR", function(treatment, control, genome, ...)
-  standardGeneric("diffR"))
-#' @rdname normr
+#' Difference Calling between conditional ChIP-seq data in normR with diffR
+#'
+#' Difference calling between \code{treatment} (ChIP-seq 1) and \code{control}
+#' (ChIP-seq 2) in normR is done by fitting background and two conditional
+#' enrichments simultaenously.  Therefore, a mixture of three binomials is fit
+#' to the data with Expectation Maximization (EM). After convergence of the EM,
+#' the fitted background component is used to calculate significance for
+#' treatment and control count pair. Based on this statistic, user can extract
+#' significantly enriched/depleted regions in a condition with a desired
+#' significance level.  These regions can be further analyzed within R or
+#' exported (see \code{\link{NormRFit-class}}).  Furthermore, diffR
+#' calculates a standardized conditional-specific enrichment given the
+#' fitted background component. See also Details
+#'
+#' Supplied count vectors for treatment and control should be of same length
+#' and of type \code{integer}.
+#'
+#' For convenience, read count vectors can be obtained directly from bam files.
+#' In this case, please specify a bam file for treatment and control each and a
+#' \code{genome}. Bam files should be indexed using samtools (\emph{i.e.}
+#' samtools index file file.bai). Furthermore, bam files should contain a valid
+#' header with given chromosome names. If \code{genome == NULL}(default),
+#' chromosome names will be read from treatment bamheader. Please be aware that
+#' bamheader might contain irregular contigs and chrM which influence the fit.
+#' Also be sure that treatment and control contain the same chromosomes.
+#' Otherwise an error will be thrown. If \code{genome} is a \code{character},
+#' \code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to resolve
+#' this to a valid UCSC genome identifier (see
+#' \url{https://genome.ucsc.edu/cgi-bin/hgGateway} for available genomes). In
+#' this case, only assembled molecules will be considered (no circular). Please
+#' check if your bam files obey this annotation. If \code{genome} is a
+#' \code{data.frame}, it represents the chromosome specification. The first
+#' column will be used as chromosome ID and the second column will be used as
+#' the chromosome lengths.
+#'
+#' \code{bamCountConfig} is an instance of class \code{\link{NormRCountConfig}}
+#' specifying settings for read counting on bam files. You can specify the
+#' binsize, minimum mapping quality, shifting of read ends etc.. Please refer
+#' to \code{\link{NormRFit-class}} for details.
+#'
+#' @param treatment An \code{integer} vector of treatment counts or a
+#' \code{character} pointing to the treatment bam file. In the latter case an
+#' "\code{treatment}.bai" index file should exist in the same folder.
+#' @param control An \code{integer} vector of control counts or a
+#' \link{character} pointing to the control bam file. In the latter case an
+#' "\code{control}.bai" index file should exist in the same folder.
+#' @param genome Either \code{NULL} (default), a \code{character} specifying a
+#' USCS genome identifier or a \link{data.frame} consisting of two columns
+#' (see Details).
+#' @param countConfig A \code{\link{NormRCountConfig}} object specifying bam
+#' counting parameters for read count retrieval. See Details.
+#' @param eps A \code{numeric} specifying the Threshold for EM convergence,
+#' \emph{i.e.} the minimal difference in log-likelihood in two consecutive
+#' steps.
+#' @param iterations An \code{integer} specifying how many times the EM is
+#' initialized with random model parameters.
+#' @param procs An \code{integer} giving the number of parallel threads to
+#' use.
+#' @param verbose A \code{logical} indicating whether verbose output is
+#' desired.
+#'
+#' @return A \code{\link{NormRFit}} container holding results of the fit
+#' with type \code{diffR}.
+#'
+#' @seealso \code{\link{NormRFit-class}} for functions on accessing and
+#' exporting the diffR fit. \code{\link{NormRCountConfig-class}} for
+#' configuration of the read counting procedure (binsize, mapping quality,...).
+#'
+#' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
+#'
+#' @rdname normR-diffR
+#'
+#' @aliases diffR differenceCall
+#'
 #' @export
 setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
   function(treatment, control, genome, eps=1e-5, iterations=10,
@@ -331,7 +498,8 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
     }
     return(o)
 })
-#' @rdname normr
+#' @rdname normR-diffR
+#'
 #' @export
 setMethod("diffR", signature("character", "character", "GenomicRanges"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
@@ -342,7 +510,8 @@ setMethod("diffR", signature("character", "character", "GenomicRanges"),
     return(diffR(countsGr$counts[[1]], countsGr$counts[[2]], genome, eps,
       iterations, procs, verbose))
 })
-#' @rdname normr
+#' @rdname normR-diffR
+#'
 #' @export
 setMethod("diffR", signature("character", "character", "data.frame"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
@@ -353,7 +522,8 @@ setMethod("diffR", signature("character", "character", "data.frame"),
     return(diffR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr, eps,
       iterations, procs, verbose))
 })
-#' @rdname normr
+#' @rdname normR-diffR
+#'
 #' @export
 setMethod("diffR", signature("character", "character", "character"),
   function(treatment, control, genome="", countConfig=countConfigSingleEnd(),
@@ -364,23 +534,82 @@ setMethod("diffR", signature("character", "character", "character"),
       procs, verbose))
 })
 
-#' \code{regimeR}: Enrichment regime calling between \code{treatment}
-#' (ChIP-seq 1) and \code{control} (ChIP-seq 2) with with \code{models} number
-#' of models for either two given read count vectors and an optional
-#' \link{GenomicRanges} object that defines the original regions
-#' ('integer,integer,GenomicRangesOrNULL'), two given bam filepaths and a
-#' genome \code{data.frame} defining chromosomes which will be binned according
-#' to 'countConfig' ('character,character,data.frame') or two given bam
-#' filepaths and a genome \code{character} specifying a UCSC genome identifier
-#' (e.g. "hg19") that is used for retrieval of chromosome annotation which will
-#' be binned according to 'countConfig' ('character,character,character').
-#' @aliases regimeR
-#' @aliases regimeCall
-#' @rdname normr
-#' @export
-setGeneric("regimeR", function(treatment, control, genome, models, ...)
-  standardGeneric("regimeR"))
-#' @rdname normr
+#' Regime Enrichment Calling for ChIP-seq data in normR with regimeR
+#'
+#' Regime enrichment calling between \code{treatment} (ChIP-seq) and
+#' \code{control} (Input) in normR is done by fitting background and multiple
+#' enrichment regimes simultaenously.  Therefore, a mixture of \code{models}
+#' binomials is fit to the data with Expectation Maximization (EM). After
+#' convergence of the EM, the fitted background component is used to calculate
+#' significance for treatment and control count pair. Based on this statistic,
+#' user can extract significantly enriched regions with a desired significance
+#' level. Regime assignments are done by Maximum A Posteriori. Regions can be
+#' further analyzed within R or exported (see \code{\link{NormRFit-class}}).
+#' Furthermore, regimeR calculates a standardized enrichment given the fitted
+#' background component. See also Details
+#'
+#' Supplied count vectors for treatment and control should be of same length
+#' and of type \code{integer}.
+#'
+#' For convenience, read count vectors can be obtained directly from bam files.
+#' In this case, please specify a bam file for treatment and control each and a
+#' \code{genome}. Bam files should be indexed using samtools (\emph{i.e.}
+#' samtools index file file.bai). Furthermore, bam files should contain a valid
+#' header with given chromosome names. If \code{genome == NULL}(default),
+#' chromosome names will be read from treatment bamheader. Please be aware that
+#' bamheader might contain irregular contigs and chrM which influence the fit.
+#' Also be sure that treatment and control contain the same chromosomes.
+#' Otherwise an error will be thrown. If \code{genome} is a \code{character},
+#' \code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to resolve
+#' this to a valid UCSC genome identifier (see
+#' \url{https://genome.ucsc.edu/cgi-bin/hgGateway} for available genomes). In
+#' this case, only assembled molecules will be considered (no circular). Please
+#' check if your bam files obey this annotation. If \code{genome} is a
+#' \code{data.frame}, it represents the chromosome specification. The first
+#' column will be used as chromosome ID and the second column will be used as
+#' the chromosome lengths.
+#'
+#' \code{bamCountConfig} is an instance of class \code{\link{NormRCountConfig}}
+#' specifying settings for read counting on bam files. You can specify the
+#' binsize, minimum mapping quality, shifting of read ends etc.. Please refer
+#' to \code{\link{NormRFit-class}} for details.
+#'
+#' @param treatment An \code{integer} vector of treatment counts or a
+#' \code{character} pointing to the treatment bam file. In the latter case an
+#' "\code{treatment}.bai" index file should exist in the same folder.
+#' @param control An \code{integer} vector of control counts or a
+#' \link{character} pointing to the control bam file. In the latter case an
+#' "\code{control}.bai" index file should exist in the same folder.
+#' @param genome Either \code{NULL} (default), a \code{character} specifying a
+#' USCS genome identifier or a \link{data.frame} consisting of two columns
+#' (see Details).
+#' @param models An \code{integer} specifying the number of mixture
+#' components to fit [\code{\link{regimeR}} only]. Default is \code{3}.
+#' @param countConfig A \code{\link{NormRCountConfig}} object specifying bam
+#' counting parameters for read count retrieval. See Details.
+#' @param eps A \code{numeric} specifying the Threshold for EM convergence,
+#' \emph{i.e.} the minimal difference in log-likelihood in two consecutive
+#' steps.
+#' @param iterations An \code{integer} specifying how many times the EM is
+#' initialized with random model parameters.
+#' @param procs An \code{integer} giving the number of parallel threads to
+#' use.
+#' @param verbose A \code{logical} indicating whether verbose output is
+#' desired.
+#'
+#' @return A \code{\link{NormRFit}} container holding results of the fit
+#' with type \code{regimeR}.
+#'
+#' @seealso \code{\link{NormRFit-class}} for functions on accessing and
+#' exporting the regimeR fit. \code{\link{NormRCountConfig-class}} for
+#' configuration of the read counting procedure (binsize, mapping quality,...).
+#'
+#' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
+#'
+#' @rdname normR-regimeR
+#'
+#' @aliases regimeR regimeCall
+#'
 #' @export
 setMethod("regimeR",
           signature("integer", "integer", "GenomicRanges", "numeric"),
@@ -429,7 +658,8 @@ setMethod("regimeR",
     }
     return(o)
 })
-#' @rdname normr
+#' @rdname normR-regimeR
+#'
 #' @export
 setMethod("regimeR",
           signature("character", "character", "GenomicRanges", "numeric"),
@@ -442,7 +672,7 @@ setMethod("regimeR",
     return(regimeR(countsGr$counts[[1]], countsGr$counts[[2]], genome, models,
       eps, iterations, procs, verbose))
 })
-#' @rdname normr
+#' @rdname normR-regimeR
 #' @export
 setMethod("regimeR", signature("character", "character", "data.frame", "numeric"),
   function(treatment, control, genome, models=3,
@@ -455,7 +685,7 @@ setMethod("regimeR", signature("character", "character", "data.frame", "numeric"
     return(regimeR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr,
       models, eps, iterations, procs, verbose))
 })
-#' @rdname normr
+#' @rdname normR-regimeR
 #' @export
 setMethod("regimeR", signature("character", "character", "character", "numeric"),
   function(treatment, control, genome="", models=3,
