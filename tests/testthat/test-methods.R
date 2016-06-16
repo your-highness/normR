@@ -33,11 +33,11 @@ test_that("Function arguments are checked correctly", {
   expect_error(recomputeP(new("NormRFit"), 0), info="B=0")
   expect_error(recomputeP(new("NormRFit"), -1), info="B<0")
 
-  expect_error(exportR(new("NormRFit"), "dmp", type = "xxx"), 
+  expect_error(exportR(new("NormRFit"), "dmp", type = "xxx"),
                info="Invalid format")
-  expect_error(exportR(new("NormRFit"), "dmp", type = "bed"), 
+  expect_error(exportR(new("NormRFit"), "dmp", type = "bed"),
                info="Invalid format")
-  expect_error(exportR(new("NormRFit"), "dmp", type = "bigWig"), 
+  expect_error(exportR(new("NormRFit"), "dmp", type = "bigWig"),
                info="Invalid format")
 })
 
@@ -89,9 +89,9 @@ test_that("enrichR() works correctly", {
                            ".bam"), package="normr")
 
   #check files first
-  sapply(c(inputfile, chipfiles), function(b) 
+  sapply(c(inputfile, chipfiles), function(b)
          expect_true(file.exists(b)))
-  sapply(c(inputfile, chipfiles), function(b) 
+  sapply(c(inputfile, chipfiles), function(b)
          expect_true(file.exists(paste0(b, ".bai"))))
 
   #input:integer,interger,GRanges
@@ -121,7 +121,7 @@ test_that("enrichR() works correctly", {
                  bamProfile(chipfile,gr2,500,20,0,F,"ignore",verbose=F)))),
                unlist(as.list(suppressWarnings(
                  bamProfile(inputfile,gr2,500,20,0,F,"ignore",verbose=F))))),
-      enrichR(chipfile, inputfile, genome.df, 
+      enrichR(chipfile, inputfile, genome.df,
               countConfigSingleEnd(500,20,-1,0), verbose=F),
       paste0("enrichR-character,character,data.frame-SingleEnd{region=",
              seqnames(gr), ":", start(gr),"-",end(gr),
@@ -181,7 +181,7 @@ test_that("diffR() works correctly", {
              bamProfile( chipfiles[2],gr,500,20,0,F,"ignore",verbose=F))[1],
            suppressWarnings(
              bamProfile(chipfiles[1],gr,500,20,0,F,"ignore",verbose=F))[1]),
-    diffR(chipfiles[2], chipfiles[1], genome.df, 
+    diffR(chipfiles[2], chipfiles[1], genome.df,
           countConfigSingleEnd(500,20,-1,0), verbose=F),
     paste0("diffR-character,character,data.frame-SingleEnd{region=",
            seqnames(gr), ":", start(gr),"-",end(gr),
@@ -189,7 +189,7 @@ test_that("diffR() works correctly", {
            chipfiles[1], "}"),
     bgIdx=2
   )
-  fit <- diffR(chipfiles[2], chipfiles[1], genome.df, 
+  fit <- diffR(chipfiles[2], chipfiles[1], genome.df,
                countConfigPairedEnd(500,20,-1,0,T,c(0,300)), verbose=F)
   testFit(
     RdiffR(suppressWarnings(
@@ -249,7 +249,7 @@ test_that("regimeR() works correctly", {
                suppressWarnings(
                  bamProfile(inputfile,gr,500,20,0,F,"ignore",verbose=F))[1],
                k),
-      regimeR(chipfile, inputfile, genome.df, k, 
+      regimeR(chipfile, inputfile, genome.df, k,
               countConfigSingleEnd(500,20,-1,0), verbose=F),
       paste0("regimeR-character,character,data.frame-SingleEnd{region=",
              seqnames(gr), ":", start(gr),"-",end(gr),
