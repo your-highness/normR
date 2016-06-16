@@ -65,8 +65,8 @@ std::vector<double> asVector(const NumericVector& x) {
  * Propagate logging to R
  */
 void message(std::string s) {
-  Rcpp::Function msg("message");
-  msg(s);
+  //Rcpp::Function msg("message");
+  //msg(s);
 }
 
 /*
@@ -691,11 +691,11 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
    * much faster than reorganizing the old one.
    */
   LogicalVector idx(r.size(), true);
-  if (binFilter == "zero") 
+  if (binFilter == "zero")
     idx = (r > 0 & s > 0);
   else if (binFilter == "zeroSum") {
     idx = ((r + s) > 0);
-  } 
+  }
   if (verbose) {
     message("\t... removing (r == 0) or (s == 0) regions [" +
       std::to_string(logical2Count(idx)) + " of " +
