@@ -80,7 +80,7 @@
 #' configuration of the read counting procedure (binsize, mapping quality,...).
 #'
 #' @name normR
-#' @aliases normr PeakCalling DifferentialPeakCalling EnrichmentCalling
+#' @aliases normr PeakCalling DifferentialPeakCalling
 #'
 #' @example inst/examples/methods_example.R
 #'
@@ -107,6 +107,7 @@ NULL
 #' (\emph{e.g.} ChIP-seq) and \code{control} (\emph{e.g.} Input).
 #'
 #' @rdname normR
+#' @aliases enrichR-generic
 #' @export
 setGeneric("enrichR", function(treatment, control, genome, ...)
   standardGeneric("enrichR"))
@@ -115,6 +116,7 @@ setGeneric("enrichR", function(treatment, control, genome, ...)
 #' condition 2).
 #'
 #' @rdname normR
+#' @aliases diffR-generic
 #' @export
 setGeneric("diffR", function(treatment, control, genome, ...)
   standardGeneric("diffR"))
@@ -124,6 +126,7 @@ setGeneric("diffR", function(treatment, control, genome, ...)
 #' broad and peak enrichment.
 #'
 #' @rdname normR
+#' @aliases regimeR-generic
 #' @export
 setGeneric("regimeR", function(treatment, control, genome, models, ...)
   standardGeneric("regimeR"))
@@ -288,6 +291,7 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
 #' @rdname normR-enrichR
+#' @aliases enrichR enrichr enrichmentCall EnrichmentCalling
 #'
 #' @export
 setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
@@ -441,6 +445,7 @@ setMethod("enrichR", signature("character", "character", "character"),
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
 #' @rdname normR-diffR
+#' @aliases diffR diffr differenceCall DifferenceCalling
 #'
 #' @export
 setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
@@ -603,6 +608,7 @@ setMethod("diffR", signature("character", "character", "character"),
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
 #' @rdname normR-regimeR
+#' @aliases regimeR regimer regimeCall RegimeCalling
 #'
 #' @export
 setMethod("regimeR",

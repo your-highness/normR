@@ -2,10 +2,14 @@
 % Please edit documentation in R/methods.R
 \docType{methods}
 \name{regimeR,integer,integer,GenomicRanges,numeric-method}
+\alias{RegimeCalling}
+\alias{regimeCall}
+\alias{regimeR}
 \alias{regimeR,character,character,GenomicRanges,numeric-method}
 \alias{regimeR,character,character,character,numeric-method}
 \alias{regimeR,character,character,data.frame,numeric-method}
 \alias{regimeR,integer,integer,GenomicRanges,numeric-method}
+\alias{regimer}
 \title{Regime Enrichment Calling for ChIP-seq data in normR with regimeR}
 \usage{
 \S4method{regimeR}{integer,integer,GenomicRanges,numeric}(treatment, control,

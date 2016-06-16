@@ -3,11 +3,13 @@
 \docType{package}
 \name{normR}
 \alias{DifferentialPeakCalling}
-\alias{EnrichmentCalling}
 \alias{PeakCalling}
+\alias{diffR-generic}
+\alias{enrichR-generic}
 \alias{normR}
 \alias{normR-package}
 \alias{normr}
+\alias{regimeR-generic}
 \title{Enrichment, Difference and Regime Calling in ChIP-seq data.}
 \usage{
 enrichR(treatment, control, genome, ...)
@@ -117,9 +119,9 @@ summary(enrich)
 
 ## Not run:
 #write significant regions to bed
-exportR(enrich, filename = "enrich.bed", fdr = 0.01)
+#exportR(enrich, filename = "enrich.bed", fdr = 0.01)
 #write normalized enrichment to bigWig
-exportR(enrich, filename = "enrich.bw")
+#exportR(enrich, filename = "enrich.bw")
 ## End(**Not run**)
 
 ### diffR(): Calling differences between two conditions
