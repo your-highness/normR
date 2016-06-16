@@ -290,6 +290,7 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
 #'
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
+#' @example inst/examples/methods_example.R
 #' @rdname normR-enrichR
 #' @aliases enrichR enrichr enrichmentCall EnrichmentCalling
 #'
@@ -300,7 +301,7 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
     if (length(treatment) != length(control)) {
       stop("incompatible treatment and control count vectors")
     }
-    fit <- normr:::normr_core(control, treatment, 2L, eps, iterations, 0, F,
+    fit <- normr:::normr_core(control, treatment, 2L, eps, iterations, 0, FALSE,
                               verbose, procs)
 
     #Storey's q-value on T filtered P-values
@@ -334,7 +335,7 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
     #Print logging information
     if (verbose) {
       message("\n\n+++ OVERALL RESULT ++++\n")
-      summary(o, print=T)
+      summary(o, print=TRUE)
     }
     return(o)
 })
@@ -444,6 +445,7 @@ setMethod("enrichR", signature("character", "character", "character"),
 #'
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
+#' @example inst/examples/methods_example.R
 #' @rdname normR-diffR
 #' @aliases diffR diffr differenceCall DifferenceCalling
 #'
@@ -454,12 +456,12 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
     if (length(treatment) != length(control)) {
       stop("incompatible treatment and control count vectors")
     }
-    fit <- normr:::normr_core(control, treatment, 3L, eps, iterations, 1, T,
+    fit <- normr:::normr_core(control, treatment, 3L, eps, iterations, 1, TRUE,
                               verbose, procs)
 
     #T filter is computed for label-switched fit as well
-    fit2 <- normr:::normr_core(treatment, control, 3L, eps, iterations, 1, T,
-                               F, procs)
+    fit2 <- normr:::normr_core(treatment, control, 3L, eps, iterations, 1, TRUE,
+                               FALSE, procs)
     fit$filteredT <- intersect(fit$filteredT,
                            which(colSums(fit$map$values) >= fit2$Tthreshold)
     )
@@ -495,7 +497,7 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
 
     if (verbose) {
       message("\n\n+++ OVERALL RESULT ++++\n")
-      summary(o, print=T)
+      summary(o, print=TRUE)
     }
     return(o)
 })
@@ -607,6 +609,7 @@ setMethod("diffR", signature("character", "character", "character"),
 #'
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
+#' @example inst/examples/methods_example.R
 #' @rdname normR-regimeR
 #' @aliases regimeR regimer regimeCall RegimeCalling
 #'
@@ -620,8 +623,8 @@ setMethod("regimeR",
       stop("incompatible treatment and control count vectors")
     }
     models = as.integer(models)
-    fit <- normr:::normr_core(control, treatment, models, eps, iterations, 0, F,
-                              verbose, procs)
+    fit <- normr:::normr_core(control, treatment, models, eps, iterations, 0,
+                              FALSE, verbose, procs)
 
     #Storey's q-value on T filtered P-values
     if (verbose) message("... computing Q-values.")
@@ -654,7 +657,7 @@ setMethod("regimeR",
     #Print logging information
     if (verbose) {
       message("\n\n+++ OVERALL RESULT ++++\n")
-      summary(o, print=T)
+      summary(o, print=TRUE)
     }
     return(o)
 })
