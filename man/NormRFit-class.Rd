@@ -279,9 +279,9 @@ summary(fit)
 
 ## Not run:
 #write significant regions to bed
-exportR(fit, filename = "enrich.bed", fdr = 0.1)
+#exportR(fit, filename = "enrich.bed", fdr = 0.1)
 #write normalized enrichment to bigWig
-exportR(fit, filename = "enrich.bw")
+#exportR(fit, filename = "enrich.bw")
 ## End(**Not run**)
 
 ###AccessorMethods

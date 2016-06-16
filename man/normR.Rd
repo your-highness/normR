@@ -4,11 +4,14 @@
 \name{normR}
 \alias{DifferentialPeakCalling}
 \alias{PeakCalling}
+\alias{diffR}
 \alias{diffR-generic}
+\alias{enrichR}
 \alias{enrichR-generic}
 \alias{normR}
 \alias{normR-package}
 \alias{normr}
+\alias{regimeR}
 \alias{regimeR-generic}
 \title{Enrichment, Difference and Regime Calling in ChIP-seq data.}
 \usage{
