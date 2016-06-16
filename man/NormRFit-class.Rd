@@ -271,7 +271,7 @@ fit <- new("NormRFit",
            lnposteriors=log(matrix(runif(10), ncol=2)),
            lnenrichment=log(runif(5,0,.2)), lnpvals=log(runif(5)),
            filteredT=2:5, thresholdT=1L, lnqvals=log(runif(5,0,.2)),
-           classes=sample(1:2,5,T))
+           classes=sample(1:2,5,TRUE))
 
 #print some statistics on fits
 fit

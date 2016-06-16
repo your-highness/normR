@@ -289,8 +289,6 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
 #'
 #' @rdname normR-enrichR
 #'
-#' @aliases enrichR enrichr
-#'
 #' @export
 setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
   function(treatment, control, genome, eps=1e-5, iterations=10,
@@ -443,8 +441,6 @@ setMethod("enrichR", signature("character", "character", "character"),
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
 #' @rdname normR-diffR
-#'
-#' @aliases diffR differenceCall
 #'
 #' @export
 setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
@@ -607,8 +603,6 @@ setMethod("diffR", signature("character", "character", "character"),
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
 #' @rdname normR-regimeR
-#'
-#' @aliases regimeR regimeCall
 #'
 #' @export
 setMethod("regimeR",
