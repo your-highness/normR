@@ -142,7 +142,7 @@ double max_parallel(const NumericVector& vec, int nthreads=1) {
     double max = -DBL_MAX;
     #pragma omp parallel num_threads(nthreads)
     {
-        int priv_max;
+        int priv_max = 0;
         #pragma omp for schedule(static) nowait
         for (int i = 0; i < len; ++i) {
             if (vec(i) > priv_max) {
@@ -248,7 +248,7 @@ static inline bool pairCompare(const Pair& a, const Pair& b){
 static inline void map2uniquePairs_core(std::vector<int> r, std::vector<int> s,
   std::vector<int>& map, std::vector<int>& idx, std::vector<int>& amount,
   std::vector<int>& ur, std::vector<int>& us)  {
-    if (r.size() <= 0 | s.size() <= 0) {
+    if ((r.size() <= 0) | (s.size() <= 0)) {
         return;
     }
     if (r.size() != s.size()) {
@@ -258,7 +258,7 @@ static inline void map2uniquePairs_core(std::vector<int> r, std::vector<int> s,
     //Construct Pair vector
     Pair empty(0,0,0);
     std::vector<Pair> pairs(r.size(), empty);
-    for (int i = 0;  i < r.size(); ++i) {
+    for (unsigned int i = 0;  i < r.size(); ++i) {
         pairs[i].r = r[i];
         pairs[i].s = s[i];
         pairs[i].pos = i;
@@ -272,7 +272,7 @@ static inline void map2uniquePairs_core(std::vector<int> r, std::vector<int> s,
     us.push_back(lastS);
     amount.push_back(0);
     //map[pairs[0].pos] = 0;
-    for (int i = 0; i < pairs.size(); ++i) {
+    for (unsigned int i = 0; i < pairs.size(); ++i) {
         Pair& p = pairs[i];
         if (p.r != lastR || p.s != lastS) {
             lastR = p.r;
@@ -392,7 +392,6 @@ List em(const List& m2u_sub, const int models=2, const double eps=1e-5,
   lnprior = log(lnprior / sum(lnprior));
   double qstar = sum(us_sub * uamount_sub) /
     sum(ur_sub * uamount_sub + us_sub * uamount_sub);
-  double jitter = qstar-.01;
   lntheta = log(rep(qstar, models) - runif(models, 0, (qstar - eps)));
   lnftheta = log(1 - exp(lntheta));
   if (verbose) {
@@ -692,7 +691,7 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
    */
   LogicalVector idx(r.size(), true);
   if (binFilter == "zero")
-    idx = (r > 0 & s > 0);
+    idx = ((r > 0) & (s > 0));
   else if (binFilter == "zeroSum") {
     idx = ((r + s) > 0);
   }

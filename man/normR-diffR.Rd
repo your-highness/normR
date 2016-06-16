@@ -13,18 +13,18 @@
 \title{Difference Calling between conditional ChIP-seq data in normR with diffR}
 \usage{
 \S4method{diffR}{integer,integer,GenomicRanges}(treatment, control, genome,
-  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
+  eps = 0.00001, iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{diffR}{character,character,GenomicRanges}(treatment, control, genome,
-  countConfig = countConfigSingleEnd(), eps = 1e-05, iterations = 10,
+  countConfig = countConfigSingleEnd(), eps = 0.00001, iterations = 10,
   procs = 1L, verbose = TRUE)
 
 \S4method{diffR}{character,character,data.frame}(treatment, control, genome,
-  countConfig = countConfigSingleEnd(), eps = 1e-05, iterations = 10,
+  countConfig = countConfigSingleEnd(), eps = 0.00001, iterations = 10,
   procs = 1L, verbose = TRUE)
 
 \S4method{diffR}{character,character,character}(treatment, control,
-  genome = "", countConfig = countConfigSingleEnd(), eps = 1e-05,
+  genome = "", countConfig = countConfigSingleEnd(), eps = 0.00001,
   iterations = 10, procs = 1L, verbose = TRUE)
 }
 \arguments{
@@ -108,7 +108,7 @@ require(GenomicRanges)
 input <- system.file("extdata", "K562_Input.bam", package="normr")
 chipK4 <- system.file("extdata", "K562_H3K4me3.bam", package="normr")
 #region to count in (example files contain information only in this region)
-gr <- GRanges("chr1", IRanges(22500000, 25000000))
+gr <- GRanges("chr1", IRanges(seq(22500001, 25000000, 1000), width = 1000))
 #configure your counting strategy (see BamCountConfig-class)
 countConfiguration <- countConfigSingleEnd(binsize = 1000,
                                            mapq = 30, shift = 100)

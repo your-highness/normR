@@ -13,20 +13,20 @@
 \title{Regime Enrichment Calling for ChIP-seq data in normR with regimeR}
 \usage{
 \S4method{regimeR}{integer,integer,GenomicRanges,numeric}(treatment, control,
-  genome, models = 3, eps = 1e-05, iterations = 10, procs = 1L,
+  genome, models = 3, eps = 0.00001, iterations = 10, procs = 1L,
   verbose = TRUE)
 
 \S4method{regimeR}{character,character,GenomicRanges,numeric}(treatment,
   control, genome, models = 3, countConfig = countConfigSingleEnd(),
-  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
+  eps = 0.00001, iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{regimeR}{character,character,data.frame,numeric}(treatment, control,
-  genome, models = 3, countConfig = countConfigSingleEnd(), eps = 1e-05,
+  genome, models = 3, countConfig = countConfigSingleEnd(), eps = 0.00001,
   iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{regimeR}{character,character,character,numeric}(treatment, control,
   genome = "", models = 3, countConfig = countConfigSingleEnd(),
-  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
+  eps = 0.00001, iterations = 10, procs = 1L, verbose = TRUE)
 }
 \arguments{
 \item{treatment}{An \code{integer} vector of treatment counts or a
@@ -112,7 +112,7 @@ require(GenomicRanges)
 input <- system.file("extdata", "K562_Input.bam", package="normr")
 chipK4 <- system.file("extdata", "K562_H3K4me3.bam", package="normr")
 #region to count in (example files contain information only in this region)
-gr <- GRanges("chr1", IRanges(22500000, 25000000))
+gr <- GRanges("chr1", IRanges(seq(22500001, 25000000, 1000), width = 1000))
 #configure your counting strategy (see BamCountConfig-class)
 countConfiguration <- countConfigSingleEnd(binsize = 1000,
                                            mapq = 30, shift = 100)

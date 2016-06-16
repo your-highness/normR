@@ -90,6 +90,9 @@
 #' contains \code{NA} (not enriched) and an arbitary number of enrichment class
 #' \code{>= 1}.
 #'
+#' @import grDevices
+#' @import utils
+#'
 #' @aliases NormRFit normRFit normrfit NormRfit
 #'
 #' @seealso \link{normr} for function creating this container
