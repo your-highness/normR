@@ -197,7 +197,6 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
   if(!file.exists(paste(control, ".bai", sep=""))) {
     stop("No index file for", control, ".\n")
   }
-  if (NCOL(genome) != 2) stop("invalid genome data.frame")
 
   if (verbose) {
     message(paste0("Counting on ", control, " & ", treatment,
