@@ -121,7 +121,7 @@ k4me3Ranges <- getRanges(k4me3Fit)[!is.na(k4me3Classes)]
 #Alternatively you can extract ranges without storing the class vector
 k4me3Ranges <- getRanges(k4me3Fit, fdr = 0.05)
 
-#as expected we get 380 regions
+#as expected we get 586 regions
 length(k4me3Ranges)
 
 ## ----warning=FALSE-------------------------------------------------------
@@ -235,8 +235,8 @@ exportR(k36me3Regimes, filename = "k36me3Regimes.bed", type = "bed", fdr = 0.05)
 #  # Consider only reads with Mapping Quality >= 30.
 #  # Count the midpoint of the aligned fragment instead of 5' ends.
 #  # Consider only reads corresponding to fragments with size from 100 to 300bp
-#  countConfigPE <- countConfigPairdEnd(binsize = 500, mapq = 30, midpoint = T,
-#                                       tlenfilter = c(100, 300))
+#  countConfigPE <- countConfigPairedEnd(binsize = 500, mapq = 30, midpoint = T,
+#                                        tlenFilter = c(100, 300))
 #  
 #  #Plug in the counting configuration into normR, e.g. in enrichR()
 #  fit <- enrichR(treatment   = k4me3Bamfile,
