@@ -309,10 +309,10 @@ setMethod("exportR", signature=c("NormRFit", "character"),
                    "alwaysZero=on graphType=bar viewLimits=0:1.5 ",
                    "windowingFunction=mean\n"),
             file=filename)
-        rtracklayer::export(xect=gr, con=filename, format=typ, append=T)
+        rtracklayer::export(object=gr, con=filename, format=typ, append=T)
 
       } else { #bigWig - no trackline
-        rtracklayer::export(xect=gr, con=filename, format=typ)
+        rtracklayer::export(object=gr, con=filename, format=typ)
       }
     }
 })
@@ -551,11 +551,11 @@ setMethod("summary", "NormRFit",
                   "Number of Components:  ", object@k, "\n",
                   "Theta* (naive bg):     ",
                   format(object@thetastar, digits=digits), "\n",
-                  "Backgroundcomponent B: ", object@B, "\n\n")
+                  "Background component B: ", object@B, "\n\n")
     if (length(object@theta)) {
-       ans <- paste0(ans, "+++ Results of fit +++ \nMixture Proporitons:\n")
+      ans <- paste0(ans, "+++ Results of fit +++ \nMixture Proporitons:\n")
       ans <- paste0(ans,
-        paste(format(object@mixtures,digits=digits), collapse="  "))
+        paste0(format(object@mixtures*100,digits=digits), "%", collapse="  "))
       ans <- paste0(ans, "\nTheta:\n")
       ans <- paste0(ans,
         paste(format(object@theta,digits=digits), collapse="  "))

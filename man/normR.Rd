@@ -5,12 +5,9 @@
 \alias{DifferentialPeakCalling}
 \alias{EnrichmentCalling}
 \alias{PeakCalling}
-\alias{diffR}
-\alias{enrichR}
 \alias{normR}
 \alias{normR-package}
 \alias{normr}
-\alias{regimeR}
 \title{Enrichment, Difference and Regime Calling in ChIP-seq data.}
 \usage{
 enrichR(treatment, control, genome, ...)

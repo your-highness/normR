@@ -2,8 +2,6 @@
 % Please edit documentation in R/methods.R
 \docType{methods}
 \name{regimeR,integer,integer,GenomicRanges,numeric-method}
-\alias{regimeCall}
-\alias{regimeR}
 \alias{regimeR,character,character,GenomicRanges,numeric-method}
 \alias{regimeR,character,character,character,numeric-method}
 \alias{regimeR,character,character,data.frame,numeric-method}

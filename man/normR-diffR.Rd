@@ -2,12 +2,10 @@
 % Please edit documentation in R/methods.R
 \docType{methods}
 \name{diffR,integer,integer,GenomicRanges-method}
-\alias{diffR}
 \alias{diffR,character,character,GenomicRanges-method}
 \alias{diffR,character,character,character-method}
 \alias{diffR,character,character,data.frame-method}
 \alias{diffR,integer,integer,GenomicRanges-method}
-\alias{differenceCall}
 \title{Difference Calling between conditional ChIP-seq data in normR with diffR}
 \usage{
 \S4method{diffR}{integer,integer,GenomicRanges}(treatment, control, genome,
