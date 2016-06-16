@@ -10,7 +10,7 @@ gr <- GRanges("chr1", IRanges(22500000, 25000000))
 countConfiguration <- countConfigSingleEnd(binsize = 1000,
                                            mapq = 30, shift = 100)
 #invoke enrichR to call enrichment
-enrich <- enrichR(treatment = chipK4, control = inputfile,
+enrich <- enrichR(treatment = chipK4, control = input,
                   genome = gr,  countConfig = countConfiguration,
                   iterations = 10, procs = 1, verbose = TRUE)
 #inspect the fit
@@ -32,7 +32,7 @@ diff <- diffR(treatment = chipK36, control = chipK4,
 summary(diff)
 
 ### regimeR(): Identification of broad and peak enrichment
-regime <- regimeR(treatment = chipK36, control = chipK4, models = 3,
+regime <- regimeR(treatment = chipK36, control = input, models = 3,
                   genome = gr,  countConfig = countConfiguration,
                   iterations = 10, procs = 1, verbose = TRUE)
 summary(regime)
