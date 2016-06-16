@@ -30,6 +30,7 @@ Imports:
     bamsignals (>= 1.4),
     rtracklayer (>= 1.32)
 Suggests:
+    BiocStyle,
     testthat (>= 1.0),
     knitr,
     stats,
