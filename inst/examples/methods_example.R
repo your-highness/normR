@@ -19,9 +19,9 @@ summary(enrich)
 
 ## Not run:
 #write significant regions to bed
-exportR(enrich, filename = "enrich.bed", fdr = 0.01)
+#exportR(enrich, filename = "enrich.bed", fdr = 0.01)
 #write normalized enrichment to bigWig
-exportR(enrich, filename = "enrich.bw")
+#exportR(enrich, filename = "enrich.bw")
 ## End(**Not run**)
 
 ### diffR(): Calling differences between two conditions

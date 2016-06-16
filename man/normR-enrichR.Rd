@@ -2,10 +2,14 @@
 % Please edit documentation in R/methods.R
 \docType{methods}
 \name{enrichR,integer,integer,GenomicRanges-method}
+\alias{EnrichmentCalling}
+\alias{enrichR}
 \alias{enrichR,character,character,GenomicRanges-method}
 \alias{enrichR,character,character,character-method}
 \alias{enrichR,character,character,data.frame-method}
 \alias{enrichR,integer,integer,GenomicRanges-method}
+\alias{enrichmentCall}
+\alias{enrichr}
 \title{Enrichment Calling on ChIP-seq data in normR with enrichR}
 \usage{
 \S4method{enrichR}{integer,integer,GenomicRanges}(treatment, control, genome,
