@@ -15,16 +15,19 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #' Container for a fit done with normR
 #'
-#' This S4class wraps a normR fit containing counts, fit configuration and
-#' results of the fit. Herein, functions for printing, summarization and
-#' accessing are provided. It is recommended to only use functions to access
-#' contents of this object. Internally, the class holds a map structure of
-#' unique elements to reduce memory requirements.
-#'
-#' The functions \code{link{enrichR}}, \code{\link{diffR}} and
+#' This S4 class wraps a \code{\link{normR}} fit containing counts, fit
+#' configuration and results of the fit. Herein, functions for printing,
+#' summarization and accessing are provided. The
+#' functions \code{\link{enrichR}}, \code{\link{diffR}} and
 #' \code{\link{regimeR}} generate a container of this class to save results of
 #' a normR binomial mixture fitting. Please refer to their documentation for
 #' conventional usage of the normR package.
+#'
+#' When working with instances of this S4 class, it is recommended to only use
+#' functions to access contents of this object. Internally, the class holds a
+#' map structure of unique elements to reduce memory requirements. #'
+#'
+#' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
 #' @slot type A \code{character} representing the type of fit. One of
 #' \code{c("enrichR","diffR", "regimeR")}.
@@ -44,7 +47,7 @@
 #' of each unique control / treatment count pair.
 #' @slot names A \code{character} of length two specifying the names for control
 #' and treatment.
-#' @slot thetaStar A \code{numeric} giving the calculated naive background
+#' @slot thetastar A \code{numeric} giving the calculated naive background
 #' estimation, \emph{i.e.} \code{sum(getCounts(obj)[2,])/sum(getCounts(obj))}
 #' @slot theta A \code{numeric} of length \code{k} giving the normR fitted
 #' parametrization of \code{k} binomial mixture components.
@@ -171,16 +174,17 @@ setValidity("NormRFit",
   }
 )
 
+#' @export
 setGeneric("exportR", function(x, filename, ...)
            standardGeneric("exportR"))
 #' @describeIn NormRFit Export results of a normR fit to common file formats.
 #'
+#' @param filename A \code{character} specifying the file to write to.
 #' @param fdr \code{NA} or a \code{numeric} between \code{0} and \code{1}
 #' specifying a FDR-level. Only regions with a q-value smaller than \code{fdr}
 #' will be returned. If set to \code{NA}, all regions analyzed will be
 #' returned (\code{\link{getRanges}}), classes are assigned by Maximum A
 #' Posteriori (\code{\link{exportR}}).
-#' @param filename A \code{character} specifying the file to write to.
 #' @param color Specified color(s) when printing a bed file. If \code{x@type ==
 #' "enrichR"}, \code{color} should of length 1 and color shading will be done
 #' on this color. If \code{x@type == "diffR"}, \code{color} should be of length
@@ -301,8 +305,9 @@ setMethod("exportR", signature=c("NormRFit", "character"),
       if (typ == "bedGraph") { #bedGraph - configure the trackline
         cat(paste0("track type=bedGraph name='", basename(filename),
                    "' description='", filename, "' visibility=full ",
-                   "color=128,128,128 altColor=128,128,128 autoScale=off alwaysZero=on ",
-                   "graphType=bar viewLimits=0:1.5 windowingFunction=mean\n"),
+                   "color=128,128,128 altColor=128,128,128 autoScale=off ",
+                   "alwaysZero=on graphType=bar viewLimits=0:1.5 ",
+                   "windowingFunction=mean\n"),
             file=filename)
         rtracklayer::export(xect=gr, con=filename, format=typ, append=T)
 
@@ -314,16 +319,18 @@ setMethod("exportR", signature=c("NormRFit", "character"),
 
 #' @describeIn NormRFit Plot a NormRFit.
 #'
+#' @param y not used.
 #' @aliases plot.NormRFit
 #'
 #' @export
 setMethod("plot", c("NormRFit", "missing"),
-  function(x, ...) {
+  function(x, y, ...) {
     stop("not implemented yet")
    }
 )
 
 
+#' @export
 setGeneric("getCounts", function(x) standardGeneric("getCounts"))
 #' @describeIn NormRFit Get count data for control and treatment.
 #'
@@ -339,6 +346,7 @@ setMethod("getCounts", "NormRFit", function(x) {
   return(list("control"=x@counts[[1]][x@map],"treatment"=x@counts[[2]][x@map]))
 })
 
+#' @export
 setGeneric("getRanges", function(x, ...) standardGeneric("getRanges"))
 #' @describeIn NormRFit Get the genomic coordinates of regions analyzed with
 #' information about component assignment.
@@ -377,6 +385,7 @@ setMethod("getRanges", "NormRFit", function(x, fdr=NA, k=NULL ) {
    }
 })
 
+#' @export
 setGeneric("getPosteriors", function(x) standardGeneric("getPosteriors"))
 #' @describeIn NormRFit Get computed posteriors for each mixture component.
 #'
@@ -390,6 +399,7 @@ setMethod("getPosteriors", "NormRFit", function(x) {
   return(exp(x@lnposteriors)[x@map,])
 })
 
+#' @export
 setGeneric("getEnrichment", function(x, ...) standardGeneric("getEnrichment"))
 #' @describeIn NormRFit Get normalized enrichment.
 #'
@@ -501,13 +511,13 @@ setMethod("length", "NormRFit", function(x) x@n)
 setMethod("print", "NormRFit",
   function(x, digits = max(3L, getOption("digits") - 3L), ...) {
     cat("NormRFit-class object\n\n",
-        "Type:                  ", x@type, "\n",
-        "Number of Regions:     ", x@n, "\n",
-        "Theta* (naive bg):     ", format(x@thetastar,digits=digits), "\n",
-        "Backgroundcomponent B: ", x@B, "\n\n")
+        "Type:                   ", x@type, "\n",
+        "Number of Regions:      ", x@n, "\n",
+        "Theta* (naive bg):      ", format(x@thetastar,digits=digits), "\n",
+        "Background component B: ", x@B, "\n\n")
     if (length(x@theta)) {
-      cat("+++ Results of fit +++ \nMixture Proporitons:\n")
-      cat(paste(format(x@mixtures,digits=digits), collapse="  "))
+      cat("+++ Results of fit +++ \nMixture Proportions:\n")
+      cat(paste0(format(x@mixtures*100,digits=digits), "%", collapse="  "))
       cat("\nTheta:\n")
       cat(paste(format(x@theta,digits=digits), collapse="  "))
     } else {
@@ -529,6 +539,8 @@ setMethod("show", "NormRFit", function(object) print(object))
 #'
 #' @param print \code{logical()} indicating if summary should be print to screen
 #' @param digits Number of digits to show in number formatting.
+#' @param ... optional arguments to be passed directly to the inherited
+#' function without alteration and with the original names preserved.
 #'
 #' @export
 setMethod("summary", "NormRFit",
@@ -566,8 +578,8 @@ setMethod("summary", "NormRFit",
       names(cts) <- c("***", "**" , "*"  , "."  , " "  , "n.s." )
       cts <- cts - c(0,cts[1:4],0)
       cts.string <-
-         capture.output(print.default(format(cts, digits=digits), print.gap=2L,
-                                     quote=F))
+         utils::capture.output(
+           print.default(format(cts, digits=digits), print.gap=2L, quote=F))
       ans <- paste0(ans, paste(cts.string, collapse="\n"), "\n")
       ans <- paste0(ans, "---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*'",
                           " 0.05 '.' 0.1 '  ' 1 'n.s.'\n\n")

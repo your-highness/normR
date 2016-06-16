@@ -24,6 +24,8 @@ setClassUnion("integerOrNULL", c("integer", "NULL"))
 #' end reads; and \code{\link{countConfigPairedEnd}} creates a configuration for
 #' paired end reads.
 #'
+#' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
+#'
 #' @slot type A \code{character} of value \code{paired.end} or
 #' \code{single.end}.
 #' @slot binsize An \code{integer} specifying the binsize in bp.
@@ -36,8 +38,8 @@ setClassUnion("integerOrNULL", c("integer", "NULL"))
 #' position in 3'-direction. This can be handy in the analysis of chip-seq data.
 #' @slot midpoint Paired End data only: A \code{logical} indicating whether
 #' fragment midpoints instead of 5'-ends should be counted.
-#' @slot tlenFilter Paired End data only: An \code{integer} of length two 
-#' specifying the lower and upper length bound for a fragment to be considered. 
+#' @slot tlenFilter Paired End data only: An \code{integer} of length two
+#' specifying the lower and upper length bound for a fragment to be considered.
 #' The fragment length as estimated from alignment in paired end experiments and
 #' written into the TLEN column.
 #'
@@ -164,6 +166,8 @@ setMethod("print", "NormRCountConfig", function(x, ...) {
 #' @describeIn NormRCountConfig Shows a given BamCounConfig
 #'
 #' @param object A \code{NormRCountConfig} object.
+#' @param ... optional arguments to be passed directly to the inherited
+#' function without alteration and with the original names preserved.
 #'
 #' @export
 setMethod("show", "NormRCountConfig", function(object) print(object))
