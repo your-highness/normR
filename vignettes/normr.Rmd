@@ -160,9 +160,9 @@ genome
 ```{r warning=FALSE}
 #Enrichment Calling for H3K4me3 and H3K36me3
 k4me3Fit <- enrichR(treatment = k4me3Bamfile, control = inputBamfile,
-                    genome = genome, verbose = F)
+                    genome = genome, verbose = FALSE)
 k36me3Fit <- enrichR(treatment = k36me3Bamfile, control = inputBamfile,
-                     genome = genome, verbose = F)
+                     genome = genome, verbose = FALSE)
 ```
 
 That was easy and fast! You must know that all results are stored as
@@ -292,9 +292,8 @@ start with H3K4me3:
 ```{r warning=FALSE}
 #example gene annotation for representative region (chr1:22500000-25000000)
 genes <- read.delim(file = system.file("extdata", "genes.bed", package="normr"),
-                    header = F,
-                    stringsAsFactors = F)
-library(GenomicRanges, verbose = F)
+                    header = FALSE, stringsAsFactors = FALSE)
+library(GenomicRanges, verbose = FALSE)
 genes <- GRanges(seqnames = genes[, 1],
                  ranges = IRanges(start = genes[, 2], end = genes[, 3]),
                  strand = genes[, 6],
@@ -304,7 +303,7 @@ genes <- unique(genes)
 #Fisher-test provides significance of overlap
 #(total specifies number of bins in representative region)
 overlapOdds <- function(query, subject, total = 10000) {
-  subject <- reduce(subject, ignore.strand = T)
+  subject <- reduce(subject, ignore.strand = TRUE)
   ov1 <- countOverlaps(query, subject)
   m <- matrix(c(sum(ov1 != 0), sum(ov1 == 0),
               ceiling(sum(width(subject))/width(query)[1]-sum(ov1 != 0)), 0),
@@ -403,10 +402,10 @@ We can extract this from either one of the `NormRFit` objects.
 k4k36Dif <- diffR(treatment = getCounts(k4me3Fit)$treatment,
                   control   = getCounts(k36me3Fit)$treatment,
                   genome    = getRanges(k4me3Fit),
-                  verbose   = F)
+                  verbose   = FALSE)
 #<or> (unnecessarily) count again
 #k4k36Dif <- diffR(treatment = k4me3Bamfile, control = k36me3Bamfile,
-#                  genome = genome, verbose = F)
+#                  genome = genome, verbose = FALSE)
 
 #summary statistics
 summary(k4k36Dif)
@@ -451,7 +450,7 @@ k4me3Regimes <- regimeR(treatment = getCounts(k4me3Fit)$treatment,
                          control   = getCounts(k4me3Fit)$control,
                          genome    = getRanges(k4me3Fit),
                          models    = 3,
-                         verbose   = F)
+                         verbose   = FALSE)
 summary(k4me3Regimes)
 ```
 
@@ -467,7 +466,7 @@ k36me3Regimes <- regimeR(treatment = getCounts(k36me3Fit)$treatment,
                          control   = getCounts(k36me3Fit)$control,
                          genome    = getRanges(k36me3Fit),
                          models    = 3,
-                         verbose   = F)
+                         verbose   = FALSE)
 summary(k36me3Regimes)
 ```
 
@@ -511,7 +510,7 @@ countConfigSE <- countConfigSingleEnd(binsize = 500, mapq = 20,
 # Consider only reads with Mapping Quality >= 30.
 # Count the midpoint of the aligned fragment instead of 5' ends.
 # Consider only reads corresponding to fragments with size from 100 to 300bp
-countConfigPE <- countConfigPairedEnd(binsize = 500, mapq = 30, midpoint = T,
+countConfigPE <- countConfigPairedEnd(binsize = 500, mapq = 30, midpoint = TRUE,
                                       tlenFilter = c(100, 300))
 
 #Plug in the counting configuration into normR, e.g. in enrichR()
@@ -536,12 +535,12 @@ all(width(promoters) == 4000)
 ```{r eval=FALSE}
 #count in predefined regions
 library(bamsignals)
-k4Counts <- bamCount(bampath = k4me3Bamfile, gr = promoters, verbose = F)
-inputCounts <- bamCount(bampath = inputBamfile, gr = promoters, verbose = F)
+k4Counts <- bamCount(bampath = k4me3Bamfile, gr = promoters, verbose = FALSE)
+inputCounts <- bamCount(bampath = inputBamfile, gr = promoters, verbose = FALSE)
 
 #Fit only on promoters
 promotersFit <- enrichR(treatment = k4Counts, control = inputCounts,
-                        genome = promoters, verbose = F)
+                        genome = promoters, verbose = FALSE)
 ```
 
 ## Post-processing of Difference Calls with CNV information
