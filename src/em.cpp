@@ -22,7 +22,6 @@
  * @author Johannes Helmuth
  * @version 0.1.0 1/26/2016
  */
-#include <algorithm>
 #include <Rcpp.h>
 
 #ifndef MY_OMP_H_
@@ -65,8 +64,8 @@ std::vector<double> asVector(const NumericVector& x) {
  * Propagate logging to R
  */
 void message(std::string s) {
-  //Rcpp::Function msg("message");
-  //msg(s);
+  Rcpp::Function msg("message");
+  msg(s);
 }
 
 /*
