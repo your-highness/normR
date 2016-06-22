@@ -35,45 +35,22 @@
 #' functions for enrichment calling (\code{\link{enrichR}}), difference calling
 #' (\code{\link{diffR}}) and enrichment regime calling (\code{\link{regimeR}}).
 #'
-#' Supplied count vectors for treatment and control should be of same length
-#' and of type \code{integer}.
+#' Available functions are
 #'
-#' For convenience, read count vectors can be obtained directly from bam files.
-#' In this case, please specify a bam file for treatment and control each and a
-#' \code{genome}. Bam files should be indexed using samtools (\emph{i.e.}
-#' samtools index file file.bai). Furthermore, bam files should contain a valid
-#' header with given chromosome names. If \code{genome == NULL}(default),
-#' chromosome names will be read from treatment bamheader. Please be aware that
-#' bamheader might contain irregular contigs and chrM which influence the fit.
-#' Also be sure that treatment and control contain the same chromosomes.
-#' Otherwise an error will be thrown. If \code{genome} is a \code{character},
-#' \code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to resolve
-#' this to a valid UCSC genome identifier (see
-#' \url{https://genome.ucsc.edu/cgi-bin/hgGateway} for available genomes). In
-#' this case, only assembled molecules will be considered (no circular). Please
-#' check if your bam files obey this annotation. If \code{genome} is a
-#' \code{data.frame}, it represents the chromosome specification. The first
-#' column will be used as chromosome ID and the second column will be used as
-#' the chromosome lengths.
+#' \code{\link{enrichR}}: Enrichment calling between \code{treatment}
+#' (\emph{e.g.} ChIP-seq) and \code{control} (\emph{e.g.} Input).
+#'
+#' \code{\link{diffR}}: Difference calling between \code{treatment}
+#' (\emph{e.g.} ChIP-seq condition 1) and \code{control} (\emph{e.g.} ChIP-seq
+#' condition 2).
+#'
+#' \code{\link{regimeR}}: Enrichment regime calling between \code{treatment}
+#' (\emph{e.g.} ChIP-seq) and \code{control} (\emph{e.g.} Input) with a
+#' given number of model components. For example, 3 regimes recover background,
+#' broad and peak enrichment.
 #'
 #' The computational performance is improved by fitting a log-space model in
 #' C++. Parallization is achieved in C++ via OpenMP (\url{http://openmp.org}).
-#'
-#' @param treatment An \code{integer} vector of treatment counts or a
-#' \code{character} pointing to the treatment bam file. In the latter case an
-#' "\code{treatment}.bai" index file should exist in the same folder.
-#' @param control An \code{integer} vector of control counts or a
-#' \link{character} pointing to the control bam file. In the latter case an
-#' "\code{control}.bai" index file should exist in the same folder.
-#' @param genome Either \code{NULL} (default), a \code{character} specifying a
-#' USCS genome identifier  or a \link{data.frame} consisting of two columns
-#' (see Details).
-#' @param models An \code{integer} specifying the number of mixture
-#' components to fit [\code{\link{regimeR}} only]. Default is \code{3}.
-#' @param ... Arguments passed down to the respective functions See
-#' \code{\link{enrichR}}, \code{\link{diffR}} and \code{\link{regimeR}}.
-#'
-#' @return A \code{\link{NormRFit}} container holding results of the fit.
 #'
 #' @seealso \code{\link{NormRFit-class}} for functions on accessing and
 #' exporting the normR fit. \code{\link{NormRCountConfig-class}} for
@@ -84,6 +61,9 @@
 #'
 #' @example inst/examples/methods_example.R
 #'
+#' @import utils
+#' @import parallel
+#' @import grDevices
 #' @import methods
 #' @import bamsignals
 #' @import GenomeInfoDb
@@ -102,34 +82,6 @@
 #' @docType package
 #' @useDynLib normr, .registration=TRUE
 NULL
-
-#' \code{\link{enrichR}}: Enrichment calling between \code{treatment}
-#' (\emph{e.g.} ChIP-seq) and \code{control} (\emph{e.g.} Input).
-#'
-#' @rdname normR
-#' @aliases enrichR-generic
-#' @export
-setGeneric("enrichR", function(treatment, control, genome, ...)
-  standardGeneric("enrichR"))
-#' \code{\link{diffR}}: Difference calling between \code{treatment}
-#' (\emph{e.g.} ChIP-seq condition 1) and \code{control} (\emph{e.g.} ChIP-seq
-#' condition 2).
-#'
-#' @rdname normR
-#' @aliases diffR-generic
-#' @export
-setGeneric("diffR", function(treatment, control, genome, ...)
-  standardGeneric("diffR"))
-#' \code{\link{regimeR}}: Enrichment regime calling between \code{treatment}
-#' (\emph{e.g.} ChIP-seq) and \code{control} (\emph{e.g.} Input) with a
-#' given number of model components. For example, 3 regimes recover background,
-#' broad and peak enrichment.
-#'
-#' @rdname normR
-#' @aliases regimeR-generic
-#' @export
-setGeneric("regimeR", function(treatment, control, genome, models, ...)
-  standardGeneric("regimeR"))
 
 #HELPER FUNCTIONS
 handleCharCharChar <- function(treatment, control, genome, verbose) {
@@ -176,8 +128,8 @@ handleCharCharDf <- function(treatment, control, genome, countConfig, procs,
                   paired.end=getFilter(countConfig),
                   tlenFilter=countConfig@tlenFilter,
                   filteredFlag=countConfig@filteredFlag,
-                  verbose=F),
-    mc.cores=procs, SIMPLIFY=F
+                  verbose=FALSE),
+    mc.cores=procs, SIMPLIFY=FALSE
   )
   counts[[1]] <- unlist(as.list(counts[[1]]))
   counts[[2]] <- unlist(as.list(counts[[2]]))
@@ -211,8 +163,8 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
                   paired.end=getFilter(countConfig),
                   tlenFilter=countConfig@tlenFilter,
                   filteredFlag=countConfig@filteredFlag,
-                  verbose=F),
-    mc.cores=procs, SIMPLIFY=F
+                  verbose=FALSE),
+    mc.cores=procs, SIMPLIFY=FALSE
   )
   counts[[1]] <- unlist(as.list(counts[[1]]))
   counts[[2]] <- unlist(as.list(counts[[2]]))
@@ -279,6 +231,9 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
 #' use.
 #' @param verbose A \code{logical} indicating whether verbose output is
 #' desired.
+#' @param ... Optional arguments for the respective implementations of
+#' \code{\link{enrichR}}.
+#'
 #'
 #' @return A \code{\link{NormRFit}} container holding results of the fit
 #' with type \code{enrichR}.
@@ -290,8 +245,13 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
 #' @example inst/examples/methods_example.R
+#'
 #' @rdname normR-enrichR
-#' @aliases enrichR enrichr enrichmentCall EnrichmentCalling
+#' @aliases enrichR-generic enrichr enrichmentCall EnrichmentCalling
+#' @export
+setGeneric("enrichR", function(treatment, control, genome, ...)
+  standardGeneric("enrichR"))
+#' @rdname normR-enrichR
 #'
 #' @export
 setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
@@ -434,6 +394,8 @@ setMethod("enrichR", signature("character", "character", "character"),
 #' use.
 #' @param verbose A \code{logical} indicating whether verbose output is
 #' desired.
+#' @param ... Optional arguments for the respective implementations of
+#' \code{\link{diffR}}.
 #'
 #' @return A \code{\link{NormRFit}} container holding results of the fit
 #' with type \code{diffR}.
@@ -445,8 +407,13 @@ setMethod("enrichR", signature("character", "character", "character"),
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
 #' @example inst/examples/methods_example.R
+#'
 #' @rdname normR-diffR
-#' @aliases diffR diffr differenceCall DifferenceCalling
+#' @aliases diffR-generic diffR diffr differenceCall DifferenceCalling
+#' @export
+setGeneric("diffR", function(treatment, control, genome, ...)
+  standardGeneric("diffR"))
+#' @rdname normR-diffR
 #'
 #' @export
 setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
@@ -548,7 +515,8 @@ setMethod("diffR", signature("character", "character", "character"),
 #' level. Regime assignments are done by Maximum A Posteriori. Regions can be
 #' further analyzed within R or exported (see \code{\link{NormRFit-class}}).
 #' Furthermore, regimeR calculates a standardized enrichment given the fitted
-#' background component. See also Details
+#' background component. For example, 3 regimes discriminate background, broad
+#' and peak enrichment. See also Details.
 #'
 #' Supplied count vectors for treatment and control should be of same length
 #' and of type \code{integer}.
@@ -598,6 +566,8 @@ setMethod("diffR", signature("character", "character", "character"),
 #' use.
 #' @param verbose A \code{logical} indicating whether verbose output is
 #' desired.
+#' @param ... Optional arguments for the respective implementations of
+#' \code{\link{regimeR}}.
 #'
 #' @return A \code{\link{NormRFit}} container holding results of the fit
 #' with type \code{regimeR}.
@@ -609,8 +579,14 @@ setMethod("diffR", signature("character", "character", "character"),
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
 #' @example inst/examples/methods_example.R
+#'
 #' @rdname normR-regimeR
-#' @aliases regimeR regimer regimeCall RegimeCalling
+#' @aliases regimeR-generic regimeR regimer regimeCall RegimeCalling
+#' @export
+setGeneric("regimeR", function(treatment, control, genome, models, ...)
+  standardGeneric("regimeR"))
+
+#' @rdname normR-regimeR
 #'
 #' @export
 setMethod("regimeR",

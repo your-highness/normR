@@ -43,6 +43,10 @@ setClassUnion("integerOrNULL", c("integer", "NULL"))
 #' The fragment length as estimated from alignment in paired end experiments and
 #' written into the TLEN column.
 #'
+#' @return A \code{\link{NormRCountConfig}} with specified counting parameters
+#' for \code{\link{normr}} methods (\code{\link{enrichR}}, \code{\link{diffR}},
+#' \code{\link{regimeR}}
+#'
 #' @aliases NormRCountConfig BamsignalsConfig BamsignalsCountConfig
 #' @seealso \link{normr} for functions that use this object.
 #'
@@ -118,7 +122,7 @@ setGeneric("countConfigPairedEnd", function(...)
 #' @export
 setMethod("countConfigPairedEnd",
   definition=function(binsize=250L, mapq=20L, filteredFlag=1024L, shift=0L,
-                      midpoint=T, tlenFilter=c(70L, 200L)) {
+                      midpoint=TRUE, tlenFilter=c(70L, 200L)) {
     new("NormRCountConfig", type="paired.end", binsize=as.integer(binsize),
         mapq=as.integer(mapq), filteredFlag=as.integer(filteredFlag),
         shift=as.integer(shift), midpoint=as.logical(midpoint),
