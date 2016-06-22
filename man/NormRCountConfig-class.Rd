@@ -24,7 +24,7 @@
   filteredFlag = 1024L, shift = 0L)
 
 \S4method{countConfigPairedEnd}{ANY}(binsize = 250L, mapq = 20L,
-  filteredFlag = 1024L, shift = 0L, midpoint = T, tlenFilter = c(70L,
+  filteredFlag = 1024L, shift = 0L, midpoint = TRUE, tlenFilter = c(70L,
   200L))
 
 \S4method{getFilter}{NormRCountConfig}(x)
@@ -60,6 +60,11 @@ column.}
 function without alteration and with the original names preserved.}
 
 \item{object}{A \code{NormRCountConfig} object.}
+}
+\value{
+A \code{\link{NormRCountConfig}} with specified counting parameters
+for \code{\link{normr}} methods (\code{\link{enrichR}}, \code{\link{diffR}},
+\code{\link{regimeR}}
 }
 \description{
 This S4 class is a small wrapper for a configuration on obtaining counts

@@ -44,7 +44,7 @@
 
 \S4method{getEnrichment}{NormRFit}(x, B = NA, procs = 1)
 
-\S4method{getPvalues}{NormRFit}(x, filtered = F)
+\S4method{getPvalues}{NormRFit}(x, filtered = FALSE)
 
 \S4method{getQvalues}{NormRFit}(x)
 
@@ -56,7 +56,7 @@
 
 \S4method{show}{NormRFit}(object)
 
-\S4method{summary}{NormRFit}(object, print = T, digits = 3, ...)
+\S4method{summary}{NormRFit}(object, print = TRUE, digits = 3, ...)
 }
 \arguments{
 \item{x}{A \code{NormRFit} object.}

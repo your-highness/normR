@@ -4,42 +4,10 @@
 \name{normR}
 \alias{DifferentialPeakCalling}
 \alias{PeakCalling}
-\alias{diffR-generic}
-\alias{enrichR-generic}
 \alias{normR}
 \alias{normR-package}
 \alias{normr}
-\alias{regimeR-generic}
 \title{Enrichment, Difference and Regime Calling in ChIP-seq data.}
-\usage{
-enrichR(treatment, control, genome, ...)
-
-diffR(treatment, control, genome, ...)
-
-regimeR(treatment, control, genome, models, ...)
-}
-\arguments{
-\item{treatment}{An \code{integer} vector of treatment counts or a
-\code{character} pointing to the treatment bam file. In the latter case an
-"\code{treatment}.bai" index file should exist in the same folder.}
-
-\item{control}{An \code{integer} vector of control counts or a
-\link{character} pointing to the control bam file. In the latter case an
-"\code{control}.bai" index file should exist in the same folder.}
-
-\item{genome}{Either \code{NULL} (default), a \code{character} specifying a
-USCS genome identifier  or a \link{data.frame} consisting of two columns
-(see Details).}
-
-\item{...}{Arguments passed down to the respective functions See
-\code{\link{enrichR}}, \code{\link{diffR}} and \code{\link{regimeR}}.}
-
-\item{models}{An \code{integer} specifying the number of mixture
-components to fit [\code{\link{regimeR}} only]. Default is \code{3}.}
-}
-\value{
-A \code{\link{NormRFit}} container holding results of the fit.
-}
 \description{
 A correct background estimation is crucial for calling enrichment and
 differences in ChIP-seq data. \code{\link{normR}} provides robust
@@ -59,6 +27,9 @@ vectors can be obtained directly from bam files when a compliant chromosome
 annotation is given. Please refer to the individual documentations of
 functions for enrichment calling (\code{\link{enrichR}}), difference calling
 (\code{\link{diffR}}) and enrichment regime calling (\code{\link{regimeR}}).
+}
+\details{
+Available functions are
 
 \code{\link{enrichR}}: Enrichment calling between \code{treatment}
 (\emph{e.g.} ChIP-seq) and \code{control} (\emph{e.g.} Input).
@@ -71,28 +42,6 @@ condition 2).
 (\emph{e.g.} ChIP-seq) and \code{control} (\emph{e.g.} Input) with a
 given number of model components. For example, 3 regimes recover background,
 broad and peak enrichment.
-}
-\details{
-Supplied count vectors for treatment and control should be of same length
-and of type \code{integer}.
-
-For convenience, read count vectors can be obtained directly from bam files.
-In this case, please specify a bam file for treatment and control each and a
-\code{genome}. Bam files should be indexed using samtools (\emph{i.e.}
-samtools index file file.bai). Furthermore, bam files should contain a valid
-header with given chromosome names. If \code{genome == NULL}(default),
-chromosome names will be read from treatment bamheader. Please be aware that
-bamheader might contain irregular contigs and chrM which influence the fit.
-Also be sure that treatment and control contain the same chromosomes.
-Otherwise an error will be thrown. If \code{genome} is a \code{character},
-\code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to resolve
-this to a valid UCSC genome identifier (see
-\url{https://genome.ucsc.edu/cgi-bin/hgGateway} for available genomes). In
-this case, only assembled molecules will be considered (no circular). Please
-check if your bam files obey this annotation. If \code{genome} is a
-\code{data.frame}, it represents the chromosome specification. The first
-column will be used as chromosome ID and the second column will be used as
-the chromosome lengths.
 
 The computational performance is improved by fitting a log-space model in
 C++. Parallization is achieved in C++ via OpenMP (\url{http://openmp.org}).

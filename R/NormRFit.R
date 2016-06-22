@@ -90,9 +90,6 @@
 #' contains \code{NA} (not enriched) and an arbitary number of enrichment class
 #' \code{>= 1}.
 #'
-#' @import grDevices
-#' @import utils
-#'
 #' @aliases NormRFit normRFit normrfit NormRfit
 #'
 #' @seealso \link{normr} for function creating this container
@@ -293,8 +290,8 @@ setMethod("exportR", signature=c("NormRFit", "character"),
       #writing
       cat(paste0('track name=', basename(filename), ' description="',
         filename, '" visibility=dense itemRgb="On"\n'), file=filename)
-      write.table(file=filename, x=out, sep="\t", col.names=F, row.names=F,
-        quote=F, append=T)
+      utils::write.table(file=filename, x=out, sep="\t", col.names=FALSE,
+        row.names=FALSE, quote=FALSE, append=TRUE)
 
     } else { #quantitative output
       gr <- getRanges(x)
@@ -312,7 +309,7 @@ setMethod("exportR", signature=c("NormRFit", "character"),
                    "alwaysZero=on graphType=bar viewLimits=0:1.5 ",
                    "windowingFunction=mean\n"),
             file=filename)
-        rtracklayer::export(object=gr, con=filename, format=typ, append=T)
+        rtracklayer::export(object=gr, con=filename, format=typ, append=TRUE)
 
       } else { #bigWig - no trackline
         rtracklayer::export(object=gr, con=filename, format=typ)
@@ -429,6 +426,7 @@ setMethod("getEnrichment", "NormRFit", function(x, B=NA, procs=1) {
   }
 })
 
+#' @export
 setGeneric("getPvalues", function(x, ...) standardGeneric("getPvalues"))
 #' @describeIn NormRFit Get normR-computed P-values.
 #'
@@ -441,7 +439,7 @@ setGeneric("getPvalues", function(x, ...) standardGeneric("getPvalues"))
 #' @aliases getPvalues
 #'
 #' @export
-setMethod("getPvalues", "NormRFit", function(x, filtered=F) {
+setMethod("getPvalues", "NormRFit", function(x, filtered = FALSE) {
   if (filtered) {
     idx = x@map[which(x@map %in% x@filteredT)]
     exp(x@lnpvals)[idx]
@@ -450,6 +448,7 @@ setMethod("getPvalues", "NormRFit", function(x, filtered=F) {
   }
 })
 
+#' @export
 setGeneric("getQvalues", function(x) standardGeneric("getQvalues"))
 #' @describeIn NormRFit Get FDR-corrected q-values.
 #'
@@ -463,6 +462,7 @@ setMethod("getQvalues", "NormRFit", function(x) {
   exp(x@lnqvals)[x@map]
 })
 
+#' @export
 setGeneric("getClasses", function(x, ...) standardGeneric("getClasses"))
 #' @describeIn NormRFit Get component assignments for each region analyzed.
 #'
@@ -547,7 +547,7 @@ setMethod("show", "NormRFit", function(object) print(object))
 #'
 #' @export
 setMethod("summary", "NormRFit",
-   function(object, print=T, digits=3, ...) {
+   function(object, print=TRUE, digits=3, ...) {
      ans <- paste0("NormRFit-class object\n\n",
                   "Type:                  '", object@type, "'\n",
                   "Number of Regions:     ", object@n, "\n",
@@ -572,17 +572,17 @@ setMethod("summary", "NormRFit",
         "Number of Regions filtered out: ", sum(is.na(qvals)), "\n")
       ans <- paste0(ans,
         "Significantly different from background B based on q-values:\n")
-      cts <- c(sum(qvals <= 0, na.rm=T),
-               sum(qvals <= 0.001, na.rm=T),
-               sum(qvals <= 0.01, na.rm=T),
-               sum(qvals <= 0.05, na.rm=T),
-               sum(qvals <= 0.1, na.rm=T),
-               sum(qvals > 0.1, na.rm=T))
+      cts <- c(sum(qvals <= 0, na.rm=TRUE),
+               sum(qvals <= 0.001, na.rm=TRUE),
+               sum(qvals <= 0.01, na.rm=TRUE),
+               sum(qvals <= 0.05, na.rm=TRUE),
+               sum(qvals <= 0.1, na.rm=TRUE),
+               sum(qvals > 0.1, na.rm=TRUE))
       names(cts) <- c("***", "**" , "*"  , "."  , " "  , "n.s." )
       cts <- cts - c(0,cts[1:4],0)
       cts.string <-
          utils::capture.output(
-           print.default(format(cts, digits=digits), print.gap=2L, quote=F))
+           print.default(format(cts, digits=digits), print.gap=2L, quote=FALSE))
       ans <- paste0(ans, paste(cts.string, collapse="\n"), "\n")
       ans <- paste0(ans, "---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*'",
                           " 0.05 '.' 0.1 '  ' 1 'n.s.'\n\n")
