@@ -1,8 +1,8 @@
 Package: normr
 Type: Package
 Title: Normalization and difference calling in ChIP-seq data
-Version: 0.99.2
-Date: 2016-06-16
+Version: 0.99.3
+Date: 2016-06-22
 Authors@R: c(person(given="Johannes",family="Helmuth",
         email="helmuth@molgen.mpg.de", role=c("aut", "cre")),
         person(given="Ho-Ryun",family="Chung",
@@ -22,6 +22,9 @@ LinkingTo: Rcpp
 SystemRequirements: C++11
 Imports:
     methods,
+    utils,
+    grDevices,
+    parallel,
     GenomeInfoDb,
     GenomicRanges,
     IRanges,
