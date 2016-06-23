@@ -27,9 +27,9 @@
 #ifndef MY_OMP_H_
 #define MY_OMP_H_
 
-#ifdef SUPPORT_OPENMP
+#ifdef _OPENMP
 #include <omp.h>
-#if SUPPORT_OPENMP >= 201307
+#if _OPENMP >= 201307
 #define OMP_VER_4
 #endif
 #endif
