@@ -20,16 +20,16 @@
  * Functions defined herein fit a binomial mixture model to count data
  *
  * @author Johannes Helmuth
- * @version 0.1.0 1/26/2016
+ * @version 0.99.3 06/23/2016
  */
 #include <Rcpp.h>
 
 #ifndef MY_OMP_H_
 #define MY_OMP_H_
 
-#ifdef _OPENMP
+#ifdef SUPPORT_OPENMP
 #include <omp.h>
-#if _OPENMP >= 201307
+#if SUPPORT_OPENMP >= 201307
 #define OMP_VER_4
 #endif
 #endif
