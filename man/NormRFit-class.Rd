@@ -103,7 +103,8 @@ component. If \code{<NA>} (default), the background is determined by normR.}
 
 \item{object}{A \code{NormRCountConfig} object.}
 
-\item{print}{\code{logical()} indicating if summary should be print to screen}
+\item{print}{\code{logical()} indicating if summary should be print to
+screen}
 }
 \value{
 getCounts: A \code{list} of length 2 with \code{integer} for control
@@ -182,17 +183,17 @@ information about component assignment.
 
 \item{\code{n}}{An \code{integer} specifying the number of regions.}
 
-\item{\code{ranges}}{A \code{GenomicRanges} specifying the genomic coordinates of the
-regions.}
+\item{\code{ranges}}{A \code{GenomicRanges} specifying the genomic coordinates of
+the regions.}
 
 \item{\code{k}}{An \code{integer} giving the number of binomial mixture components.}
 
 \item{\code{B}}{An \code{integer} specifying the index of the background component.}
 
-\item{\code{map}}{A vector of \code{integer} holding a map to map back \code{counts},
-\code{lnposteriors}, \code{lnenrichment}, \code{lnpvals}, \code{lnqvals} and
-\code{classes}. See low level function \code{normr:::map2uniquePairs} for
-how the map is generated.}
+\item{\code{map}}{A vector of \code{integer} holding a map to map back
+\code{counts}, \code{lnposteriors}, \code{lnenrichment}, \code{lnpvals},
+\code{lnqvals} and \code{classes}. See low level function
+\code{normr:::map2uniquePairs} for how the map is generated.}
 
 \item{\code{counts}}{A \code{list} of length two containing a vector of
 \code{integer} holding unique counts for control and treatment each. Use
@@ -201,8 +202,8 @@ how the map is generated.}
 \item{\code{amount}}{A vector of \code{integer} specifying the number of occurences
 of each unique control / treatment count pair.}
 
-\item{\code{names}}{A \code{character} of length two specifying the names for control
-and treatment.}
+\item{\code{names}}{A \code{character} of length two specifying the names for
+control and treatment.}
 
 \item{\code{thetastar}}{A \code{numeric} giving the calculated naive background
 estimation, \emph{i.e.} \code{sum(getCounts(obj)[2,])/sum(getCounts(obj))}}
@@ -211,8 +212,8 @@ estimation, \emph{i.e.} \code{sum(getCounts(obj)[2,])/sum(getCounts(obj))}}
 parametrization of \code{k} binomial mixture components.}
 
 \item{\code{mixtures}}{A \code{numeric} of length \code{k} giving the normR fitted
-mixture proportions of \code{k} binomial mixture components. Should add up to
-one.}
+mixture proportions of \code{k} binomial mixture components. Should add up
+to one.}
 
 \item{\code{lnL}}{A vector of \code{numeric} holding the log-likelihood-trace of
 a normR model fit.}

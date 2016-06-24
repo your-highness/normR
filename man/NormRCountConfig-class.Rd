@@ -41,10 +41,12 @@ read to be counted.}
 
 \item{filteredFlag}{An \code{integer()} to filter for in the SAMFLAG field.
 For example, 1024 filters out marked duplicates (default). Refer to
-\url{https://broadinstitute.github.io/picard/explain-flags.html} for details.}
+\url{https://broadinstitute.github.io/picard/explain-flags.html} for
+details.}
 
 \item{shift}{An \code{integer()} specifing a shift of the read counting
-position in 3'-direction. This can be handy in the analysis of chip-seq data.}
+position in 3'-direction. This can be handy in the analysis of chip-seq
+data.}
 
 \item{midpoint}{Paired End data only: A \code{logical()} indicating whether
 fragment midpoints instead of 5'-ends should be counted.}
@@ -71,8 +73,8 @@ This S4 class is a small wrapper for a configuration on obtaining counts
 from bamfiles with \code{\link[bamsignals]{bamProfile}}. Herein, two
 functions provide help for creating an instance of this class:
 \code{\link{countConfigSingleEnd}} creates a configuration for single
-end reads; and \code{\link{countConfigPairedEnd}} creates a configuration for
-paired end reads.
+end reads; and \code{\link{countConfigPairedEnd}} creates a configuration
+for paired end reads.
 }
 \section{Methods (by generic)}{
 \itemize{
@@ -100,18 +102,20 @@ read to be counted.}
 
 \item{\code{filteredFlag}}{An \code{integer} to filter for in the SAMFLAG field.
 For example, 1024 filters out marked duplicates (default). Refer to
-\url{https://broadinstitute.github.io/picard/explain-flags.html} for details.}
+\url{https://broadinstitute.github.io/picard/explain-flags.html} for
+details.}
 
 \item{\code{shift}}{An \code{integer} specifing a shift of the read counting
-position in 3'-direction. This can be handy in the analysis of chip-seq data.}
+position in 3'-direction. This can be handy in the analysis of chip-seq
+data.}
 
 \item{\code{midpoint}}{Paired End data only: A \code{logical} indicating whether
 fragment midpoints instead of 5'-ends should be counted.}
 
 \item{\code{tlenFilter}}{Paired End data only: An \code{integer} of length two
 specifying the lower and upper length bound for a fragment to be considered.
-The fragment length as estimated from alignment in paired end experiments and
-written into the TLEN column.}
+The fragment length as estimated from alignment in paired end experiments
+and written into the TLEN column.}
 }}
 \examples{
 ### Create an instance of this class (see below for helper functions)

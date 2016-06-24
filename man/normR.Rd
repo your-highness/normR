@@ -16,16 +16,16 @@ binomial mixture model with a given number of components is fit to read
 count data for a treatment and control experiment. Therein, computational
 performance is improved by fitting a log-space model via Expectation
 Maximization in C++. Convergence is achieved by a threshold on
-the minimum change in model loglikelihood. After the model fit has converged,
-a robust background estimate is obtained. This estimate accounts for the
-effect of enrichment in certain regions and, therefore, represents an
-appropriate null hypothesis. This robust background is used to identify
-significantly enriched or depleted regions with respect to
-control. Moreover, a standardized enrichment for each bin is calculated
-based on the fitted background component. For convenience, read count
-vectors can be obtained directly from bam files when a compliant chromosome
-annotation is given. Please refer to the individual documentations of
-functions for enrichment calling (\code{\link{enrichR}}), difference calling
+the minimum change in model loglikelihood. After the model fit has
+converged, a robust background estimate is obtained. This estimate accounts
+for the effect of enrichment in certain regions and, therefore, represents
+an appropriate null hypothesis. This robust background is used to identify
+significantly enriched or depleted regions with respect to control.
+Moreover, a standardized enrichment for each bin is calculated based on the
+fitted background component. For convenience, read count vectors can be
+obtained directly from bam files when a compliant chromosome annotation is
+given.  Please refer to the individual documentations of functions for
+enrichment calling (\code{\link{enrichR}}), difference calling
 (\code{\link{diffR}}) and enrichment regime calling (\code{\link{regimeR}}).
 }
 \details{

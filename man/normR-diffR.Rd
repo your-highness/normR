@@ -92,8 +92,8 @@ chromosome names will be read from treatment bamheader. Please be aware that
 bamheader might contain irregular contigs and chrM which influence the fit.
 Also be sure that treatment and control contain the same chromosomes.
 Otherwise an error will be thrown. If \code{genome} is a \code{character},
-\code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to resolve
-this to a valid UCSC genome identifier (see
+\code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to
+resolve this to a valid UCSC genome identifier (see
 \url{https://genome.ucsc.edu/cgi-bin/hgGateway} for available genomes). In
 this case, only assembled molecules will be considered (no circular). Please
 check if your bam files obey this annotation. If \code{genome} is a
