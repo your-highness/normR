@@ -22,6 +22,7 @@
  * @author Johannes Helmuth
  * @version 0.99.3 06/23/2016
  */
+#include <algorithm>
 #include <Rcpp.h>
 
 #ifndef MY_OMP_H_
@@ -64,8 +65,8 @@ std::vector<double> asVector(const NumericVector& x) {
  * Propagate logging to R
  */
 void message(std::string s) {
-  Rcpp::Function msg("message");
-  msg(s);
+  //Rcpp::Function msg("message");
+  //msg(s);
 }
 
 /*
@@ -473,12 +474,15 @@ List em(const List& m2u_sub, const int models=2, const double eps=1e-5,
       Named("lntheta")=lntheta, Named("lnL")=lnL);
 }
 
-///compute posteriors with a map and a log posterior matrix on the unique values
+///compute posteriors with a map and a log posterior matrix on the unique
+//values
 // [[Rcpp::export]]
 NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
-     const List& m2u, const NumericVector& theta, const int F=1, const int B=0,
-     const bool diffCall=false, const int nthreads=1) {
-  if (B < 0 || B >= lnPost.ncol() || B >= theta.size()) stop("invalid B argument");
+     const List& m2u, const NumericVector& theta, const int fg=1,
+     const int bg=0, const bool diffCall=false, const int nthreads=1) {
+  if (bg < 0 || bg >= lnPost.ncol() || bg >= theta.size()) {
+    stop("invalid bg argument");
+  }
   if (lnPost.ncol() != theta.size()) stop("lnPost and theta not matching");
 
   NumericVector ur_log = log(as<NumericMatrix>(m2u["values"]).row(0));
@@ -489,13 +493,13 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
     stop("lnPost and m2u do not match in size");
   }
 
-  //calculate pseudo-counts from fit B
+  //calculate pseudo-counts from fit bg
   NumericVector lnP(lnPost.nrow());
-  lnP = lnPost(_,B) + uamount_log;
+  lnP = lnPost(_,bg) + uamount_log;
   double lnP_sum = logSumVector(lnP, nthreads);
-  lnP = lnPost(_,B) + uamount_log + ur_log;
+  lnP = lnPost(_,bg) + uamount_log + ur_log;
   double lnPseu_r = logSumVector(lnP, nthreads) - lnP_sum;
-  lnP = lnPost(_,B) + uamount_log + us_log;
+  lnP = lnPost(_,bg) + uamount_log + us_log;
   double lnPseu_s = logSumVector(lnP, nthreads) - lnP_sum;
   double rglrz = lnPseu_r - lnPseu_s;
 
@@ -508,8 +512,8 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
     out[i] = log(us_log[i]/ur_log[i]) + rglrz;
   }
   if (diffCall) {//standardization dependent on algebraic sign of fc
-    double stdrzC = -log(theta[0]/(1-theta[0])*(1-theta[B])/theta[B]);
-    double stdrzT = log(theta[2]/(1-theta[2])*(1-theta[B])/theta[B]);
+    double stdrzC = -log(theta[0]/(1-theta[0])*(1-theta[bg])/theta[bg]);
+    double stdrzT = log(theta[2]/(1-theta[2])*(1-theta[bg])/theta[bg]);
     #pragma omp parallel for schedule(static) num_threads(nthreads)
     for (int i = 0; i < out.size(); ++i) {
       if (out[i] < 0) {
@@ -519,7 +523,7 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
       }
     }
   } else {
-    double stdrz = log(theta[F]/(1-theta[F])*(1-theta[B])/theta[B]);
+    double stdrz = log(theta[fg]/(1-theta[fg])*(1-theta[bg])/theta[bg]);
     #pragma omp parallel for schedule(static) num_threads(nthreads)
     for (int i = 0; i < out.size(); ++i) {
       out[i] /= stdrz;
@@ -649,12 +653,14 @@ IntegerVector filterIdx(const List& m2u, const double theta,
 // with differential initial parameters to be done. Adjust this argument to
 // find global maxima (default=5).
 // @param bgIdx \code{integer} giving the index of the background component. In
-// enrichment and regime calls this should be 0. In difference calls, this value
-// can be > 0 (default=0).
+// enrichment and regime calls this should be 0. In difference calls, this
+// value can be > 0 (default=0).
 // @param diffCall \code{logical} specifying if difference calling is done such
 // that a two-sided significance test will be conducted (default=FALSE).
-// @param verbose \code{logical} specifying if logging should be performed (default=FALSE).
-// @param nthreads \code{integer} specifying number of cores to use (default=1).
+// @param verbose \code{logical} specifying if logging should be performed
+// (default=FALSE).
+// @param nthreads \code{integer} specifying number of cores to use
+// (default=1).
 // @return a list with the following items:
 //  \item{qstar}{naive enrichment ratio \code{s/(r + s)}. Basis for EM fit.}
 //  \item{map}{a map of unique (r,s) values. See
@@ -746,7 +752,8 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
 
   //calculate p-values on map
   if (verbose) message("...computing P-values.");
-  NumericVector pvals = getPWithMap(m2u, exp(lntheta[bgIdx]), diffCall, nthreads);
+  NumericVector pvals = getPWithMap(m2u, exp(lntheta[bgIdx]), diffCall,
+      nthreads);
 
   //indizes of p-values passing T filter
   if (verbose) {

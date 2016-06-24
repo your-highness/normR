@@ -32,28 +32,28 @@
 #' @slot type A \code{character} representing the type of fit. One of
 #' \code{c("enrichR","diffR", "regimeR")}.
 #' @slot n An \code{integer} specifying the number of regions.
-#' @slot ranges A \code{GenomicRanges} specifying the genomic coordinates of the
-#' regions.
+#' @slot ranges A \code{GenomicRanges} specifying the genomic coordinates of
+#' the regions.
 #' @slot k An \code{integer} giving the number of binomial mixture components.
 #' @slot B An \code{integer} specifying the index of the background component.
-#' @slot map A vector of \code{integer} holding a map to map back \code{counts},
-#' \code{lnposteriors}, \code{lnenrichment}, \code{lnpvals}, \code{lnqvals} and
-#' \code{classes}. See low level function \code{normr:::map2uniquePairs} for
-#' how the map is generated.
+#' @slot map A vector of \code{integer} holding a map to map back
+#' \code{counts}, \code{lnposteriors}, \code{lnenrichment}, \code{lnpvals},
+#' \code{lnqvals} and \code{classes}. See low level function
+#' \code{normr:::map2uniquePairs} for how the map is generated.
 #' @slot counts A \code{list} of length two containing a vector of
 #' \code{integer} holding unique counts for control and treatment each. Use
 #' \code{\link{getCounts}} to retrieve original count matrix.
 #' @slot amount A vector of \code{integer} specifying the number of occurences
 #' of each unique control / treatment count pair.
-#' @slot names A \code{character} of length two specifying the names for control
-#' and treatment.
+#' @slot names A \code{character} of length two specifying the names for
+#' control and treatment.
 #' @slot thetastar A \code{numeric} giving the calculated naive background
 #' estimation, \emph{i.e.} \code{sum(getCounts(obj)[2,])/sum(getCounts(obj))}
 #' @slot theta A \code{numeric} of length \code{k} giving the normR fitted
 #' parametrization of \code{k} binomial mixture components.
 #' @slot mixtures A \code{numeric} of length \code{k} giving the normR fitted
-#' mixture proportions of \code{k} binomial mixture components. Should add up to
-#' one.
+#' mixture proportions of \code{k} binomial mixture components. Should add up
+#' to one.
 #' @slot lnL A vector of \code{numeric} holding the log-likelihood-trace of
 #' a normR model fit.
 #' @slot eps A \code{numeric} used as threshold for normR fit EM convergence.
@@ -540,7 +540,8 @@ setMethod("show", "NormRFit", function(object) print(object))
 
 #' @describeIn NormRFit Prints a concise summary of a NormRFit.
 #'
-#' @param print \code{logical()} indicating if summary should be print to screen
+#' @param print \code{logical()} indicating if summary should be print to
+#' screen
 #' @param digits Number of digits to show in number formatting.
 #' @param ... optional arguments to be passed directly to the inherited
 #' function without alteration and with the original names preserved.
@@ -582,7 +583,8 @@ setMethod("summary", "NormRFit",
       cts <- cts - c(0,cts[1:4],0)
       cts.string <-
          utils::capture.output(
-           print.default(format(cts, digits=digits), print.gap=2L, quote=FALSE))
+           print.default(format(cts, digits=digits), print.gap=2L,
+                         quote=FALSE))
       ans <- paste0(ans, paste(cts.string, collapse="\n"), "\n")
       ans <- paste0(ans, "---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*'",
                           " 0.05 '.' 0.1 '  ' 1 'n.s.'\n\n")
