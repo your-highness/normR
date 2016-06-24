@@ -21,8 +21,8 @@ setClassUnion("integerOrNULL", c("integer", "NULL"))
 #' from bamfiles with \code{\link[bamsignals]{bamProfile}}. Herein, two
 #' functions provide help for creating an instance of this class:
 #' \code{\link{countConfigSingleEnd}} creates a configuration for single
-#' end reads; and \code{\link{countConfigPairedEnd}} creates a configuration for
-#' paired end reads.
+#' end reads; and \code{\link{countConfigPairedEnd}} creates a configuration
+#' for paired end reads.
 #'
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
@@ -33,15 +33,17 @@ setClassUnion("integerOrNULL", c("integer", "NULL"))
 #' read to be counted.
 #' @slot filteredFlag An \code{integer} to filter for in the SAMFLAG field.
 #' For example, 1024 filters out marked duplicates (default). Refer to
-#' \url{https://broadinstitute.github.io/picard/explain-flags.html} for details.
+#' \url{https://broadinstitute.github.io/picard/explain-flags.html} for
+#' details.
 #' @slot shift An \code{integer} specifing a shift of the read counting
-#' position in 3'-direction. This can be handy in the analysis of chip-seq data.
+#' position in 3'-direction. This can be handy in the analysis of chip-seq
+#' data.
 #' @slot midpoint Paired End data only: A \code{logical} indicating whether
 #' fragment midpoints instead of 5'-ends should be counted.
 #' @slot tlenFilter Paired End data only: An \code{integer} of length two
 #' specifying the lower and upper length bound for a fragment to be considered.
-#' The fragment length as estimated from alignment in paired end experiments and
-#' written into the TLEN column.
+#' The fragment length as estimated from alignment in paired end experiments
+#' and written into the TLEN column.
 #'
 #' @return A \code{\link{NormRCountConfig}} with specified counting parameters
 #' for \code{\link{normr}} methods (\code{\link{enrichR}}, \code{\link{diffR}},
@@ -92,9 +94,11 @@ setGeneric("countConfigSingleEnd", function(...)
 #' read to be counted.
 #' @param filteredFlag An \code{integer()} to filter for in the SAMFLAG field.
 #' For example, 1024 filters out marked duplicates (default). Refer to
-#' \url{https://broadinstitute.github.io/picard/explain-flags.html} for details.
+#' \url{https://broadinstitute.github.io/picard/explain-flags.html} for
+#' details.
 #' @param shift An \code{integer()} specifing a shift of the read counting
-#' position in 3'-direction. This can be handy in the analysis of chip-seq data.
+#' position in 3'-direction. This can be handy in the analysis of chip-seq
+#' data.
 #'
 #' @aliases countConfigSingleEnd configSingleEnd
 #'

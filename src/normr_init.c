@@ -8,7 +8,7 @@ SEXP normr_logSumVector(SEXP vecSEXP, SEXP nthreadsSEXP);
 SEXP normr_mapToOriginal(SEXP vecSEXP, SEXP m2uSEXP);
 SEXP normr_mapToUniqueWithMap(SEXP vecSEXP, SEXP m2uSEXP);
 SEXP normr_em(SEXP m2u_subSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP);
-SEXP normr_computeEnrichmentWithMap(SEXP lnPostSEXP, SEXP m2uSEXP, SEXP thetaSEXP, SEXP FSEXP, SEXP BSEXP, SEXP diffCallSEXP, SEXP nthreadsSEXP);
+SEXP normr_computeEnrichmentWithMap(SEXP lnPostSEXP, SEXP m2uSEXP, SEXP thetaSEXP, SEXP fgSEXP, SEXP bgSEXP, SEXP diffCallSEXP, SEXP nthreadsSEXP);
 SEXP normr_normr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP iterationsSEXP, SEXP bgIdxSEXP, SEXP diffCallSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP, SEXP binFilterSEXP);
 
 R_CallMethodDef callMethods[]  = {

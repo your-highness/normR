@@ -34,7 +34,8 @@ de <- diffR(treatment = "ChIP1.bam",
             genome    = "hg19")
 ```
 
-* `regimeR()` calls `k` enrichment regimes in a ChIP-seq experiment over control
+* `regimeR()` calls `k` enrichment regimes in a ChIP-seq experiment over
+control
 ```{r eval=FALSE}
 re <- regimeR(treatment = "ChIP.bam",
               control   = "Control.bam",
@@ -91,35 +92,35 @@ steps:
 
 This vignette explains a common workflow of normR analysis on NGS data for
 calling enrichment, identification of differential ChIP-seq enrichment and
-stratification of enrichment regimes. Herein, we provide examples for the export
-of results to common data formats like bigWig and bed. We show how analysis
-statistics and diagnostic plots are helpful for studying results. In a latter
-section, we cover more advanced topics including the alteration of read counting
-strategies, the application of normR on user-defined regions (*e.g.* promoters)
-and the integration of Copy Number Variation information in differential
-ChIP-seq enrichment calls.
+stratification of enrichment regimes. Herein, we provide examples for the
+export of results to common data formats like bigWig and bed. We show how
+analysis statistics and diagnostic plots are helpful for studying results. In a
+latter section, we cover more advanced topics including the alteration of read
+counting strategies, the application of normR on user-defined regions (*e.g.*
+promoters) and the integration of Copy Number Variation information in
+differential ChIP-seq enrichment calls.
 
 
 # Toy Examples
 
 ## `enrichR()`: Calling Enrichment with an Input Control
 
-In this first section, we would like to call regions significantly enriched
-for reads in the ChIP-seq experiment given a Control alignment. Here, we analyze
+In this first section, we would like to call regions significantly enriched for
+reads in the ChIP-seq experiment given a Control alignment. Here, we analyze
 ChIP-seq data for both H3K4me3 (pointy enrichment) and H3K36me3 (broad
 enrichment) given an Input-seq control alignment originating from a human
 immortalized myelogenous leukemia line (K562). Using normR, we show that our
-representative region on human chromsome 1 (chr1:22500000-25000000) is
-enriched for H3K4me3 mostly at promoters and precludes H3K36me3 enrichment which
-is overrepresented in gene bodies.
+representative region on human chromsome 1 (chr1:22500000-25000000) is enriched
+for H3K4me3 mostly at promoters and precludes H3K36me3 enrichment which is
+  overrepresented in gene bodies.
 
 ![](../inst/extdata/1a.png)
 **IGV browser shot of Input (grey), H3K4me3 (green) and H3K36me3 (purple)
 alignment data on chr1 22.5Mb to 25Mb with genes (black) drawn.**
 
-As part of the normR package, we provide 3 alignment files in bam format (Input,
-H3K4me3 and H3K36me3 ChIP-seq) containing reads for human chr1 22.5Mb to
-25Mb. Note, bam files used in normR need to be sorted by read coordinates
+As part of the normR package, we provide 3 alignment files in bam format
+(Input, H3K4me3 and H3K36me3 ChIP-seq) containing reads for human chr1 22.5Mb
+to 25Mb. Note, bam files used in normR need to be sorted by read coordinates
 (`samtools sort x.bam x_sorted`) and indexed (`samtools index x_sorted.bam`).
 Our example files already fullfil this criteria.
 
@@ -135,11 +136,11 @@ k36me3Bamfile <- system.file("extdata", "K562_H3K36me3.bam", package="normr")
 ```
 
 *Secondly and lastly*, we need to specify the genome of the alignment. The
-`genome` argument can be a character specifying a UCSC genome identifier, *e.g.*
-"hg19", or we can provide a 2-dimensional `data.frame` with columns seqnames and
-length. We will follow the later option: You can generate a genome `data.frame`
-yourself or can use `GenomeInfoDb` for retrieving the data.frame from UCSC for
-given genome identifier:
+`genome` argument can be a character specifying a UCSC genome identifier,
+*e.g.* "hg19", or we can provide a 2-dimensional `data.frame` with columns
+seqnames and length. We will follow the later option: You can generate a genome
+`data.frame` yourself or can use `GenomeInfoDb` for retrieving the data.frame
+from UCSC for given genome identifier:
 
 ```{r warning=FALSE}
 #Fetch chromosome information
@@ -205,9 +206,9 @@ considered for multiple testing correction due to low power. The sum of counts
 in treatment and control is less than this quantity (Dialsingh *et al.*,
 Bioinformatics, 2015, 1–7). The "Number of Regions filtered out" is very large
 in our example because the toy alignment files are filtered for reads within
-chr1 22.5Mb to 25Mb. However, the specified genome covers chr1:0-249250621 which
-results in alot of zero counts. This does not influence the fit but for testing
-the regions are filtered. Based on computed q-vlaues, H3K4me3 shows 586
+chr1 22.5Mb to 25Mb. However, the specified genome covers chr1:0-249250621
+which results in alot of zero counts. This does not influence the fit but for
+testing the regions are filtered. Based on computed q-vlaues, H3K4me3 shows 586
 (24+435+62+65) regions significantly enriched for $FDR \le 0.05$. The summary
 for H3K36me3 enrichment calls confirms 2,259 (0+1944+153+162) regions
 significantly enriched for $FDR \le 0.05$:
@@ -291,7 +292,7 @@ start with H3K4me3:
 
 ```{r warning=FALSE}
 #example gene annotation for representative region (chr1:22500000-25000000)
-genes <- read.delim(file = system.file("extdata", "genes.bed", package="normr"),
+genes <- read.delim(file = system.file("extdata", "genes.bed",package="normr"),
                     header = FALSE, stringsAsFactors = FALSE)
 library(GenomicRanges, verbose = FALSE)
 genes <- GRanges(seqnames = genes[, 1],
@@ -322,12 +323,12 @@ overlapOdds(k4me3Ranges, promoters)
 
 It is known that promoters are marked by H3K4me3 if their gene's expression is
 initiated. Our analysis above shows that H3K4me3-enriched regions are indeed
-significantly overrepresented within genes (Fisher's signed-exact test; P<0.001;
-odds ratio = 1.65) and, more pronounced, in promoter regions (odds ratio =
-7.65).
+significantly overrepresented within genes (Fisher's signed-exact test;
+P<0.001; odds ratio = 1.65) and, more pronounced, in promoter regions (odds
+ratio = 7.65).
 
-By comparing H3K36me3 and H3K4me3 ranges, we can identify significant overlap of
-H3K36me3 and H3K4me3 that most pronounced in promoter regions (odds ratio =
+By comparing H3K36me3 and H3K4me3 ranges, we can identify significant overlap
+of H3K36me3 and H3K4me3 that most pronounced in promoter regions (odds ratio =
 8.81) than compared to gene bodies (odds ratio = 2.66).
 
 ```{r}
@@ -346,8 +347,8 @@ overlapOdds(k36me3Ranges[countOverlaps(k36me3Ranges, genes) != 0],
 
 H3K36me3 is associated to transcriptional elongation in the gene body. The
 presence of H3K36me3 within the gene body marks transcribed genes.  Indeed,
-H3K36me3 enrichment is significantly overrepresented mostly at genes (odds ratio
-= 5.59) and, to a lower extend, at promoters (odds ratio = 2.76).
+H3K36me3 enrichment is significantly overrepresented mostly at genes (odds
+ratio = 5.59) and, to a lower extend, at promoters (odds ratio = 2.76).
 
 ```{r}
 #Overlap of H3K36me3 in genes
@@ -382,20 +383,21 @@ exportR(k36me3Fit, filename = "k36me3Fit.bw", type = "bigWig")
 
 ![](../inst/extdata/1b.png)
 **IGV browser shot of Input (grey), H3K4me3 (green) and H3K36me3 (purple)
-alignment data (bars), normalized enrichment, _i.e._ "bigWig" files, (lines) and
-enriched regions, _i.e._ "bed" files (boxes below respective tracks).**
+alignment data (bars), normalized enrichment, _i.e._ "bigWig" files, (lines)
+and enriched regions, _i.e._ "bed" files (boxes below respective tracks).**
 
 ## `diffR()`: Calling Differential Enrichment without a Control Experiment
 
 Normalization and difference calling are inseparable in calling ChIP-seq
 enrichment. Following this notion, a direct comparison of two ChIP-seq tracks
 can be performed with `diffR()`. In many studies, researchers are interested in
-conditional changes in ChIP-seq enrichment. Below, we exemplify this analysis by
-joint analysis of H3K4me3 and H3K36me3 ChIP-seq data. Because we already counted
-`k4me3Bamfile` and `k36me3Bamfile` already in `k4me3Fit` and `k36me3Fit`,
-respectively, we can use these counts directly. Note that, in this case, the
-`genome` has be set to a `GenomicRanges` object specifying the genomic regions.
-We can extract this from either one of the `NormRFit` objects.
+conditional changes in ChIP-seq enrichment. Below, we exemplify this analysis
+by joint analysis of H3K4me3 and H3K36me3 ChIP-seq data. Because we already
+counted `k4me3Bamfile` and `k36me3Bamfile` already in `k4me3Fit` and
+`k36me3Fit`, respectively, we can use these counts directly. Note that, in this
+case, the `genome` has be set to a `GenomicRanges` object specifying the
+genomic regions.  We can extract this from either one of the `NormRFit`
+objects.
 
 ```{r warning=FALSE}
 #We could use read counts from above NormRFit objects
@@ -411,18 +413,18 @@ k4k36Dif <- diffR(treatment = getCounts(k4me3Fit)$treatment,
 summary(k4k36Dif)
 ```
 
-The "Type" of the object has changed to 'diffR' because it was generated by this
-function. The "Number of Regions" did not change because we use the same binning
-strategy. However, the "Number of Components" is now 3 representing (i) H3K36me3
-enrichment without H3K4me3-enrichment, (ii) H3K36me3 and H3K4me3 (non)-enriched
-and (iii) H3K4me3 enrichment without H3K36me3-enrichment. The
+The "Type" of the object has changed to 'diffR' because it was generated by
+this function. The "Number of Regions" did not change because we use the same
+binning strategy. However, the "Number of Components" is now 3 representing (i)
+H3K36me3 enrichment without H3K4me3-enrichment, (ii) H3K36me3 and H3K4me3
+(non)-enriched and (iii) H3K4me3 enrichment without H3K36me3-enrichment. The
 "Backgroundcomponent B" is 2 in this case: `diffR()` identifies significant
 enrichment and depletion by a two-sided test on the background. Looking at the
-"Mixture Proportions", regions are classified to (i) in 49.8%, (ii) in 29.5% and
-(iii) in 20.7% of the regions. 1,654 (0+1624+24+6) regions are significantly
-different from background with $FDR \le 0.05$. These regions are either
-H3K4me3-positive or H3K36me3 positive. We can export these regions and the
-normalized enrichment with `exportR`:
+"Mixture Proportions", regions are classified to (i) in 49.8%, (ii) in 29.5%
+and (iii) in 20.7% of the regions. 1,654 (0+1624+24+6) regions are
+significantly different from background with $FDR \le 0.05$. These regions are
+either H3K4me3-positive or H3K36me3 positive. We can export these regions and
+the normalized enrichment with `exportR`:
 
 ```{r warning=FALSE}
 exportR(k4k36Dif, filename = "k4k36Dif.bed", type = "bed", fdr = 0.05)
@@ -431,15 +433,17 @@ exportR(k4k36Dif, filename = "k4k36Dif.bw", type = "bigWig")
 
 ![](../inst/extdata/2.png)
 **IGV browser shot of Input (grey), H3K4me3 (green) and H3K36me3 (purple)
-alignment data. Background normalized difference is plotted as a heatmap, _i.e._
-"bigWig" file, and differential regions are plotted as boxes, _i.e._ "bed" file
-(blue: treatment (H3K4me3) enriched, red: control (H3K36me3) enriched).**
+alignment data. Background normalized difference is plotted as a heatmap,
+_i.e._ "bigWig" file, and differential regions are plotted as boxes, _i.e._
+"bed" file (blue: treatment (H3K4me3) enriched, red: control (H3K36me3)
+enriched).**
 
 ## `regimeR()`: Identify Enrichment Regimes in ChIP-seq Experiments
 
 The two sections above aimed at discerning enrichment from background. The
-extendable normR approach also allows for identification of different enrichment
-regimes with `regimeR()` by increasing the number of model components.
+extendable normR approach also allows for identification of different
+enrichment regimes with `regimeR()` by increasing the number of model
+components.
 
 Let's start with 3 components (Background + 2 Enrichment Regimes) for H3K4me3.
 By using two enrichment regimes, we may uncover effects of sample heterogeneity
@@ -475,8 +479,8 @@ track has two enrichment regimes which are shaded for their degree of
 significance. The export is done analogously to the cases described above:
 
 ```{r warning=FALSE}
-exportR(k4me3Regimes, filename = "k4me3Regimes.bed", type = "bed", fdr = 0.05)
-exportR(k36me3Regimes, filename = "k36me3Regimes.bed", type = "bed", fdr = 0.05)
+exportR(k4me3Regimes, filename = "k4me3Regimes.bed", type = "bed", fdr=0.05)
+exportR(k36me3Regimes, filename = "k36me3Regimes.bed", type = "bed", fdr=0.05)
 ```
 
 ![](../inst/extdata/3.png)
@@ -510,7 +514,7 @@ countConfigSE <- countConfigSingleEnd(binsize = 500, mapq = 20,
 # Consider only reads with Mapping Quality >= 30.
 # Count the midpoint of the aligned fragment instead of 5' ends.
 # Consider only reads corresponding to fragments with size from 100 to 300bp
-countConfigPE <- countConfigPairedEnd(binsize = 500, mapq = 30, midpoint = TRUE,
+countConfigPE <- countConfigPairedEnd(binsize = 500, mapq = 30, midpoint=TRUE,
                                       tlenFilter = c(100, 300))
 
 #Plug in the counting configuration into normR, e.g. in enrichR()
@@ -535,8 +539,8 @@ all(width(promoters) == 4000)
 ```{r eval=FALSE}
 #count in predefined regions
 library(bamsignals)
-k4Counts <- bamCount(bampath = k4me3Bamfile, gr = promoters, verbose = FALSE)
-inputCounts <- bamCount(bampath = inputBamfile, gr = promoters, verbose = FALSE)
+k4Counts <- bamCount(bampath = k4me3Bamfile, gr = promoters, verbose=FALSE)
+inputCounts <- bamCount(bampath = inputBamfile, gr = promoters, verbose=FALSE)
 
 #Fit only on promoters
 promotersFit <- enrichR(treatment = k4Counts, control = inputCounts,
@@ -546,12 +550,12 @@ promotersFit <- enrichR(treatment = k4Counts, control = inputCounts,
 ## Post-processing of Difference Calls with CNV information
 
 Copy Number Variations (CNVs) are an important feature of cancerous cells like
-tumour samples. The difference calling on two ChIP-seq
-experiments with `diffR()` is sensitive to CNVs if the underlying sequence is
-amplified in the genome. However, you can harness `diffR()`'s functionality to
-call differences in two Input tracks to detect CNVs in a treatment respective to
-a control. To allow for coarse-grained detection of difference in Input, a
-sufficiently large binsize has to be used, _e.g._ 22kb.
+tumour samples. The difference calling on two ChIP-seq experiments with
+`diffR()` is sensitive to CNVs if the underlying sequence is amplified in the
+genome. However, you can harness `diffR()`'s functionality to call differences
+in two Input tracks to detect CNVs in a treatment respective to a control. To
+allow for coarse-grained detection of difference in Input, a sufficiently large
+binsize has to be used, _e.g._ 22kb.
 
 ```{r eval=FALSE}
 cnvs <- diffR(treatment   = treatmentInputBamfile,

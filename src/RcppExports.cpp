@@ -69,19 +69,19 @@ BEGIN_RCPP
 END_RCPP
 }
 // computeEnrichmentWithMap
-NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost, const List& m2u, const NumericVector& theta, const int F, const int B, const bool diffCall, const int nthreads);
-RcppExport SEXP normr_computeEnrichmentWithMap(SEXP lnPostSEXP, SEXP m2uSEXP, SEXP thetaSEXP, SEXP FSEXP, SEXP BSEXP, SEXP diffCallSEXP, SEXP nthreadsSEXP) {
+NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost, const List& m2u, const NumericVector& theta, const int fg, const int bg, const bool diffCall, const int nthreads);
+RcppExport SEXP normr_computeEnrichmentWithMap(SEXP lnPostSEXP, SEXP m2uSEXP, SEXP thetaSEXP, SEXP fgSEXP, SEXP bgSEXP, SEXP diffCallSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< const NumericMatrix& >::type lnPost(lnPostSEXP);
     Rcpp::traits::input_parameter< const List& >::type m2u(m2uSEXP);
     Rcpp::traits::input_parameter< const NumericVector& >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< const int >::type F(FSEXP);
-    Rcpp::traits::input_parameter< const int >::type B(BSEXP);
+    Rcpp::traits::input_parameter< const int >::type fg(fgSEXP);
+    Rcpp::traits::input_parameter< const int >::type bg(bgSEXP);
     Rcpp::traits::input_parameter< const bool >::type diffCall(diffCallSEXP);
     Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
-    __result = Rcpp::wrap(computeEnrichmentWithMap(lnPost, m2u, theta, F, B, diffCall, nthreads));
+    __result = Rcpp::wrap(computeEnrichmentWithMap(lnPost, m2u, theta, fg, bg, diffCall, nthreads));
     return __result;
 END_RCPP
 }

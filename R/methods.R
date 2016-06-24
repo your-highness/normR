@@ -23,16 +23,16 @@
 #' count data for a treatment and control experiment. Therein, computational
 #' performance is improved by fitting a log-space model via Expectation
 #' Maximization in C++. Convergence is achieved by a threshold on
-#' the minimum change in model loglikelihood. After the model fit has converged,
-#' a robust background estimate is obtained. This estimate accounts for the
-#' effect of enrichment in certain regions and, therefore, represents an
-#' appropriate null hypothesis. This robust background is used to identify
-#' significantly enriched or depleted regions with respect to
-#' control. Moreover, a standardized enrichment for each bin is calculated
-#' based on the fitted background component. For convenience, read count
-#' vectors can be obtained directly from bam files when a compliant chromosome
-#' annotation is given. Please refer to the individual documentations of
-#' functions for enrichment calling (\code{\link{enrichR}}), difference calling
+#' the minimum change in model loglikelihood. After the model fit has
+#' converged, a robust background estimate is obtained. This estimate accounts
+#' for the effect of enrichment in certain regions and, therefore, represents
+#' an appropriate null hypothesis. This robust background is used to identify
+#' significantly enriched or depleted regions with respect to control.
+#' Moreover, a standardized enrichment for each bin is calculated based on the
+#' fitted background component. For convenience, read count vectors can be
+#' obtained directly from bam files when a compliant chromosome annotation is
+#' given.  Please refer to the individual documentations of functions for
+#' enrichment calling (\code{\link{enrichR}}), difference calling
 #' (\code{\link{diffR}}) and enrichment regime calling (\code{\link{regimeR}}).
 #'
 #' Available functions are
@@ -61,7 +61,6 @@
 #'
 #' @example inst/examples/methods_example.R
 #'
-#' @import utils
 #' @import parallel
 #' @import grDevices
 #' @import methods
@@ -70,9 +69,11 @@
 #' @import GenomicRanges
 #' @import IRanges
 #' @import parallel
-#' @import qvalue
 #' @import Rcpp
-#' @import rtracklayer
+#' @importFrom qvalue qvalue
+#' @importFrom rtracklayer export
+#' @importFrom utils capture.output
+#' @importFrom utils write.table
 #'
 #' @include NormRFit.R
 #' @include NormRCountConfig.R
@@ -197,8 +198,8 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
 #' bamheader might contain irregular contigs and chrM which influence the fit.
 #' Also be sure that treatment and control contain the same chromosomes.
 #' Otherwise an error will be thrown. If \code{genome} is a \code{character},
-#' \code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to resolve
-#' this to a valid UCSC genome identifier (see
+#' \code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to
+#' resolve this to a valid UCSC genome identifier (see
 #' \url{https://genome.ucsc.edu/cgi-bin/hgGateway} for available genomes). In
 #' this case, only assembled molecules will be considered (no circular). Please
 #' check if your bam files obey this annotation. If \code{genome} is a
@@ -260,15 +261,15 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
     if (length(treatment) != length(control)) {
       stop("incompatible treatment and control count vectors")
     }
-    fit <- normr:::normr_core(control, treatment, 2L, eps, iterations, 0, FALSE,
-                              verbose, procs)
+    fit <- normr:::normr_core(control, treatment, 2L, eps, iterations, 0,
+                              FALSE, verbose, procs)
 
     #Storey's q-value on T filtered P-values
     if (verbose) message("... computing Q-values.")
     idx <- which(fit$map$map %in% fit$filteredT)
     lnqvals <- as.numeric(rep(NA,length(treatment)))
     lnqvals[idx] <-
-      log(qvalue(exp(normr:::mapToOriginal(fit$lnpvals, fit$map)[idx]))$qvalues)
+     log(qvalue(exp(normr:::mapToOriginal(fit$lnpvals, fit$map)[idx]))$qvalues)
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
     #Create classes vector w/ Maximum A Posteriori (<NA> isset for background)
@@ -305,8 +306,8 @@ setMethod("enrichR", signature("character", "character", "GenomicRanges"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
            eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
-    countsGr <- handleCharCharGR(treatment, control, genome, countConfig, procs,
-                                 verbose)
+    countsGr <- handleCharCharGR(treatment, control, genome, countConfig,
+                                 procs, verbose)
     return(enrichR(countsGr$counts[[1]], countsGr$counts[[2]], genome, eps,
       iterations, procs, verbose))
 })
@@ -317,10 +318,10 @@ setMethod("enrichR", signature("character", "character", "data.frame"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
            eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
-    countsGr <- handleCharCharDf(treatment, control, genome, countConfig, procs,
-                                 verbose)
-    return(enrichR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr, eps,
-      iterations, procs, verbose))
+    countsGr <- handleCharCharDf(treatment, control, genome, countConfig,
+                                 procs, verbose)
+    return(enrichR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr,
+                   eps, iterations, procs, verbose))
 })
 #' @rdname normR-enrichR
 #'
@@ -360,8 +361,8 @@ setMethod("enrichR", signature("character", "character", "character"),
 #' bamheader might contain irregular contigs and chrM which influence the fit.
 #' Also be sure that treatment and control contain the same chromosomes.
 #' Otherwise an error will be thrown. If \code{genome} is a \code{character},
-#' \code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to resolve
-#' this to a valid UCSC genome identifier (see
+#' \code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to
+#' resolve this to a valid UCSC genome identifier (see
 #' \url{https://genome.ucsc.edu/cgi-bin/hgGateway} for available genomes). In
 #' this case, only assembled molecules will be considered (no circular). Please
 #' check if your bam files obey this annotation. If \code{genome} is a
@@ -426,8 +427,8 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
                               verbose, procs)
 
     #T filter is computed for label-switched fit as well
-    fit2 <- normr:::normr_core(treatment, control, 3L, eps, iterations, 1, TRUE,
-                               FALSE, procs)
+    fit2 <- normr:::normr_core(treatment, control, 3L, eps, iterations, 1,
+                               TRUE, FALSE, procs)
     fit$filteredT <- intersect(fit$filteredT,
                            which(colSums(fit$map$values) >= fit2$Tthreshold)
     )
@@ -440,7 +441,7 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
     idx <- which(fit$map$map %in% fit$filteredT)
     lnqvals <- as.numeric(rep(NA,length(treatment)))
     lnqvals[idx] <-
-      log(qvalue(exp(normr:::mapToOriginal(fit$lnpvals, fit$map)[idx]))$qvalues)
+     log(qvalue(exp(normr:::mapToOriginal(fit$lnpvals, fit$map)[idx]))$qvalues)
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
     #Create classes vector w/ Maximum A Posteriori (<NA> isset for background)
@@ -474,8 +475,8 @@ setMethod("diffR", signature("character", "character", "GenomicRanges"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
            eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
-    countsGr <- handleCharCharGR(treatment, control, genome, countConfig, procs,
-                                 verbose)
+    countsGr <- handleCharCharGR(treatment, control, genome, countConfig,
+                                 procs, verbose)
     return(diffR(countsGr$counts[[1]], countsGr$counts[[2]], genome, eps,
       iterations, procs, verbose))
 })
@@ -486,8 +487,8 @@ setMethod("diffR", signature("character", "character", "data.frame"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
            eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
-    countsGr <- handleCharCharDf(treatment, control, genome, countConfig, procs,
-                                 verbose)
+    countsGr <- handleCharCharDf(treatment, control, genome, countConfig,
+                                 procs, verbose)
     return(diffR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr, eps,
       iterations, procs, verbose))
 })
@@ -530,8 +531,8 @@ setMethod("diffR", signature("character", "character", "character"),
 #' bamheader might contain irregular contigs and chrM which influence the fit.
 #' Also be sure that treatment and control contain the same chromosomes.
 #' Otherwise an error will be thrown. If \code{genome} is a \code{character},
-#' \code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to resolve
-#' this to a valid UCSC genome identifier (see
+#' \code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to
+#' resolve this to a valid UCSC genome identifier (see
 #' \url{https://genome.ucsc.edu/cgi-bin/hgGateway} for available genomes). In
 #' this case, only assembled molecules will be considered (no circular). Please
 #' check if your bam files obey this annotation. If \code{genome} is a
@@ -606,7 +607,7 @@ setMethod("regimeR",
     idx <- which(fit$map$map %in% fit$filteredT)
     lnqvals <- as.numeric(rep(NA,length(treatment)))
     lnqvals[idx] <-
-      log(qvalue(exp(normr:::mapToOriginal(fit$lnpvals, fit$map)[idx]))$qvalues)
+     log(qvalue(exp(normr:::mapToOriginal(fit$lnpvals, fit$map)[idx]))$qvalues)
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
     #Create classes vector w/ Maximum A Posteriori (<NA> isset for background)
@@ -645,27 +646,29 @@ setMethod("regimeR",
            countConfig=countConfigSingleEnd(), eps=1e-5,
            iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
-    countsGr <- handleCharCharGR(treatment, control, genome, countConfig, procs,
-                                 verbose)
+    countsGr <- handleCharCharGR(treatment, control, genome, countConfig,
+                                 procs, verbose)
     return(regimeR(countsGr$counts[[1]], countsGr$counts[[2]], genome, models,
       eps, iterations, procs, verbose))
 })
 #' @rdname normR-regimeR
 #' @export
-setMethod("regimeR", signature("character", "character", "data.frame", "numeric"),
+setMethod("regimeR",
+          signature("character", "character", "data.frame", "numeric"),
   function(treatment, control, genome, models=3,
            countConfig=countConfigSingleEnd(), eps=1e-5, iterations=10,
            procs=1L, verbose=TRUE) {
     if (models <= 2) stop("invalid number of models specified")
     treatment <- path.expand(treatment); control <- path.expand(control)
-    countsGr <- handleCharCharDf(treatment, control, genome, countConfig, procs,
-                                 verbose)
+    countsGr <- handleCharCharDf(treatment, control, genome, countConfig,
+                                 procs, verbose)
     return(regimeR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr,
       models, eps, iterations, procs, verbose))
 })
 #' @rdname normR-regimeR
 #' @export
-setMethod("regimeR", signature("character", "character", "character", "numeric"),
+setMethod("regimeR",
+          signature("character", "character", "character", "numeric"),
   function(treatment, control, genome="", models=3,
            countConfig=countConfigSingleEnd(), eps=1e-5,
            iterations=10, procs=1L, verbose=TRUE) {
