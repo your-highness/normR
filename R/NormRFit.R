@@ -96,6 +96,15 @@
 #'
 #' @example inst/examples/NormRFit_example.R
 #'
+#' @import GenomicRanges
+#' @import IRanges
+#' @import grDevices
+#' @import methods
+#' @import parallel
+#' @importFrom stats na.omit
+#' @importFrom utils capture.output
+#' @importFrom utils write.table
+#'
 #' @include methods.R
 #' @export
 setClass("NormRFit",
