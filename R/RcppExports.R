@@ -17,15 +17,22 @@ mapToUniqueWithMap <- function(vec, m2u) {
     .Call('normr_mapToUniqueWithMap', PACKAGE = 'normr', vec, m2u)
 }
 
-em <- function(m2u_sub, models = 2L, eps = 1e-5, verbose = FALSE, nthreads = 1L) {
-    .Call('normr_em', PACKAGE = 'normr', m2u_sub, models, eps, verbose, nthreads)
+em <- function(m2u_sub, models = 2L, eps = 1e-5, verbose = FALSE, nthreads =
+               1L) {
+    .Call('normr_em', PACKAGE = 'normr', m2u_sub, models, eps, verbose,
+          nthreads)
 }
 
-computeEnrichmentWithMap <- function(lnPost, m2u, theta, fg = 1L, bg = 0L, diffCall = FALSE, nthreads = 1L) {
-    .Call('normr_computeEnrichmentWithMap', PACKAGE = 'normr', lnPost, m2u, theta, fg, bg, diffCall, nthreads)
+computeEnrichmentWithMap <- function(lnPost, m2u, theta, fg = 1L, bg = 0L,
+                                     diffCall = FALSE, nthreads = 1L) {
+    .Call('normr_computeEnrichmentWithMap', PACKAGE = 'normr', lnPost, m2u,
+          theta, fg, bg, diffCall, nthreads)
 }
 
-normr_core <- function(r, s, models = 2L, eps = 1e-5, iterations = 5L, bgIdx = 0L, diffCall = FALSE, verbose = FALSE, nthreads = 1L, binFilter = "zeroSum") {
-    .Call('normr_normr_core', PACKAGE = 'normr', r, s, models, eps, iterations, bgIdx, diffCall, verbose, nthreads, binFilter)
+normr_core <- function(r, s, models = 2L, eps = 1e-5, iterations = 5L, bgIdx =
+                       0L, diffCall = FALSE, verbose = FALSE, nthreads = 1L,
+                       binFilter = "zeroSum") {
+    .Call('normr_normr_core', PACKAGE = 'normr', r, s, models, eps, iterations,
+          bgIdx, diffCall, verbose, nthreads, binFilter)
 }
 

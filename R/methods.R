@@ -68,12 +68,9 @@
 #' @import GenomeInfoDb
 #' @import GenomicRanges
 #' @import IRanges
-#' @import parallel
 #' @import Rcpp
 #' @importFrom qvalue qvalue
 #' @importFrom rtracklayer export
-#' @importFrom utils capture.output
-#' @importFrom utils write.table
 #'
 #' @include NormRFit.R
 #' @include NormRCountConfig.R
