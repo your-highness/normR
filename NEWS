@@ -1,3 +1,35 @@
+CHANGES IN VERSION 0.99.5
+-------------------------
+
+FEATURES
+     o summary() for NormRFit instances of types "diffR" and "regimeR" now
+       shows componentwise test results
+
+BUGFIXES
+     o Removing MAKEFLAG "-D_GLIBCXX_PARALLEL" because it is experimental
+
+CHANGES IN VERSION 0.99.4
+-------------------------
+
+BUGFIXES
+     o Removing PKG_CPPFLAGS and PKG_LIBS variables from src/Makevars
+
+CHANGES IN VERSION 0.99.3
+-------------------------
+
+BUGFIXES
+     o Fixing imports in roxygen2
+
+CHANGES IN VERSION 0.99.2
+-------------------------
+
+FEATURES
+     o Vignette finished
+     o Documentation for NormRFit-class & NormRCountConfig-class updated
+
+BUGFIXES
+     o deploy.log removed
+
 CHANGES IN VERSION 0.99.1
 -------------------------
 
@@ -18,7 +50,6 @@ BUGFIXES
 
 CHANGES IN VERSION 0.99.0
 -------------------------
-o Initial Bioconductor Submission
 
 FEATURES
 

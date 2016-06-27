@@ -29,11 +29,11 @@ DONE -output function for bigWig/bedGraph files (sizes small with new
 DONE integrate bamsignals 1.4 features (tlenFilter, flagFilter)
 DONE diffR() should report intersect of label switched inputs
 DONE recompute Enrichment for a supplied background component
+DONE summary() - plot percentage for significance, plot per regime
 
--summary() - plot percentage for significance, plot per regime
 -plotting function for NormRFit
--reChIP analysis routine
 -write CLI
+-reChIP analysis routine
 
 PERFORMANCE
 #############
@@ -49,12 +49,10 @@ DONE C++/R: after em fit it takes a long time to end the call
 
 STRUCTURE
 #############
-DONE rename: normalize()->enrichR(); difference->diffR();regimecall()->regimeR()
+DONE rename: normalize()->enrichR();difference->diffR();regimecall()->regimeR()
 DONE R: S4 classes NormRFit & BamCountConfig introduced
 DONE R: S4 functions on DiffR (plotting, summary, print, ...)
 DONE R: labels for identified components -> NO!
-
-- READ: http://adv-r.had.co.nz/Environments.html
 
 DEPLOYMENT
 #############
@@ -64,7 +62,7 @@ DONE write tests for NormRFit.R
 DONE write tests for methods.R  (small toy data)
 DONE fix failing tests for diffR
 DONE check correctness of getEnrichmentWithMap & getEnrichment
-DONE write vignette(enrichR(), diffR(), regimeR() with IGVshots on minimal data)
+DONE write vignette(enrichR(),diffR(),regimeR() with IGVshots on minimal data)
 DONE update README
 
 - add NormRFit-class::plot() to vignette
@@ -72,10 +70,3 @@ DONE update README
 - update dates & LICENSE HEADER in sourcefiles
 - add citation for bioc
 - make release on github
-
-
-ADDITIONAL
-#############
-- READ: Question: Why does code in mclapply not allow for parallel execution?
-  http://wrathematics.github.io/RparallelGuide/
-  http://stats.blogoverflow.com/2011/08/using-openmp-ized-c-code-with-r/
