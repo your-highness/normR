@@ -520,9 +520,20 @@ setMethod("print", "NormRFit",
         "Background component B: ", x@B, "\n\n")
     if (length(x@theta)) {
       cat("+++ Results of fit +++ \nMixture Proportions:\n")
-      cat(paste0(format(x@mixtures*100,digits=digits), "%", collapse="  "))
-      cat("\nTheta:\n")
-      cat(paste(format(x@theta,digits=digits), collapse="  "))
+      mixtures <- paste0(format(x@mixtures*100, digits=digits), "%")
+      names(mixtures)[x@B] <- "Background"
+      names(mixtures)[-x@B] <- paste("Class", 1:(x@k-1))
+      mixtures.string <- utils::capture.output(print.default(
+        mixtures,print.gap=2L,quote=FALSE))
+      cat(paste(mixtures.string, collapse="\n"), "\n")
+
+      cat("Theta:\n")
+      theta <- format(x@theta, digits=digits)
+      names(theta)[x@B] <- "Background"
+      names(theta)[-x@B] <- paste("Class", 1:(x@k-1))
+      theta.string <- utils::capture.output(print.default(
+        theta,print.gap=2L,quote=FALSE))
+      cat(paste(theta.string, collapse="\n"), "\n")
     } else {
       cat("No results of fit.")
     }
@@ -557,12 +568,23 @@ setMethod("summary", "NormRFit",
                   format(object@thetastar, digits=digits), "\n",
                   "Background component B: ", object@B, "\n\n")
     if (length(object@theta)) {
-      ans <- paste0(ans, "+++ Results of fit +++ \nMixture Proporitons:\n")
-      ans <- paste0(ans,
-        paste0(format(object@mixtures*100,digits=digits), "%", collapse="  "))
-      ans <- paste0(ans, "\nTheta:\n")
-      ans <- paste0(ans,
-        paste(format(object@theta,digits=digits), collapse="  "))
+      ans <- paste0(ans, "+++ Results of fit +++ \n",
+                    "Mixture Proportions:\n")
+      mixtures <- paste0(format(object@mixtures*100, digits=digits), "%")
+      names(mixtures)[object@B] <- "Background"
+      names(mixtures)[-object@B] <- paste("Class", 1:(object@k-1))
+      mixtures.string <- utils::capture.output(print.default(
+        mixtures,print.gap=2L,quote=FALSE))
+      ans <- paste0(ans, paste(mixtures.string, collapse="\n"), "\n")
+
+      ans <- paste0(ans, "Theta:\n")
+      theta <- format(object@theta, digits=digits)
+      names(theta)[object@B] <- "Background"
+      names(theta)[-object@B] <- paste("Class", 1:(object@k-1))
+      theta.string <- utils::capture.output(print.default(
+        theta,print.gap=2L,quote=FALSE))
+      ans <- paste0(ans, paste(theta.string, collapse="\n"), "\n")
+
       ans <- paste0(ans, "\nBayesian Information Criterion:\t", format(
         (-2*object@lnL[length(object@lnL)]+length(object@theta)*log(object@n)),
         digits=digits), "\n\n")
@@ -571,8 +593,10 @@ setMethod("summary", "NormRFit",
       ans <- paste0(ans, "+++ Results of binomial test +++ \n",
         "T-Filter threshold: ", object@thresholdT, "\n",
         "Number of Regions filtered out: ", sum(is.na(qvals)), "\n")
+
       ans <- paste0(ans,
-        "Significantly different from background B based on q-values:\n")
+        "Significantly different from background B based on q-values:\n",
+        "TOTAL:\n")
       cts <- c(sum(qvals <= 0, na.rm=TRUE),
                sum(qvals <= 0.001, na.rm=TRUE),
                sum(qvals <= 0.01, na.rm=TRUE),
@@ -582,26 +606,35 @@ setMethod("summary", "NormRFit",
       names(cts) <- c("***", "**" , "*"  , "."  , " "  , "n.s." )
       cts <- cts - c(0,cts[1:4],0)
       cts.string <-
-         utils::capture.output(
-           print.default(format(cts, digits=digits), print.gap=2L,
-                         quote=FALSE))
+        utils::capture.output(
+          print.default(format(cts, digits=digits),print.gap=2L,quote=FALSE))
       ans <- paste0(ans, paste(cts.string, collapse="\n"), "\n")
+
+      if (object@type %in% c("diffR", "regimeR")) { #print regime statistics
+        clcts <- matrix(0, ncol=6, nrow=object@k-1,
+          dimnames=list(1:(object@k-1), names(cts)))
+        i = 1
+        for (p in c(0,.001,.01,.05,.1)) {
+          cl <- getClasses(object, p)
+          tab <- table(na.omit(cl))
+          for (n in names(tab)) {
+            clcts[n,i] <- tab[n]
+          }
+          i = i + 1
+        }
+        clcts <- clcts - cbind(0, clcts[,1:4], 0)
+
+        for (i in 1:(object@k-1)) {
+          ans <- paste0(ans, "Class ", i, ":\n")
+          cts.string <- utils::capture.output(
+            print.default(format(clcts[i,], digits=digits),
+                          print.gap=2L,quote=FALSE))
+          ans <- paste0(ans, paste(cts.string, collapse="\n"), "\n")
+        }
+      }
       ans <- paste0(ans, "---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*'",
-                          " 0.05 '.' 0.1 '  ' 1 'n.s.'\n\n")
-#TODO
-#      if (object@type != "diffR") { #print regime statistics
-#        for (p in c(0,.001,.01,.05,.1)) {
-#          cl = getClasses(object, p)
-#
-#        }
-#      }
-#      if (object@type != "regimeR") { #print regime statistics
-#        for (p in c(0,.001,.01,.05,.1)) {
-#          cl = getClasses(object, p)
-#
-#        }
-#      }
-    } else {
+                    " 0.05 '.' 0.1 '  ' 1 'n.s.'\n\n")
+    } else {#no fit found
       ans <- paste0(ans, "No results of fit.\n\n")
     }
     if (print) cat(ans)
