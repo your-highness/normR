@@ -1,7 +1,7 @@
 Package: normr
 Type: Package
 Title: Normalization and difference calling in ChIP-seq data
-Version: 0.99.4
+Version: 0.99.5
 Date: 2016-06-24
 Authors@R: c(person(given="Johannes",family="Helmuth",
         email="helmuth@molgen.mpg.de", role=c("aut", "cre")),
@@ -22,6 +22,7 @@ LinkingTo: Rcpp
 SystemRequirements: C++11
 Imports:
     methods,
+    stats,
     utils,
     grDevices,
     parallel,
@@ -31,12 +32,11 @@ Imports:
     Rcpp (>= 0.11),
     qvalue (>= 2.2),
     bamsignals (>= 1.4),
-    rtracklayer (>= 1.32)
+    rtracklayer  (>= 1.32)
 Suggests:
     BiocStyle,
     testthat (>= 1.0),
     knitr,
-    stats,
     rmarkdown
 Enhances: BiocParallel
 biocViews: Bayesian, DifferentialPeakCalling, Classification, DataImport,
