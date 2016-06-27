@@ -1,10 +1,11 @@
 #normR - normR obeys regime mixture rules
-## Normalization and Difference Calling for Next Generation Sequencing (NGS) Experiments via Joint Multinomial Modeling
+## Normalization and Difference Calling for Next Generation Sequencing (NGS)
+Experiments via Joint Multinomial Modeling
 ---
 
-Two NGS tracks are modeled simultaneously by fitting a binomial mixture model on
-mapped read counts.  In the first counting process, a desired smoothing kernel
-(bin size) and read characteristic threshold (quality, SAMFLAG) can be
+Two NGS tracks are modeled simultaneously by fitting a binomial mixture model
+on mapped read counts.  In the first counting process, a desired smoothing
+kernel (bin size) and read characteristic threshold (quality, SAMFLAG) can be
 specified.  In a second step a binomial mixture model with a user-specified
 number of components is fit to the data.  The fit yields different enrichment
 regimes in the supplied NGS tracks.  Log-space computation is done in C/C++
@@ -18,7 +19,7 @@ To install normR from the working repository, easiest is using devtools:
 ```R
 #install dependencies
 source("https://bioconductor.org/biocLite.R")
-biocLite("bamsignals", suppressUpdates=T)   
+biocLite("bamsignals", suppressUpdates=T)
 #fetch current normR version from github
 install.packages("devtools")
 require(devtools)
@@ -28,7 +29,8 @@ devtools::install_github("your-highness/normR@development")
 ### Usage
 
 See the
-[vignette](https://cdn.rawgit.com/your-highness/normR/development/inst/doc/normr.html
+[vignette](
+https://cdn.rawgit.com/your-highness/normR/development/inst/doc/normr.html
 "normR vignette") for a toy example on normR usage. The documentation of
 routines can be accessed from with R with ``?``.
 
@@ -45,22 +47,22 @@ routines can be accessed from with R with ``?``.
 
 * RNA-seq differential expression calling
 
-* ChIP-seq differential enrichment calling in two different samples (be aware of
-  CNVs!)
+* ChIP-seq differential enrichment calling in two different samples (be aware
+  of CNVs!)
 
 * CNV identification
 
 
 #### Useful links
 
-Be sure to check out the following amazing github projects for your upcoming NGS
-magic:
+Be sure to check out the following amazing github projects for your upcoming
+NGS magic:
 
 [bamsignals](https://github.com/lamortenera/bamsignals) - Efficient Counting in
 Indexed Bam Files for Single End and Paired End NGS Data
 
-[EpicSeg](https://github.com/lamortenera/epicseg) - Chromatin Segmentation Based
-on a Probabilistic Multinomial Model for Read Counts
+[EpicSeg](https://github.com/lamortenera/epicseg) - Chromatin Segmentation
+Based on a Probabilistic Multinomial Model for Read Counts
 
 [kfoots](https://github.com/lamortenera/kfoots) - Fit Multivariate Discrete
 Probability Distributions to Count Data
