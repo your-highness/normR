@@ -35,15 +35,17 @@
 #endif
 #endif
 
+#define STRINGIFY(a) #a
+
 // Insert SIMD pragma if supported
 #ifdef OMP_VER_4
-#define SAFE_SIMD  "omp simd"
-#define SAFE_FOR_SIMD  "omp for simd"
-#define SAFE_PARALLEL_SIMD  "omp parallel for simd"
+#define SAFE_SIMD(s)  _Pragma(STRINGIFY(omp simd s))
+#define SAFE_FOR_SIMD(s)  _Pragma(STRINGIFY(omp for simd s))
+#define SAFE_PARALLEL_SIMD(s)  _Pragma(STRINGIFY(omp parallel for simd s))
 #else
-#define SAFE_ "omp"
-#define SAFE_FOR_ "omp for"
-#define SAFE_PARALLEL_ "omp parallel for"
+#define SAFE_SIMD(s)  _Pragma(STRINGIFY(omp s))
+#define SAFE_FOR_SIMD(s)  _Pragma(STRINGIFY(omp for s))
+#define SAFE_PARALLEL_SIMD(s)  _Pragma(STRINGIFY(omp parallel for s))
 #endif
 #endif
 
@@ -91,7 +93,7 @@ IntegerVector logical2Int(const LogicalVector& idx) {
 ///count number of TRUE elements in a Rcpp::LogicalVector
 int logical2Count(const LogicalVector& vec, int nthreads=1) {
     int count = 0;
-    #pragma SAFE_PARALLEL_SIMD reduction(+:count) num_threads(nthreads)
+    SAFE_PARALLEL_SIMD(reduction(+:count) num_threads(nthreads))
     for (int i = 0; i < vec.size(); ++i) {
         if (vec[i] == TRUE) {
             count++;
@@ -122,7 +124,7 @@ NumericVector logRowSum(const NumericMatrix& mat, int nthreads=1){
     const int cols = mat.ncol();
     NumericVector rowSum(rows);
     // iterate over each row: 1. find max value 2. calculate ln sum
-    #pragma SAFE_PARALLEL_SIMD schedule(static) num_threads(nthreads)
+    SAFE_PARALLEL_SIMD(schedule(static) num_threads(nthreads))
     for (int i = 0; i < rows; ++i) {
         double max = -DBL_MAX;
         double tmp = 0;
@@ -145,7 +147,7 @@ double max_parallel(const NumericVector& vec, int nthreads=1) {
     #pragma omp parallel num_threads(nthreads)
     {
         int priv_max = 0;
-        #pragma SAFE_FOR_SIMD schedule(static) nowait
+        SAFE_FOR_SIMD(schedule(static) nowait)
         for (int i = 0; i < len; ++i) {
             if (vec(i) > priv_max) {
                 max = vec(i);
@@ -174,7 +176,7 @@ double logSumVector(const NumericVector& vec, int nthreads=1) {
     }
 
     double sum = 0.0, comp = 0.0;
-    #pragma SAFE_PARALLEL_SIMD reduction(+:sum,comp) num_threads(nthreads)
+    SAFE_PARALLEL_SIMD(reduction(+:sum,comp) num_threads(nthreads))
     for (int i = 0; i < len; ++i) {
         double y = exp(vec(i) - max) - comp;
         double t = sum + y;
@@ -188,7 +190,7 @@ double sumVector(const NumericVector& vec, int nthreads=1) {
     const int len = vec.size();
 
     double sum = 0.0, comp = 0.0;
-    #pragma SAFE_PARALLEL_SIMD reduction(+:sum,comp) num_threads(nthreads)
+    SAFE_PARALLEL_SIMD(reduction(+:sum,comp) num_threads(nthreads))
     for (int i = 0; i < len; ++i) {
         double y = vec(i) - comp;
         double t = sum + y;
@@ -507,7 +509,7 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
 
   //compute regularized, standardized fold change
   NumericVector out(ur_log.size());
-  #pragma SAFE_PARALLEL_SIMD schedule(static) num_threads(nthreads)
+  SAFE_PARALLEL_SIMD(schedule(static) num_threads(nthreads))
   for (int i = 0; i < out.size(); ++i) {
     ur_log[i] = exp(ur_log[i]) + exp(lnPseu_r);
     us_log[i] = exp(us_log[i]) + exp(lnPseu_s);
@@ -516,7 +518,7 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
   if (diffCall) {//standardization dependent on algebraic sign of fc
     double stdrzC = -log(theta[0]/(1-theta[0])*(1-theta[bg])/theta[bg]);
     double stdrzT = log(theta[2]/(1-theta[2])*(1-theta[bg])/theta[bg]);
-    #pragma SAFE_PARALLEL_SIMD schedule(static) num_threads(nthreads)
+    SAFE_PARALLEL_SIMD(schedule(static) num_threads(nthreads))
     for (int i = 0; i < out.size(); ++i) {
       if (out[i] < 0) {
         out[i] /= stdrzC;
@@ -526,7 +528,7 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
     }
   } else {
     double stdrz = log(theta[fg]/(1-theta[fg])*(1-theta[bg])/theta[bg]);
-    #pragma SAFE_PARALLEL_SIMD schedule(static) num_threads(nthreads)
+    SAFE_PARALLEL_SIMD(schedule(static) num_threads(nthreads))
     for (int i = 0; i < out.size(); ++i) {
       out[i] /= stdrz;
     }
@@ -572,7 +574,7 @@ NumericVector getPWithMap(const List& m2u, const double theta,
   NumericVector us = as<NumericMatrix>(m2u["values"]).row(1);
 
   NumericVector out(ur.size());
-  #pragma SAFE_PARALLEL_SIMD schedule(static) num_threads(nthreads)
+  SAFE_PARALLEL_SIMD(schedule(static) num_threads(nthreads))
   for (int i = 0; i < out.size(); ++i) {
     out[i] = getLnP(us[i], ur[i], theta, diffCall);
   }
