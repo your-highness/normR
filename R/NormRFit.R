@@ -583,7 +583,7 @@ setMethod("summary", "NormRFit",
       names(mixtures)[object@B] <- "Background"
       names(mixtures)[-object@B] <- paste("Class", 1:(object@k-1))
       mixtures.string <- utils::capture.output(print.default(
-        mixtures,print.gap=2L,quote=FALSE))
+        mixtures,print.gap=4L,quote=FALSE))
       ans <- paste0(ans, paste(mixtures.string, collapse="\n"), "\n")
 
       ans <- paste0(ans, "Theta:\n")
@@ -591,7 +591,7 @@ setMethod("summary", "NormRFit",
       names(theta)[object@B] <- "Background"
       names(theta)[-object@B] <- paste("Class", 1:(object@k-1))
       theta.string <- utils::capture.output(print.default(
-        theta,print.gap=2L,quote=FALSE))
+        theta,print.gap=4L,quote=FALSE))
       ans <- paste0(ans, paste(theta.string, collapse="\n"), "\n")
 
       ans <- paste0(ans, "\nBayesian Information Criterion:\t", format(
@@ -616,7 +616,7 @@ setMethod("summary", "NormRFit",
       cts <- cts - c(0,cts[1:4],0)
       cts.string <-
         utils::capture.output(
-          print.default(format(cts, digits=digits),print.gap=2L,quote=FALSE))
+          print.default(format(cts, digits=digits),print.gap=4L,quote=FALSE))
       ans <- paste0(ans, paste(cts.string, collapse="\n"), "\n")
 
       if (object@type %in% c("diffR", "regimeR")) { #print regime statistics
@@ -632,12 +632,13 @@ setMethod("summary", "NormRFit",
           i = i + 1
         }
         clcts <- clcts - cbind(0, clcts[,1:4], 0)
+        clcts[,6] <- sum(cts) - rowSums(clcts[,1:5])
 
         for (i in 1:(object@k-1)) {
           ans <- paste0(ans, "Class ", i, ":\n")
           cts.string <- utils::capture.output(
             print.default(format(clcts[i,], digits=digits),
-                          print.gap=2L,quote=FALSE))
+                          print.gap=4L,quote=FALSE))
           ans <- paste0(ans, paste(cts.string, collapse="\n"), "\n")
         }
       }
