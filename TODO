@@ -46,6 +46,9 @@ DONE C++: run multiple iterations (argument) with differented deviations
 DONE R:   a capsulated m2u structure for S4 object accessors!
 DONE C++/R: after em fit it takes a long time to end the call
        -> pvalue computation done on unique values
+DONE Setting SIMD flags conditional on OpenMP Version
+     software.intel.com/en-us/articles/enabling-simd-in-program-using-openmp40
+     wrathematics.github.io/RparallelGuide/#the-simd-keyword
 
 STRUCTURE
 #############
