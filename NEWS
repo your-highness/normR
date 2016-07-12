@@ -1,38 +1,61 @@
-diffr 0.8.1
-------------------------------------------------------------------------------
+CHANGES IN VERSION 0.99.5
+-------------------------
 
-* Performance:
-  - huge performance speedup
-	- mapToUniquePairs() saves double computation for same (r,s)-tupels (~10% unique pairs needed for computation only)
-	- OpenMP parallelization of matrix log row sum computation with user 
-     specified number of kernels
-	- Kahan summation for log posterior summation to reduce numerical error
-* Functionality:
-  - fixed tilde bug for bampaths
-	- removed foldchange computation and p-value for now
-	- removed diffcall(): diffR() will do both enrichment and difference calling in the future
-	- src/Makevars added for OpenMP compatibility
-* Documentation:
-  - updated to restructuring
+FEATURES
+     o summary() for NormRFit instances of types "diffR" and "regimeR" now
+       shows componentwise test results
+
+BUGFIXES
+     o Removing MAKEFLAG "-D_GLIBCXX_PARALLEL" because it is experimental
+
+CHANGES IN VERSION 0.99.4
+-------------------------
+
+BUGFIXES
+     o Removing PKG_CPPFLAGS and PKG_LIBS variables from src/Makevars
+
+CHANGES IN VERSION 0.99.3
+-------------------------
+
+BUGFIXES
+     o Fixing imports in roxygen2
+
+CHANGES IN VERSION 0.99.2
+-------------------------
+
+FEATURES
+     o Vignette finished
+     o Documentation for NormRFit-class & NormRCountConfig-class updated
+
+BUGFIXES
+     o deploy.log removed
+
+CHANGES IN VERSION 0.99.1
+-------------------------
+
+FEATURES
+     o  Added examples for normr-methods, BamCountConfig-class & NormRFit-class
+     o  Moved all documentation to one manpage (normr.Rd)
+     o  Vignette: knitr-based vignette for normr finished
+     o  exportR(): Export NormRFit objects to bed, bedGraph and bigWig
+     o  plot(): Produce a small diagnostic plot for NormRFit objects
+     o  diffR(): Intersection of results for switched labels increases
+        specificity
+
+BUGFIXES
+     o  Removed deploy.log
+     o  Fixed build errors and warnings
+     o  Fixed failing test
 
 
-diffr 0.1.2
-------------------------------------------------------------------------------
+CHANGES IN VERSION 0.99.0
+-------------------------
 
-* Performance:
-  - processByChromosome is now generic for length(bam.files) > 2 
-  - P-value computation and adjustment done in R wrappers
-* Functionality:
-  - em.cpp::em() returns q* = #ChIP-tags/(#Input-tags + #ChIP-tags)
-	- wrappers take counts directly or path to bam file with index
+FEATURES
 
-
-diffr 0.1.1
-------------------------------------------------------------------------------
-
-* diffr packaging started with migrating difference calling pipeline scripts
-  and C++ code to this packages
-* roxygen2 documentation
-* ./tests/testthat created
-* ./exec/ holds commandline scripts
-
+     o  huge performance speedup by data compression to unique tupels only
+     o  Kahan summation for log posterior summation to reduce numerical error
+     o  Standardized enrichment computation in C++. This enrichment can be well
+        compared between various ChIP-seq experiments
+     o  exportR() function provides methods to export results of fits as a
+        region bed file or bigWig track of standardized enrichment
