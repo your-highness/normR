@@ -2,7 +2,7 @@ Package: normr
 Type: Package
 Title: Normalization and difference calling in ChIP-seq data
 Version: 0.99.5
-Date: 2016-06-24
+Date: 2016-07-12
 Authors@R: c(person(given="Johannes",family="Helmuth",
         email="helmuth@molgen.mpg.de", role=c("aut", "cre")),
         person(given="Ho-Ryun",family="Chung",
@@ -17,7 +17,7 @@ Description: Robust normalization and difference calling procedures for ChIP-seq
     identify significantly enriched or depleted regions.
 License: GPL-2
 Depends:
-    R (>= 3.3.0)
+    R (>= 3.2.0)
 LinkingTo: Rcpp
 SystemRequirements: C++11
 Imports:

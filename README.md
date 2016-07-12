@@ -1,7 +1,9 @@
 #normR - normR obeys regime mixture rules
 ## Normalization and Difference Calling for Next Generation Sequencing (NGS)
-Experiments via Joint Multinomial Modeling
+## Experiments via Joint Multinomial Modeling
 ---
+
+#R 3.2 compliant version
 
 Two NGS tracks are modeled simultaneously by fitting a binomial mixture model
 on mapped read counts.  In the first counting process, a desired smoothing
@@ -23,7 +25,7 @@ biocLite("bamsignals", suppressUpdates=T)
 #fetch current normR version from github
 install.packages("devtools")
 require(devtools)
-devtools::install_github("your-highness/normr")
+devtools::install_github("your-highness/normr@R3.2")
 ```
 
 ### Usage
