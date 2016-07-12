@@ -30,9 +30,9 @@ Imports:
     GenomicRanges,
     IRanges,
     Rcpp (>= 0.11),
-    qvalue (>= 2.2),
+    qvalue (>= 2.1),
     bamsignals (>= 1.4),
-    rtracklayer  (>= 1.32)
+    rtracklayer  (>= 1.30)
 Suggests:
     BiocStyle,
     testthat (>= 1.0),
