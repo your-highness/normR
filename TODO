@@ -32,6 +32,7 @@ DONE recompute Enrichment for a supplied background component
 DONE summary() - plot percentage for significance, plot per regime
 
 -plotting function for NormRFit
+-summary() should report percentages at significance levels
 -write CLI
 -reChIP analysis routine
 
