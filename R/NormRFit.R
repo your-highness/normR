@@ -612,11 +612,14 @@ setMethod("summary", "NormRFit",
                sum(qvals <= 0.05, na.rm=TRUE),
                sum(qvals <= 0.1, na.rm=TRUE),
                sum(qvals > 0.1, na.rm=TRUE))
-      names(cts) <- c("***", "**" , "*"  , "."  , " "  , "n.s." )
-      cts <- cts - c(0,cts[1:4],0)
+      cts <- matrix(c(format(cts - c(0,cts[1:4],0), digits=digits),
+                    format(cts/sum(cts)*100,digits= digits)),
+                    ncol=6, byrow=TRUE)
+      colnames(cts) <- c("***", "**" , "*"  , "."  , " "  , "n.s." )
+      rownames(cts) <- c("Bins", "%")
       cts.string <-
         utils::capture.output(
-          print.default(format(cts, digits=digits),print.gap=4L,quote=FALSE))
+          print.default(cts,print.gap=4L,quote=FALSE, right=TRUE))
       ans <- paste0(ans, paste(cts.string, collapse="\n"), "\n")
 
       if (object@type %in% c("diffR", "regimeR")) { #print regime statistics
@@ -632,13 +635,17 @@ setMethod("summary", "NormRFit",
           i = i + 1
         }
         clcts <- clcts - cbind(0, clcts[,1:4], 0)
-        clcts[,6] <- sum(cts) - rowSums(clcts[,1:5])
+        clcts[,6] <- sum(as.numeric(cts[1,])) - rowSums(clcts[,1:5])
 
         for (i in 1:(object@k-1)) {
           ans <- paste0(ans, "Class ", i, ":\n")
+          out <- matrix(c(format(clcts[i,], digits=digits),
+                          format(clcts[i,]/sum(clcts[i,])*100,digits=digits)),
+                          ncol=6, byrow=TRUE)
+          colnames(out) <- c("***", "**" , "*"  , "."  , " "  , "n.s." )
+          rownames(out) <- c("Bins", "%")
           cts.string <- utils::capture.output(
-            print.default(format(clcts[i,], digits=digits),
-                          print.gap=4L,quote=FALSE))
+            print.default(out, print.gap=4L,quote=FALSE, right=TRUE))
           ans <- paste0(ans, paste(cts.string, collapse="\n"), "\n")
         }
       }
