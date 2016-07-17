@@ -30,9 +30,9 @@ DONE integrate bamsignals 1.4 features (tlenFilter, flagFilter)
 DONE diffR() should report intersect of label switched inputs
 DONE recompute Enrichment for a supplied background component
 DONE summary() - plot percentage for significance, plot per regime
+DONE summary() should report percentages at significance levels
 
 -plotting function for NormRFit
--summary() should report percentages at significance levels
 -write CLI
 -reChIP analysis routine
 
