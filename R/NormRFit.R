@@ -415,6 +415,10 @@ setGeneric("getEnrichment", function(x, ...) standardGeneric("getEnrichment"))
 #' @param B An \code{integer} specifying the index of a mixture component. The
 #' enrichment is calculated relative to this component used as a background
 #' component. If \code{<NA>} (default), the background is determined by normR.
+#' @param standardized A \code{logical} indicating if the enrichment should be
+#' standardized betwen 0 and 1. A non-standardized enrichment is particular
+#' useful when comparing intensities for ChIP-seq against the same antigen in
+#' different conditions (default = TRUE).
 #' @param procs An \code{integer} specifying the number of threads to use.
 #'
 #' @return getEnrichment: A \code{numeric} of length \code{length(x@n)} giving
@@ -423,14 +427,16 @@ setGeneric("getEnrichment", function(x, ...) standardGeneric("getEnrichment"))
 #' @aliases getEnrichment
 #'
 #' @export
-setMethod("getEnrichment", "NormRFit", function(x, B=NA, procs=1) {
-  if (is.na(B)) {
+setMethod("getEnrichment", "NormRFit", function(x, B=NA, standardized=TRUE,
+                                                procs=1L) {
+  if (is.na(B) & standardized) {
     return(x@lnenrichment[x@map])
-  } else {
+  } else { #recomputation needed for specified B or non-standardized enrichment
+    if (is.na(B)) B <- x@B
     if (B < 1 | B > x@k) stop("invalid B specified")
     e <- normr::computeEnrichmentWithMap(x@lnposteriors,
       list("values"=do.call(rbind, x@counts), "amount"=x@amount), x@theta,
-      (x@k-1), (B-1), (x@type == "diffR"), 1L)
+      (x@k-1), (B-1), (x@type == "diffR"), standardized, procs)
     return(e[x@map])
   }
 })
@@ -583,7 +589,7 @@ setMethod("summary", "NormRFit",
       names(mixtures)[object@B] <- "Background"
       names(mixtures)[-object@B] <- paste("Class", 1:(object@k-1))
       mixtures.string <- utils::capture.output(print.default(
-        mixtures,print.gap=2L,quote=FALSE))
+        mixtures,print.gap=4L,quote=FALSE))
       ans <- paste0(ans, paste(mixtures.string, collapse="\n"), "\n")
 
       ans <- paste0(ans, "Theta:\n")
@@ -591,7 +597,7 @@ setMethod("summary", "NormRFit",
       names(theta)[object@B] <- "Background"
       names(theta)[-object@B] <- paste("Class", 1:(object@k-1))
       theta.string <- utils::capture.output(print.default(
-        theta,print.gap=2L,quote=FALSE))
+        theta,print.gap=4L,quote=FALSE))
       ans <- paste0(ans, paste(theta.string, collapse="\n"), "\n")
 
       ans <- paste0(ans, "\nBayesian Information Criterion:\t", format(
@@ -612,11 +618,14 @@ setMethod("summary", "NormRFit",
                sum(qvals <= 0.05, na.rm=TRUE),
                sum(qvals <= 0.1, na.rm=TRUE),
                sum(qvals > 0.1, na.rm=TRUE))
-      names(cts) <- c("***", "**" , "*"  , "."  , " "  , "n.s." )
-      cts <- cts - c(0,cts[1:4],0)
+      cts <- matrix(c(format(cts - c(0,cts[1:4],0), digits=digits),
+                    format(cts/sum(cts)*100,digits= digits)),
+                    ncol=6, byrow=TRUE)
+      colnames(cts) <- c("***", "**" , "*"  , "."  , " "  , "n.s." )
+      rownames(cts) <- c("Bins", "%")
       cts.string <-
         utils::capture.output(
-          print.default(format(cts, digits=digits),print.gap=2L,quote=FALSE))
+          print.default(cts,print.gap=4L,quote=FALSE, right=TRUE))
       ans <- paste0(ans, paste(cts.string, collapse="\n"), "\n")
 
       if (object@type %in% c("diffR", "regimeR")) { #print regime statistics
@@ -632,12 +641,17 @@ setMethod("summary", "NormRFit",
           i = i + 1
         }
         clcts <- clcts - cbind(0, clcts[,1:4], 0)
+        clcts[,6] <- sum(as.numeric(cts[1,])) - rowSums(clcts[,1:5])
 
         for (i in 1:(object@k-1)) {
           ans <- paste0(ans, "Class ", i, ":\n")
+          out <- matrix(c(format(clcts[i,], digits=digits),
+                          format(clcts[i,]/sum(clcts[i,])*100,digits=digits)),
+                          ncol=6, byrow=TRUE)
+          colnames(out) <- c("***", "**" , "*"  , "."  , " "  , "n.s." )
+          rownames(out) <- c("Bins", "%")
           cts.string <- utils::capture.output(
-            print.default(format(clcts[i,], digits=digits),
-                          print.gap=2L,quote=FALSE))
+            print.default(out, print.gap=4L,quote=FALSE, right=TRUE))
           ans <- paste0(ans, paste(cts.string, collapse="\n"), "\n")
         }
       }

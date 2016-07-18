@@ -42,7 +42,8 @@
 
 \S4method{getPosteriors}{NormRFit}(x)
 
-\S4method{getEnrichment}{NormRFit}(x, B = NA, procs = 1)
+\S4method{getEnrichment}{NormRFit}(x, B = NA, standardized = TRUE,
+  procs = 1L)
 
 \S4method{getPvalues}{NormRFit}(x, filtered = FALSE)
 
@@ -93,6 +94,11 @@ the function stops.}
 \item{B}{An \code{integer} specifying the index of a mixture component. The
 enrichment is calculated relative to this component used as a background
 component. If \code{<NA>} (default), the background is determined by normR.}
+
+\item{standardized}{A \code{logical} indicating if the enrichment should be
+standardized betwen 0 and 1. A non-standardized enrichment is particular
+useful when comparing intensities for ChIP-seq against the same antigen in
+different conditions (default = TRUE).}
 
 \item{procs}{An \code{integer} specifying the number of threads to use.}
 

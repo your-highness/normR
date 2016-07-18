@@ -55,8 +55,9 @@ END_RCPP
 }
 // em
 List em(const List& m2u_sub, const int models, const double eps, const bool
-    verbose, const int nthreads); RcppExport SEXP normr_em(SEXP m2u_subSEXP,
-      SEXP modelsSEXP, SEXP epsSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
+    verbose, const int nthreads);
+RcppExport SEXP normr_em(SEXP m2u_subSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP
+    verboseSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -72,9 +73,10 @@ END_RCPP
 // computeEnrichmentWithMap
 NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost, const List&
     m2u, const NumericVector& theta, const int fg, const int bg, const bool
-    diffCall, const int nthreads); RcppExport SEXP
-normr_computeEnrichmentWithMap(SEXP lnPostSEXP, SEXP m2uSEXP, SEXP thetaSEXP,
-    SEXP fgSEXP, SEXP bgSEXP, SEXP diffCallSEXP, SEXP nthreadsSEXP) {
+    diffCall, const bool standardized, const int nthreads);
+RcppExport SEXP normr_computeEnrichmentWithMap(SEXP lnPostSEXP, SEXP m2uSEXP,
+    SEXP thetaSEXP, SEXP fgSEXP, SEXP bgSEXP, SEXP diffCallSEXP, SEXP
+    standardizedSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result; Rcpp::RNGScope __rngScope;
 Rcpp::traits::input_parameter< const NumericMatrix& >::type lnPost(lnPostSEXP);
@@ -83,9 +85,11 @@ Rcpp::traits::input_parameter< const NumericVector& >::type theta(thetaSEXP);
 Rcpp::traits::input_parameter< const int >::type fg(fgSEXP);
 Rcpp::traits::input_parameter< const int >::type bg(bgSEXP);
 Rcpp::traits::input_parameter< const bool >::type diffCall(diffCallSEXP);
-Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
-__result = Rcpp::wrap(computeEnrichmentWithMap(lnPost, m2u, theta, fg, bg,
-      diffCall, nthreads)); return __result;
+Rcpp::traits::input_parameter< const bool >::type
+  standardized(standardizedSEXP); Rcpp::traits::input_parameter< const int
+  >::type nthreads(nthreadsSEXP); __result =
+  Rcpp::wrap(computeEnrichmentWithMap(lnPost, m2u, theta, fg, bg, diffCall,
+        standardized, nthreads)); return __result;
 END_RCPP
 }
 // normr_core
