@@ -1,3 +1,13 @@
+CHANGES IN VERSION 0.99.6
+-------------------------
+
+FEATURES
+     o summary() for NormRFit instances shows now percentage of bins at each
+       significance level
+     o getEnrichment() takes argument for computing a non-standardized
+       enrichment
+
+
 CHANGES IN VERSION 0.99.5
 -------------------------
 
