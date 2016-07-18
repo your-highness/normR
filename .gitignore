@@ -1,0 +1,10 @@
+#compiled files
+*.o
+*.so
+
+#TODO list
+#TODO
+
+#Package development
+Makefile
+sandbox/
