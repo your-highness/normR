@@ -16,18 +16,18 @@
 enrichR(treatment, control, genome, ...)
 
 \S4method{enrichR}{integer,integer,GenomicRanges}(treatment, control, genome,
-  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
+  eps = 0.00001, iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{enrichR}{character,character,GenomicRanges}(treatment, control,
-  genome, countConfig = countConfigSingleEnd(), eps = 1e-05,
+  genome, countConfig = countConfigSingleEnd(), eps = 0.00001,
   iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{enrichR}{character,character,data.frame}(treatment, control, genome,
-  countConfig = countConfigSingleEnd(), eps = 1e-05, iterations = 10,
+  countConfig = countConfigSingleEnd(), eps = 0.00001, iterations = 10,
   procs = 1L, verbose = TRUE)
 
 \S4method{enrichR}{character,character,character}(treatment, control, genome,
-  countConfig = countConfigSingleEnd(), eps = 1e-05, iterations = 10,
+  countConfig = countConfigSingleEnd(), eps = 0.00001, iterations = 10,
   procs = 1L, verbose = TRUE)
 }
 \arguments{

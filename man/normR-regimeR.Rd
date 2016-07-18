@@ -16,20 +16,20 @@
 regimeR(treatment, control, genome, models, ...)
 
 \S4method{regimeR}{integer,integer,GenomicRanges,numeric}(treatment, control,
-  genome, models = 3, eps = 1e-05, iterations = 10, procs = 1L,
+  genome, models = 3, eps = 0.00001, iterations = 10, procs = 1L,
   verbose = TRUE)
 
 \S4method{regimeR}{character,character,GenomicRanges,numeric}(treatment,
   control, genome, models = 3, countConfig = countConfigSingleEnd(),
-  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
+  eps = 0.00001, iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{regimeR}{character,character,data.frame,numeric}(treatment, control,
-  genome, models = 3, countConfig = countConfigSingleEnd(), eps = 1e-05,
+  genome, models = 3, countConfig = countConfigSingleEnd(), eps = 0.00001,
   iterations = 10, procs = 1L, verbose = TRUE)
 
 \S4method{regimeR}{character,character,character,numeric}(treatment, control,
   genome = "", models = 3, countConfig = countConfigSingleEnd(),
-  eps = 1e-05, iterations = 10, procs = 1L, verbose = TRUE)
+  eps = 0.00001, iterations = 10, procs = 1L, verbose = TRUE)
 }
 \arguments{
 \item{treatment}{An \code{integer} vector of treatment counts or a
