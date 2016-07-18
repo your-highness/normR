@@ -483,7 +483,8 @@ List em(const List& m2u_sub, const int models=2, const double eps=1e-5,
 // [[Rcpp::export]]
 NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
      const List& m2u, const NumericVector& theta, const int fg=1,
-     const int bg=0, const bool diffCall=false, const int nthreads=1) {
+     const int bg=0, const bool diffCall=false, const bool standardized=true,
+     const int nthreads=1) {
   if (bg < 0 || bg >= lnPost.ncol() || bg >= theta.size()) {
     stop("invalid bg argument");
   }
@@ -515,22 +516,24 @@ NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost,
     us_log[i] = exp(us_log[i]) + exp(lnPseu_s);
     out[i] = log(us_log[i]/ur_log[i]) + rglrz;
   }
-  if (diffCall) {//standardization dependent on algebraic sign of fc
-    double stdrzC = -log(theta[0]/(1-theta[0])*(1-theta[bg])/theta[bg]);
-    double stdrzT = log(theta[2]/(1-theta[2])*(1-theta[bg])/theta[bg]);
-    SAFE_PARALLEL_SIMD(schedule(static) num_threads(nthreads))
-    for (int i = 0; i < out.size(); ++i) {
-      if (out[i] < 0) {
-        out[i] /= stdrzC;
-      } else {
-        out[i] /= stdrzT;
+  if (standardized) {
+    if (diffCall) {//standardization dependent on algebraic sign of fc
+      double stdrzC = -log(theta[0]/(1-theta[0])*(1-theta[bg])/theta[bg]);
+      double stdrzT = log(theta[2]/(1-theta[2])*(1-theta[bg])/theta[bg]);
+      SAFE_PARALLEL_SIMD(schedule(static) num_threads(nthreads))
+      for (int i = 0; i < out.size(); ++i) {
+        if (out[i] < 0) {
+          out[i] /= stdrzC;
+        } else {
+          out[i] /= stdrzT;
+         }
       }
-    }
-  } else {
-    double stdrz = log(theta[fg]/(1-theta[fg])*(1-theta[bg])/theta[bg]);
-    SAFE_PARALLEL_SIMD(schedule(static) num_threads(nthreads))
-    for (int i = 0; i < out.size(); ++i) {
-      out[i] /= stdrz;
+    } else {
+      double stdrz = log(theta[fg]/(1-theta[fg])*(1-theta[bg])/theta[bg]);
+      SAFE_PARALLEL_SIMD(schedule(static) num_threads(nthreads))
+      for (int i = 0; i < out.size(); ++i) {
+        out[i] /= stdrz;
+      }
     }
   }
 
@@ -752,7 +755,7 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
   //calculate enrichment on map
   if (verbose) message("...computing enrichment.");
   NumericVector enr = computeEnrichmentWithMap(lnPost, m2u, exp(lntheta),
-      (models-1), bgIdx, diffCall, nthreads);
+      (models-1), bgIdx, diffCall, true, nthreads);
 
   //calculate p-values on map
   if (verbose) message("...computing P-values.");
