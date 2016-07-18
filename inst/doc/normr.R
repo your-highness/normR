@@ -32,9 +32,9 @@ BiocStyle::markdown()
 ## ------------------------------------------------------------------------
 citation("normr")
 
-## ------------------------------------------------------------------------
+## ----message=FALSE-------------------------------------------------------
 #Loading required package
-library(normr)
+library("normr")
 
 inputBamfile <- system.file("extdata", "K562_Input.bam", package="normr")
 k4me3Bamfile <- system.file("extdata", "K562_H3K4me3.bam", package="normr")
@@ -124,11 +124,11 @@ k4me3Ranges <- getRanges(k4me3Fit, fdr = 0.05)
 #as expected we get 586 regions
 length(k4me3Ranges)
 
-## ----warning=FALSE-------------------------------------------------------
+## ----warning=FALSE, message=FALSE----------------------------------------
 #example gene annotation for representative region (chr1:22500000-25000000)
 genes <- read.delim(file = system.file("extdata", "genes.bed",package="normr"),
                     header = FALSE, stringsAsFactors = FALSE)
-try(library(GenomicRanges), silent=TRUE)
+library("GenomicRanges")
 genes <- GRanges(seqnames = genes[, 1],
                  ranges = IRanges(start = genes[, 2], end = genes[, 3]),
                  strand = genes[, 6],
@@ -249,7 +249,7 @@ all(width(promoters) == 4000)
 
 ## ----eval=FALSE----------------------------------------------------------
 #  #count in predefined regions
-#  library(bamsignals)
+#  library("bamsignals")
 #  k4Counts <- bamCount(bampath = k4me3Bamfile, gr = promoters, verbose=FALSE)
 #  inputCounts <- bamCount(bampath = inputBamfile, gr = promoters, verbose=FALSE)
 #  
