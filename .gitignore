@@ -8,3 +8,5 @@
 #Package development
 Makefile
 sandbox/
+scripts/
+src/symbols.rds
