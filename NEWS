@@ -7,6 +7,8 @@ FEATURES
      o getEnrichment() takes argument for computing a non-standardized
        enrichment
 
+PERFORMANCE
+     o SIMD optimization for OpenMP >= ver4
 
 CHANGES IN VERSION 0.99.5
 -------------------------
