@@ -9,12 +9,13 @@ Authors@R: c(person(given="Johannes",family="Helmuth",
         email="chung@molgen.mpg.de", role=c("aut")))
 Author: Johannes Helmuth [aut, cre], Ho-Ryun Chung [aut]
 Maintainer: Johannes Helmuth <helmuth@molgen.mpg.de>
-Description: Robust normalization and difference calling procedures for ChIP-seq
-    and alike data. Read counts are modeled jointly as a binomial mixture model
-    with a user-specified number of components. A fitted background estimate
-    accounts for the effect of enrichment in certain regions and, therefore,
-    represents an appropriate null hypothesis. This robust background is used to
-    identify significantly enriched or depleted regions.
+Description: Robust normalization and difference calling procedures for
+    ChIP-seq and alike data. Read counts are modeled jointly as a binomial
+    mixture model with a user-specified number of components. A fitted
+    background estimate accounts for the effect of enrichment in certain
+    regions and, therefore, represents an appropriate null hypothesis. This
+    robust background is used to identify significantly enriched or depleted
+    regions.
 License: GPL-2
 Depends:
     R (>= 3.3.0)
