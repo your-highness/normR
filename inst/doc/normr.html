@@ -163,7 +163,7 @@ exportR(obj      = de,
 <p>As part of the normR package, we provide 3 alignment files in bam format (Input, H3K4me3 and H3K36me3 ChIP-seq) containing reads for human chr1 22.5Mb to 25Mb. Note, bam files used in normR need to be sorted by read coordinates (<code>samtools sort x.bam x_sorted</code>) and indexed (<code>samtools index x_sorted.bam</code>). Our example files already fullfil this criteria.</p>
 <p><em>Firstly</em>, we retrieve filepaths for toy data:</p>
 <pre class="r"><code>#Loading required package
-library(normr)
+library(&quot;normr&quot;)
 
 inputBamfile &lt;- system.file(&quot;extdata&quot;, &quot;K562_Input.bam&quot;, package=&quot;normr&quot;)
 k4me3Bamfile &lt;- system.file(&quot;extdata&quot;, &quot;K562_H3K4me3.bam&quot;, package=&quot;normr&quot;)
@@ -248,64 +248,12 @@ k36me3Fit &lt;- enrichR(treatment = k36me3Bamfile, control = inputBamfile,
 <h3><span class="header-section-number">3.1.1</span> Analyzing Results</h3>
 <p>We can use some methods provided by the <code>NormRFit-class</code> to get a grasp on the quality of our normR call, <em>e.g.</em> print a more concise summary that gives the number of significant regions under different False Discovery Rates (<span class="math inline">\(FDR\)</span>).</p>
 <pre class="r"><code>summary(k4me3Fit)</code></pre>
-<pre><code>## NormRFit-class object
-## 
-## Type:                  'enrichR'
-## Number of Regions:     997003
-## Number of Components:  2
-## Theta* (naive bg):     0.393
-## Background component B: 1
-## 
-## +++ Results of fit +++ 
-## Mixture Proportions:
-## Background       Class 1    
-##        95%            5%    
-## Theta:
-## Background       Class 1    
-##     0.0915        0.9276    
-## 
-## Bayesian Information Criterion:  73401
-## 
-## +++ Results of binomial test +++ 
-## T-Filter threshold: 8
-## Number of Regions filtered out: 991635
-## Significantly different from background B based on q-values:
-## TOTAL:
-##            ***        **         *         .                n.s.
-## Bins        24       435        62        65        59      4723
-## %        0.345     6.597     7.488     8.422     9.270    67.879
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 '  ' 1 'n.s.'</code></pre>
+<pre><code>##   Length    Class     Mode 
+##   997003 NormRFit       S4</code></pre>
 <p>Note, <code>summary()</code> prints an additional section containing information on the statistical testing. The “T-Filter threshold” filters out regions that are not considered for multiple testing correction due to low power. The sum of counts in treatment and control is less than this quantity (Dialsingh <em>et al.</em>, Bioinformatics, 2015, 1–7). The “Number of Regions filtered out” is very large in our example because the toy alignment files are filtered for reads within chr1 22.5Mb to 25Mb. However, the specified genome covers chr1:0-249250621 which results in alot of zero counts. This does not influence the fit but for testing the regions are filtered. Based on computed q-vlaues, H3K4me3 shows 586 (24+435+62+65) regions significantly enriched for <span class="math inline">\(FDR \le 0.05\)</span>. The summary for H3K36me3 enrichment calls confirms 2,259 (0+1944+153+162) regions significantly enriched for <span class="math inline">\(FDR \le 0.05\)</span>:</p>
 <pre class="r"><code>summary(k36me3Fit)</code></pre>
-<pre><code>## NormRFit-class object
-## 
-## Type:                  'enrichR'
-## Number of Regions:     997003
-## Number of Components:  2
-## Theta* (naive bg):     0.514
-## Background component B: 1
-## 
-## +++ Results of fit +++ 
-## Mixture Proportions:
-## Background       Class 1    
-##      76.7%         23.3%    
-## Theta:
-## Background       Class 1    
-##      0.113         0.838    
-## 
-## Bayesian Information Criterion:  131166
-## 
-## +++ Results of binomial test +++ 
-## T-Filter threshold: 9
-## Number of Regions filtered out: 991341
-## Significantly different from background B based on q-values:
-## TOTAL:
-##          ***      **       *       .            n.s.
-## Bins       0    1944     153     162      74    3329
-## %        0.0    16.3    17.5    18.9    19.5    27.8
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 '  ' 1 'n.s.'</code></pre>
+<pre><code>##   Length    Class     Mode 
+##   997003 NormRFit       S4</code></pre>
 <p>Based on the fitted background, normR can calculate a standardized, regularized enrichment for further processing:</p>
 <pre class="r"><code>#background normalized enrichment
 k4me3Enr &lt;- getEnrichment(k4me3Fit)
@@ -363,7 +311,7 @@ length(k4me3Ranges)</code></pre>
 <pre class="r"><code>#example gene annotation for representative region (chr1:22500000-25000000)
 genes &lt;- read.delim(file = system.file(&quot;extdata&quot;, &quot;genes.bed&quot;,package=&quot;normr&quot;),
                     header = FALSE, stringsAsFactors = FALSE)
-try(library(GenomicRanges), silent=TRUE)
+library(&quot;GenomicRanges&quot;)
 genes &lt;- GRanges(seqnames = genes[, 1],
                  ranges = IRanges(start = genes[, 2], end = genes[, 3]),
                  strand = genes[, 6],
@@ -388,7 +336,7 @@ overlapOdds(k4me3Ranges, genes)</code></pre>
 ##  Fisher's Exact Test for Count Data
 ## 
 ## data:  m
-## p-value = 0.00000001128
+## p-value = 1.128e-08
 ## alternative hypothesis: true odds ratio is greater than 1
 ## 95 percent confidence interval:
 ##  1.419849      Inf
@@ -402,7 +350,7 @@ overlapOdds(k4me3Ranges, promoters)</code></pre>
 ##  Fisher's Exact Test for Count Data
 ## 
 ## data:  m
-## p-value &lt; 0.00000000000000022
+## p-value &lt; 2.2e-16
 ## alternative hypothesis: true odds ratio is greater than 1
 ## 95 percent confidence interval:
 ##  6.589435      Inf
@@ -418,7 +366,7 @@ overlapOdds(k36me3Ranges, k4me3Ranges)</code></pre>
 ##  Fisher's Exact Test for Count Data
 ## 
 ## data:  m
-## p-value = 0.00003539
+## p-value = 3.539e-05
 ## alternative hypothesis: true odds ratio is greater than 1
 ## 95 percent confidence interval:
 ##  1.254101      Inf
@@ -432,7 +380,7 @@ overlapOdds(k36me3Ranges[countOverlaps(k36me3Ranges, promoters) != 0],
 ##  Fisher's Exact Test for Count Data
 ## 
 ## data:  m
-## p-value &lt; 0.00000000000000022
+## p-value &lt; 2.2e-16
 ## alternative hypothesis: true odds ratio is greater than 1
 ## 95 percent confidence interval:
 ##  7.184033      Inf
@@ -446,7 +394,7 @@ overlapOdds(k36me3Ranges[countOverlaps(k36me3Ranges, genes) != 0],
 ##  Fisher's Exact Test for Count Data
 ## 
 ## data:  m
-## p-value &lt; 0.00000000000000022
+## p-value &lt; 2.2e-16
 ## alternative hypothesis: true odds ratio is greater than 1
 ## 95 percent confidence interval:
 ##  2.219849      Inf
@@ -460,7 +408,7 @@ overlapOdds(k36me3Ranges, genes)</code></pre>
 ##  Fisher's Exact Test for Count Data
 ## 
 ## data:  m
-## p-value &lt; 0.00000000000000022
+## p-value &lt; 2.2e-16
 ## alternative hypothesis: true odds ratio is greater than 1
 ## 95 percent confidence interval:
 ##  5.036229      Inf
@@ -473,7 +421,7 @@ overlapOdds(k36me3Ranges, promoters(genes, 1500, 1500))</code></pre>
 ##  Fisher's Exact Test for Count Data
 ## 
 ## data:  m
-## p-value &lt; 0.00000000000000022
+## p-value &lt; 2.2e-16
 ## alternative hypothesis: true odds ratio is greater than 1
 ## 95 percent confidence interval:
 ##  2.498577      Inf
@@ -680,7 +628,7 @@ fit &lt;- enrichR(treatment   = k4me3Bamfile,
 all(width(promoters) == 4000)</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 <pre class="r"><code>#count in predefined regions
-library(bamsignals)
+library(&quot;bamsignals&quot;)
 k4Counts &lt;- bamCount(bampath = k4me3Bamfile, gr = promoters, verbose=FALSE)
 inputCounts &lt;- bamCount(bampath = inputBamfile, gr = promoters, verbose=FALSE)
 
