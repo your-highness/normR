@@ -415,6 +415,10 @@ setGeneric("getEnrichment", function(x, ...) standardGeneric("getEnrichment"))
 #' @param B An \code{integer} specifying the index of a mixture component. The
 #' enrichment is calculated relative to this component used as a background
 #' component. If \code{<NA>} (default), the background is determined by normR.
+#' @param standardized A \code{logical} indicating if the enrichment should be
+#' standardized betwen 0 and 1. A non-standardized enrichment is particular
+#' useful when comparing intensities for ChIP-seq against the same antigen in
+#' different conditions (default = TRUE).
 #' @param procs An \code{integer} specifying the number of threads to use.
 #'
 #' @return getEnrichment: A \code{numeric} of length \code{length(x@n)} giving
@@ -423,14 +427,16 @@ setGeneric("getEnrichment", function(x, ...) standardGeneric("getEnrichment"))
 #' @aliases getEnrichment
 #'
 #' @export
-setMethod("getEnrichment", "NormRFit", function(x, B=NA, procs=1) {
-  if (is.na(B)) {
+setMethod("getEnrichment", "NormRFit", function(x, B=NA, standardized=TRUE,
+                                                procs=1L) {
+  if (is.na(B) & standardized) {
     return(x@lnenrichment[x@map])
-  } else {
+  } else { #recomputation needed for specified B or non-standardized enrichment
+    if (is.na(B)) B <- x@B
     if (B < 1 | B > x@k) stop("invalid B specified")
     e <- normr::computeEnrichmentWithMap(x@lnposteriors,
       list("values"=do.call(rbind, x@counts), "amount"=x@amount), x@theta,
-      (x@k-1), (B-1), (x@type == "diffR"), 1L)
+      (x@k-1), (B-1), (x@type == "diffR"), standardized, procs)
     return(e[x@map])
   }
 })
