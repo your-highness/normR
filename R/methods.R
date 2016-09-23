@@ -222,9 +222,9 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
 #' (see Details).
 #' @param countConfig A \code{\link{NormRCountConfig}} object specifying bam
 #' counting parameters for read count retrieval. See Details.
-#' @param eps A \code{numeric} specifying the Threshold for EM convergence,
-#' \emph{i.e.} the minimal difference in log-likelihood in two consecutive
-#' steps.
+#' @param eps A \code{numeric} specifying the T Filter threshold and the 
+#' threshold for EM convergence, \emph{i.e.} the minimal difference in 
+#' log-likelihood in two consecutive steps.
 #' @param iterations An \code{integer} specifying how many times the EM is
 #' initialized with random model parameters.
 #' @param procs An \code{integer} giving the number of parallel threads to
@@ -255,7 +255,7 @@ setGeneric("enrichR", function(treatment, control, genome, ...)
 #'
 #' @export
 setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
-  function(treatment, control, genome, eps=1e-5, iterations=10,
+  function(treatment, control, genome, eps=1e-2, iterations=10,
            procs=1L, verbose=TRUE) {
     if (length(treatment) != length(control)) {
       stop("incompatible treatment and control count vectors")
@@ -303,7 +303,7 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
 #' @export
 setMethod("enrichR", signature("character", "character", "GenomicRanges"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           eps=1e-2, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharGR(treatment, control, genome, countConfig,
                                  procs, verbose)
@@ -315,7 +315,7 @@ setMethod("enrichR", signature("character", "character", "GenomicRanges"),
 #' @export
 setMethod("enrichR", signature("character", "character", "data.frame"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           eps=1e-2, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharDf(treatment, control, genome, countConfig,
                                  procs, verbose)
@@ -327,7 +327,7 @@ setMethod("enrichR", signature("character", "character", "data.frame"),
 #' @export
 setMethod("enrichR", signature("character", "character", "character"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           eps=1e-2, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     genome <- handleCharCharChar(treatment, control, genome, verbose)
     return(enrichR(treatment, control, genome, countConfig, eps,
@@ -385,9 +385,9 @@ setMethod("enrichR", signature("character", "character", "character"),
 #' (see Details).
 #' @param countConfig A \code{\link{NormRCountConfig}} object specifying bam
 #' counting parameters for read count retrieval. See Details.
-#' @param eps A \code{numeric} specifying the Threshold for EM convergence,
-#' \emph{i.e.} the minimal difference in log-likelihood in two consecutive
-#' steps.
+#' @param eps A \code{numeric} specifying the T Filter threshold and the 
+#' threshold for EM convergence, \emph{i.e.} the minimal difference in 
+#' log-likelihood in two consecutive steps.
 #' @param iterations An \code{integer} specifying how many times the EM is
 #' initialized with random model parameters.
 #' @param procs An \code{integer} giving the number of parallel threads to
@@ -417,7 +417,7 @@ setGeneric("diffR", function(treatment, control, genome, ...)
 #'
 #' @export
 setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
-  function(treatment, control, genome, eps=1e-5, iterations=10,
+  function(treatment, control, genome, eps=1e-2, iterations=10,
            procs=1L, verbose=TRUE) {
     if (length(treatment) != length(control)) {
       stop("incompatible treatment and control count vectors")
@@ -472,7 +472,7 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
 #' @export
 setMethod("diffR", signature("character", "character", "GenomicRanges"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           eps=1e-2, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharGR(treatment, control, genome, countConfig,
                                  procs, verbose)
@@ -484,7 +484,7 @@ setMethod("diffR", signature("character", "character", "GenomicRanges"),
 #' @export
 setMethod("diffR", signature("character", "character", "data.frame"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           eps=1e-2, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharDf(treatment, control, genome, countConfig,
                                  procs, verbose)
@@ -496,7 +496,7 @@ setMethod("diffR", signature("character", "character", "data.frame"),
 #' @export
 setMethod("diffR", signature("character", "character", "character"),
   function(treatment, control, genome="", countConfig=countConfigSingleEnd(),
-           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           eps=1e-2, iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     genome <- handleCharCharChar(treatment, control, genome, verbose)
     return(diffR(treatment, control, genome, countConfig, eps, iterations,
@@ -557,9 +557,9 @@ setMethod("diffR", signature("character", "character", "character"),
 #' components to fit [\code{\link{regimeR}} only]. Default is \code{3}.
 #' @param countConfig A \code{\link{NormRCountConfig}} object specifying bam
 #' counting parameters for read count retrieval. See Details.
-#' @param eps A \code{numeric} specifying the Threshold for EM convergence,
-#' \emph{i.e.} the minimal difference in log-likelihood in two consecutive
-#' steps.
+#' @param eps A \code{numeric} specifying the T Filter threshold and the 
+#' threshold for EM convergence, \emph{i.e.} the minimal difference in 
+#' log-likelihood in two consecutive steps.
 #' @param iterations An \code{integer} specifying how many times the EM is
 #' initialized with random model parameters.
 #' @param procs An \code{integer} giving the number of parallel threads to
@@ -591,7 +591,7 @@ setGeneric("regimeR", function(treatment, control, genome, models, ...)
 #' @export
 setMethod("regimeR",
           signature("integer", "integer", "GenomicRanges", "numeric"),
-  function(treatment, control, genome, models=3, eps=1e-5,
+  function(treatment, control, genome, models=3, eps=1e-2,
             iterations=10, procs=1L, verbose=TRUE) {
     if (models <= 2) stop("invalid number of models specified")
     if (length(treatment) != length(control)) {
@@ -642,7 +642,7 @@ setMethod("regimeR",
 setMethod("regimeR",
           signature("character", "character", "GenomicRanges", "numeric"),
   function(treatment, control, genome, models=3,
-           countConfig=countConfigSingleEnd(), eps=1e-5,
+           countConfig=countConfigSingleEnd(), eps=1e-2,
            iterations=10, procs=1L, verbose=TRUE) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharGR(treatment, control, genome, countConfig,
@@ -655,7 +655,7 @@ setMethod("regimeR",
 setMethod("regimeR",
           signature("character", "character", "data.frame", "numeric"),
   function(treatment, control, genome, models=3,
-           countConfig=countConfigSingleEnd(), eps=1e-5, iterations=10,
+           countConfig=countConfigSingleEnd(), eps=1e-2, iterations=10,
            procs=1L, verbose=TRUE) {
     if (models <= 2) stop("invalid number of models specified")
     treatment <- path.expand(treatment); control <- path.expand(control)
@@ -669,7 +669,7 @@ setMethod("regimeR",
 setMethod("regimeR",
           signature("character", "character", "character", "numeric"),
   function(treatment, control, genome="", models=3,
-           countConfig=countConfigSingleEnd(), eps=1e-5,
+           countConfig=countConfigSingleEnd(), eps=1e-2,
            iterations=10, procs=1L, verbose=TRUE) {
     if (models <= 2) stop("invalid number of models specified")
     treatment <- path.expand(treatment); control <- path.expand(control)
