@@ -47,7 +47,7 @@ applyMap <- function(v, map) {
 # R normR implementation
 ###
 #the workhorse implemented in R
-RnormR <- function(s, r, nmodels=2, eps=1e-5){
+RnormR <- function(s, r, nmodels=2, eps=1e-2){
   idx <- which((s + r) > 0)
   N <- length(idx); n <- s + r
   mixtures <- runif(nmodels)
@@ -147,7 +147,7 @@ RgetEnrichment <- function(post, r, s, theta, bgIdx=1, fgIdx=2) {
     log(theta[fgIdx]/(1-theta[fgIdx])*(1-theta[bgIdx])/theta[bgIdx])
   return((foldchange + regularization)/standardization)
 }
-RenrichR <- function(s, r, eps=1e-5, bgIdx=1) {
+RenrichR <- function(s, r, eps=1e-2, bgIdx=1) {
   fit <- RnormR(s,r)
 
   #get enrichment
@@ -234,7 +234,7 @@ RgetEnrichmentDiff <- function(post, r, s, theta) {
   foldchange[foldchange < 0] <- foldchange[foldchange < 0]/standardizationC
   return(foldchange)
 }
-RdiffR <- function(s, r, eps=1e-5) {
+RdiffR <- function(s, r, eps=1e-2) {
   fit <- RnormR(s,r,3)
 
   #get enrichment
@@ -265,7 +265,7 @@ RdiffR <- function(s, r, eps=1e-5) {
 ###
 # R regimeR methods
 ###
-RregimeR <- function(s, r, nmodels, eps=1e-5, bgIdx=1) {
+RregimeR <- function(s, r, nmodels, eps=1e-2, bgIdx=1) {
   fit <- RnormR(s,r,nmodels)
 
   #get enrichment
