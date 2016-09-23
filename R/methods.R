@@ -133,8 +133,10 @@ handleCharCharDf <- function(treatment, control, genome, countConfig, procs,
   counts[[2]] <- unlist(as.list(counts[[2]]))
 
   #Give bins across the supplied genome
-  gr <- unlist(tile(gr, width=countConfig@binsize))
-  seqinfo(gr) <- Seqinfo(as.character(genome[,1]), genome[,2])
+  seqlengths <- genome[,2]
+  names(seqlengths) <- genome[,1]
+  gr <- GenomicRanges::tileGenome(seqlengths, tilewidth=countConfig@binsize,
+                                  cut.last.tile.in.chrom=T)
 
   return(list(counts=counts, gr=gr))
 }
