@@ -1,6 +1,11 @@
 TODO
 ###############################################################################
 
+BUGFIXES
+#############
+DONE Fix tiling GenomicRanges
+DONE fix tests for smaller eps
+
 
 FUNCTIONALITY/ENHANCEMENTS
 ##########################
@@ -32,6 +37,7 @@ DONE recompute Enrichment for a supplied background component
 DONE summary() plot per regime
 DONE summary() should report percentages at significance levels
 DONE getEnrichment() with argument on standardization
+DONE Lowering default T-filter to 0.01
 
 -plotting function for NormRFit
 -write CLI
