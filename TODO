@@ -4,7 +4,7 @@ TODO
 BUGFIXES
 #############
 DONE Fix tiling GenomicRanges
-DONE fix tests for smaller eps
+DONE Prevent tiling in char,char,GenomicRanges-function's
 
 
 FUNCTIONALITY/ENHANCEMENTS
@@ -37,7 +37,7 @@ DONE recompute Enrichment for a supplied background component
 DONE summary() plot per regime
 DONE summary() should report percentages at significance levels
 DONE getEnrichment() with argument on standardization
-DONE Lowering default T-filter to 0.01
+DONE Lowering default T-filter to 0.01, adjusting tests
 
 -plotting function for NormRFit
 -write CLI

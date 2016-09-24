@@ -6,7 +6,8 @@ BUGFIXES
         enrichR,character,character,data.frame-method
         diffR,character,character,data.frame-method
         regimeR,character,character,data.frame-method
-     o
+     o Correcting counting on supplied ranges object with a warning displayed
+       if they are not equally sized
 
 CHANGES IN VERSION 0.99.6
 -------------------------
