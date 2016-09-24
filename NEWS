@@ -6,6 +6,7 @@ BUGFIXES
         enrichR,character,character,data.frame-method
         diffR,character,character,data.frame-method
         regimeR,character,character,data.frame-method
+     o
 
 CHANGES IN VERSION 0.99.6
 -------------------------
