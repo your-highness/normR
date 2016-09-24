@@ -150,14 +150,19 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
     stop("No index file for", control, ".\n")
   }
 
+  if (!all(width(gr) == width(gr)[1])) {
+    warning("Supplied GenomicRanges have varying widths! Still doing fit...")
+  }
+
+
   if (verbose) {
     message(paste0("Counting on ", control, " & ", treatment,
                    " for specified GenomicRanges..."))
   }
 
   counts <- parallel::mcmapply(
-    bamsignals::bamProfile, bampath=c(treatment, control),
-    MoreArgs=list(gr=gr, binsize=countConfig@binsize,
+    bamsignals::bamCount, bampath=c(treatment, control),
+    MoreArgs=list(gr=gr,
                   mapq=countConfig@mapq,
                   shift=countConfig@shift,
                   paired.end=getFilter(countConfig),
@@ -204,7 +209,9 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
 #' check if your bam files obey this annotation. If \code{genome} is a
 #' \code{data.frame}, it represents the chromosome specification. The first
 #' column will be used as chromosome ID and the second column will be used as
-#' the chromosome lengths.
+#' the chromosome lengths. If \code{genome} is a \code{GenomicRanges}, it
+#' should contain the equally sized genomic loci to count in, e.g. promoters.
+#' The binsize in the supplied NormRCountConfig is ignore in this case.
 #'
 #' \code{bamCountConfig} is an instance of class \code{\link{NormRCountConfig}}
 #' specifying settings for read counting on bam files. You can specify the
@@ -218,12 +225,12 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
 #' \link{character} pointing to the control bam file. In the latter case an
 #' "\code{control}.bai" index file should exist in the same folder.
 #' @param genome Either \code{NULL} (default), a \code{character} specifying a
-#' USCS genome identifier  or a \link{data.frame} consisting of two columns
-#' (see Details).
+#' USCS genome identifier, a \link{data.frame} consisting of two columns or a
+#' \link{GenomicRanges} specifying the genomic regions (see Details).
 #' @param countConfig A \code{\link{NormRCountConfig}} object specifying bam
 #' counting parameters for read count retrieval. See Details.
-#' @param eps A \code{numeric} specifying the T Filter threshold and the 
-#' threshold for EM convergence, \emph{i.e.} the minimal difference in 
+#' @param eps A \code{numeric} specifying the T Filter threshold and the
+#' threshold for EM convergence, \emph{i.e.} the minimal difference in
 #' log-likelihood in two consecutive steps.
 #' @param iterations An \code{integer} specifying how many times the EM is
 #' initialized with random model parameters.
@@ -367,7 +374,9 @@ setMethod("enrichR", signature("character", "character", "character"),
 #' check if your bam files obey this annotation. If \code{genome} is a
 #' \code{data.frame}, it represents the chromosome specification. The first
 #' column will be used as chromosome ID and the second column will be used as
-#' the chromosome lengths.
+#' the chromosome lengths. If \code{genome} is a \code{GenomicRanges}, it
+#' should contain the equally sized genomic loci to count in, e.g. promoters.
+#' The binsize in the supplied NormRCountConfig is ignore in this case.
 #'
 #' \code{bamCountConfig} is an instance of class \code{\link{NormRCountConfig}}
 #' specifying settings for read counting on bam files. You can specify the
@@ -381,12 +390,12 @@ setMethod("enrichR", signature("character", "character", "character"),
 #' \link{character} pointing to the control bam file. In the latter case an
 #' "\code{control}.bai" index file should exist in the same folder.
 #' @param genome Either \code{NULL} (default), a \code{character} specifying a
-#' USCS genome identifier or a \link{data.frame} consisting of two columns
-#' (see Details).
+#' USCS genome identifier, a \link{data.frame} consisting of two columns or a
+#' \link{GenomicRanges} specifying the genomic regions (see Details).
 #' @param countConfig A \code{\link{NormRCountConfig}} object specifying bam
 #' counting parameters for read count retrieval. See Details.
-#' @param eps A \code{numeric} specifying the T Filter threshold and the 
-#' threshold for EM convergence, \emph{i.e.} the minimal difference in 
+#' @param eps A \code{numeric} specifying the T Filter threshold and the
+#' threshold for EM convergence, \emph{i.e.} the minimal difference in
 #' log-likelihood in two consecutive steps.
 #' @param iterations An \code{integer} specifying how many times the EM is
 #' initialized with random model parameters.
@@ -537,7 +546,9 @@ setMethod("diffR", signature("character", "character", "character"),
 #' check if your bam files obey this annotation. If \code{genome} is a
 #' \code{data.frame}, it represents the chromosome specification. The first
 #' column will be used as chromosome ID and the second column will be used as
-#' the chromosome lengths.
+#' the chromosome lengths. If \code{genome} is a \code{GenomicRanges}, it
+#' should contain the equally sized genomic loci to count in, e.g. promoters.
+#' The binsize in the supplied NormRCountConfig is ignore in this case.
 #'
 #' \code{bamCountConfig} is an instance of class \code{\link{NormRCountConfig}}
 #' specifying settings for read counting on bam files. You can specify the
@@ -551,14 +562,14 @@ setMethod("diffR", signature("character", "character", "character"),
 #' \link{character} pointing to the control bam file. In the latter case an
 #' "\code{control}.bai" index file should exist in the same folder.
 #' @param genome Either \code{NULL} (default), a \code{character} specifying a
-#' USCS genome identifier or a \link{data.frame} consisting of two columns
-#' (see Details).
+#' USCS genome identifier, a \link{data.frame} consisting of two columns or a
+#' \link{GenomicRanges} specifying the genomic regions (see Details).
 #' @param models An \code{integer} specifying the number of mixture
 #' components to fit [\code{\link{regimeR}} only]. Default is \code{3}.
 #' @param countConfig A \code{\link{NormRCountConfig}} object specifying bam
 #' counting parameters for read count retrieval. See Details.
-#' @param eps A \code{numeric} specifying the T Filter threshold and the 
-#' threshold for EM convergence, \emph{i.e.} the minimal difference in 
+#' @param eps A \code{numeric} specifying the T Filter threshold and the
+#' threshold for EM convergence, \emph{i.e.} the minimal difference in
 #' log-likelihood in two consecutive steps.
 #' @param iterations An \code{integer} specifying how many times the EM is
 #' initialized with random model parameters.

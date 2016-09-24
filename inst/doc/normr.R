@@ -244,18 +244,15 @@ exportR(k36me3Regimes, filename = "k36me3Regimes.bed", type = "bed", fdr=0.05)
 #                 countConfig = countConfigPE)
 
 ## ----warning=FALSE-------------------------------------------------------
+promoters <- promoters(genes, 1500, 1500)
 #regions have identical size?
 all(width(promoters) == 4000)
 
-## ----eval=FALSE----------------------------------------------------------
-#  #count in predefined regions
-#  library("bamsignals")
-#  k4Counts <- bamCount(bampath = k4me3Bamfile, gr = promoters, verbose=FALSE)
-#  inputCounts <- bamCount(bampath = inputBamfile, gr = promoters, verbose=FALSE)
-#  
-#  #Fit only on promoters
-#  promotersFit <- enrichR(treatment = k4Counts, control = inputCounts,
-#                          genome = promoters, verbose = FALSE)
+## ------------------------------------------------------------------------
+#Fit only on promoters
+promotersFit <- enrichR(treatment = k4me3Bamfile, control = inputBamfile,
+                        genome = promoters, verbose = FALSE)
+summary(promotersFit)
 
 ## ----eval=FALSE----------------------------------------------------------
 #  cnvs <- diffR(treatment   = treatmentInputBamfile,
