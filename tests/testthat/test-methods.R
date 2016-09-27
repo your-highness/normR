@@ -162,9 +162,9 @@ test_that("diffR() works correctly", {
     counts_ctrl <- suppressWarnings(bamProfile(chipfiles[1],gr,binsize))[1]
     counts_treat <- suppressWarnings(bamProfile(chipfiles[2],gr,binsize))[1]
     testFit(
-      RdiffR(counts_treat, counts_ctrl, eps=1e-5),
+      RdiffR(counts_treat, counts_ctrl),
       diffR(counts_treat, counts_ctrl, unlist(tile(gr, width=binsize)),
-            verbose=F, eps=1e-5),
+            verbose=F),
       paste0("diffR-integer,integer,GRanges{", "region=",
              seqnames(gr), ":", start(gr),"-",end(gr),
              ", binsize=", binsize, ",chipfile=", chipfiles[2], ",inputfile=",
@@ -181,10 +181,9 @@ test_that("diffR() works correctly", {
     RdiffR(suppressWarnings(
              bamProfile( chipfiles[2],gr,500,20,0,F,"ignore",verbose=F))[1],
            suppressWarnings(
-             bamProfile(chipfiles[1],gr,500,20,0,F,"ignore",verbose=F))[1],
-           eps=1e-5),
+             bamProfile(chipfiles[1],gr,500,20,0,F,"ignore",verbose=F))[1]),
     diffR(chipfiles[2], chipfiles[1], genome.df,
-          countConfigSingleEnd(500,20,-1,0), verbose=F, eps=1e-5),
+          countConfigSingleEnd(500,20,-1,0), verbose=F),
     paste0("diffR-character,character,data.frame-SingleEnd{region=",
            seqnames(gr), ":", start(gr),"-",end(gr),
            ", binsize=500,chipfile=", chipfiles[2], ",inputfile=",
@@ -193,16 +192,14 @@ test_that("diffR() works correctly", {
     tolerance=5e-3
   )
   fit <- diffR(chipfiles[2], chipfiles[1], genome.df,
-               countConfigPairedEnd(500,20,-1,0,T,c(0,300)), verbose=F,
-               eps=1e-5)
+               countConfigPairedEnd(500,20,-1,0,T,c(0,300)), verbose=F)
   testFit(
     RdiffR(suppressWarnings(
              bamProfile(chipfiles[2],gr,500,20,0,F,"midpoint",c(0,300),1024,
                         verbose=F))[1],
            suppressWarnings(
              bamProfile(chipfiles[1],gr,500,20,0,F,"midpoint",c(0,300),1024,
-                        verbose=F))[1],
-           eps=1e-5),
+                        verbose=F))[1]),
     fit,
     paste0("diffR-character,character,data.frame-PairedEnd{region=",
            seqnames(gr), ":", start(gr),"-",end(gr),
@@ -232,9 +229,9 @@ test_that("regimeR() works correctly", {
       counts_ctrl <- suppressWarnings(bamProfile(inputfile,gr,binsize))[1]
       counts_treat <- suppressWarnings(bamProfile(chipfile,gr,binsize))[1]
       testFit(
-        RregimeR(counts_treat, counts_ctrl, k, eps=1e-5),
+        RregimeR(counts_treat, counts_ctrl, k),
         regimeR(counts_treat, counts_ctrl, unlist(tile(gr, width=binsize)),
-                k, verbose=F, eps=1e-5),
+                k, verbose=F),
         paste0("regimeR-integer,integer,GRanges{", "region=",
                seqnames(gr), ":", start(gr),"-",end(gr),
                ", binsize=", binsize, ",chipfile=", chipfile, ",inputfile=",
@@ -254,9 +251,9 @@ test_that("regimeR() works correctly", {
                  bamProfile(chipfile,gr,500,20,0,F,"ignore",verbose=F))[1],
                suppressWarnings(
                  bamProfile(inputfile,gr,500,20,0,F,"ignore",verbose=F))[1],
-               k, eps=1e-5),
+               k),
       regimeR(chipfile, inputfile, genome.df, k,
-              countConfigSingleEnd(500,20,-1,0), verbose=F, eps=1e-5),
+              countConfigSingleEnd(500,20,-1,0), verbose=F),
       paste0("regimeR-character,character,data.frame-SingleEnd{region=",
              seqnames(gr), ":", start(gr),"-",end(gr),
              ", binsize=500,chipfile=", chipfile, ",inputfile=",
@@ -264,8 +261,7 @@ test_that("regimeR() works correctly", {
       tolerance=5e-3
     )
     Cfit <- regimeR(chipfile, inputfile, genome.df, k,
-                    countConfigPairedEnd(500,20,-1,0,T,c(0,300)), verbose=F,
-                    eps=1e-5)
+                    countConfigPairedEnd(500,20,-1,0,T,c(0,300)), verbose=F)
     testFit(
       RregimeR(suppressWarnings(
                  bamProfile(chipfile,gr,500,20,0,F,"midpoint",c(0,300),1024,
@@ -273,7 +269,7 @@ test_that("regimeR() works correctly", {
                suppressWarnings(
                  bamProfile(inputfile,gr,500,20,0,F,"midpoint",c(0,300),1024,
                             verbose=F))[1],
-               k, eps=1e-5),
+               k),
       Cfit,
       paste0("regimeR-character,character,data.frame-PairedEnd{region=",
              seqnames(gr), ":", start(gr),"-",end(gr),
