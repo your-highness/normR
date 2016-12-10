@@ -235,7 +235,7 @@ RgetEnrichmentDiff <- function(post, r, s, theta) {
   return(foldchange)
 }
 RdiffR <- function(s, r, eps=1e-5) {
-  fit <- RnormR(s,r,3)
+  fit <- RnormR(s,r,3,eps)
 
   #get enrichment
   fit$lnenrichment <- RgetEnrichmentDiff(fit$posteriors,r,s,fit$theta)
@@ -247,8 +247,8 @@ RdiffR <- function(s, r, eps=1e-5) {
 
   #Apply Rtfilter filter
   fit2 <- RnormR(r,s,3)
-  fit$filteredT <- intersect(RtfilterDiff(fit, 2),
-                             RtfilterDiff(fit2, 2))
+  fit$filteredT <- intersect(RtfilterDiff(fit, eps, 2),
+                             RtfilterDiff(fit2, eps, 2))
 
   #Q values
   fit$qvals <- rep(NA, length(r))

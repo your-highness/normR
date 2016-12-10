@@ -42,7 +42,7 @@
 
 \S4method{getPosteriors}{NormRFit}(x)
 
-\S4method{getEnrichment}{NormRFit}(x, B = NA, standardized = TRUE,
+\S4method{getEnrichment}{NormRFit}(x, B = NA, F = NA, standardized = TRUE,
   procs = 1L)
 
 \S4method{getPvalues}{NormRFit}(x, filtered = FALSE)
@@ -94,6 +94,12 @@ the function stops.}
 \item{B}{An \code{integer} specifying the index of a mixture component. The
 enrichment is calculated relative to this component used as a background
 component. If \code{<NA>} (default), the background is determined by normR.}
+
+\item{F}{An \code{integer} specifying the index of a mixture component. The
+enrichment is calculated for this component over background \code{B}. If
+\code{<NA>} (default), the component with theta closest to B is used
+(\code{enrichR}, \code{regimeR}). For \code{diffR}, \code{F} is not
+effective.}
 
 \item{standardized}{A \code{logical} indicating if the enrichment should be
 standardized betwen 0 and 1. A non-standardized enrichment is particular

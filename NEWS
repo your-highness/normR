@@ -8,6 +8,9 @@ BUGFIXES
         regimeR,character,character,data.frame-method
      o Correcting counting on supplied ranges object with a warning displayed
        if they are not equally sized
+     o getEnrichment() allows for adjusting the foreground now
+     o T Filter threshold is now controlled with the minP argument in main
+       methods
 
 CHANGES IN VERSION 0.99.6
 -------------------------

@@ -441,7 +441,7 @@ setMethod("getEnrichment", "NormRFit", function(x, B=NA, F=NA,
     if (B < 1 | B > x@k) stop("invalid B specified")
     if (is.na(F)) F <- x@k
     if (F == B | F < 1 | F > x@k) stop("invalid F specified")
-    e <- normr::computeEnrichmentWithMap(x@lnposteriors,
+    e <- normr:::computeEnrichmentWithMap(x@lnposteriors,
        list("values"=do.call(rbind, x@counts), "amount"=x@amount), x@theta,
       (F-1), (B-1), (x@type == "diffR"), standardized, procs)
     return(e[x@map])
@@ -612,9 +612,10 @@ setMethod("summary", "NormRFit",
         digits=digits), "\n\n")
 
       qvals <- getQvalues(object)
+      nfiltered <- sum(is.na(qvals))
       ans <- paste0(ans, "+++ Results of binomial test +++ \n",
         "T-Filter threshold: ", object@thresholdT, "\n",
-        "Number of Regions filtered out: ", sum(is.na(qvals)), "\n")
+        "Number of Regions filtered out: ", nfiltered, "\n")
 
       ans <- paste0(ans,
         "Significantly different from background B based on q-values:\n",
