@@ -106,17 +106,19 @@ deployR <- function(pckg=".", registerFun=T, check=T) {
   setwd("../")
 
   #  try installing the package in a stub library
+  message(" #### Trying to install the package")
+  system(paste0("R CMD build ", pckg))
+  install.packages(paste0(pckg, "_", vsion, ".tar.gz"), lib=tmp.lib)
+
+  #extensive checking
   tmp.lib <- paste0(pckg, "_BUILDtmp")
   dir.create(tmp.lib)
   if (check) {
-    message(" #### Testing requested: running 'R-dev CMD check'")
-    system(paste0("~/R-devel/bin/R CMD check ", pckg))
-    message(" #### Testing requested: running 'R-dev CMD BiocCheck'")
-    system(paste0("~/R-devel/bin/R CMD BiocCheck ", pckg))
+    message(" #### Testing requested: running 'R CMD check'")
+    system(paste0("R CMD check ", pckg))
+    message(" #### Testing requested: running 'R CMD BiocCheck'")
+    system(paste0("R CMD BiocCheck ", pckg))
   }
-  message(" #### Trying to install the package")
-  system(paste0("~/R-devel/bin/R CMD build ", pckg))
-  install.packages(paste0(pckg, "_", vsion, ".tar.gz"), lib=tmp.lib)
 
   #message(" #### Trying to load the package")
   #library(pckg, character.only=T, quietly=T)
