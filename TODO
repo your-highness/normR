@@ -6,6 +6,8 @@ BUGFIXES
 DONE Fix tiling GenomicRanges
 DONE Prevent tiling in char,char,GenomicRanges-function's
 
+-there is a C STACK usage issue when counts are very high (duplicated STARR-seq)
+
 
 FUNCTIONALITY/ENHANCEMENTS
 ##########################
@@ -39,9 +41,15 @@ DONE summary() should report percentages at significance levels
 DONE getEnrichment() with argument on standardization
 DONE Lowering default T-filter to 0.01, adjusting tests
 
+-MAP assignment instead of ML assignment for diffR and regimeR
+-introduce max iter for a certain starting configuration (identifiability)
+-BiocParallel implementation
 -plotting function for NormRFit
+-add NormRFit-class::plot() to vignette
 -write CLI
--reChIP analysis routine
+-add CLI to vignette
+-add citation for bioc
+
 
 PERFORMANCE
 #############
@@ -57,6 +65,7 @@ DONE C++/R: after em fit it takes a long time to end the call
 DONE Setting SIMD flags conditional on OpenMP Version
      software.intel.com/en-us/articles/enabling-simd-in-program-using-openmp40
      wrathematics.github.io/RparallelGuide/#the-simd-keyword
+
 
 STRUCTURE
 #############
@@ -76,8 +85,7 @@ DONE check correctness of getEnrichmentWithMap & getEnrichment
 DONE write vignette(enrichR(),diffR(),regimeR() with IGVshots on minimal data)
 DONE update README
 
-- add NormRFit-class::plot() to vignette
-- add CLI to vignette
-- update dates & LICENSE HEADER in sourcefiles
-- add citation for bioc
-- make release on github
+-check vignette for correctness of reported numbers
+-update dates & LICENSE HEADER in sourcefiles
+-make release on github
+-improve test coverage reported by BioC
