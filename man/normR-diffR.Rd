@@ -16,19 +16,20 @@
 diffR(treatment, control, genome, ...)
 
 \S4method{diffR}{integer,integer,GenomicRanges}(treatment, control, genome,
-  eps = 0.00001, iterations = 10, procs = 1L, verbose = TRUE)
+  procs = 1L, verbose = TRUE, eps = 1e-05, iterations = 10,
+  minP = 0.05)
 
 \S4method{diffR}{character,character,GenomicRanges}(treatment, control, genome,
-  countConfig = countConfigSingleEnd(), eps = 0.00001, iterations = 10,
-  procs = 1L, verbose = TRUE)
+  countConfig = countConfigSingleEnd(), procs = 1L, verbose = TRUE,
+  eps = 1e-05, iterations = 10, minP = 0.05)
 
 \S4method{diffR}{character,character,data.frame}(treatment, control, genome,
-  countConfig = countConfigSingleEnd(), eps = 0.00001, iterations = 10,
-  procs = 1L, verbose = TRUE)
+  countConfig = countConfigSingleEnd(), procs = 1L, verbose = TRUE,
+  eps = 1e-05, iterations = 10, minP = 0.05)
 
 \S4method{diffR}{character,character,character}(treatment, control,
-  genome = "", countConfig = countConfigSingleEnd(), eps = 0.00001,
-  iterations = 10, procs = 1L, verbose = TRUE)
+  genome = "", countConfig = countConfigSingleEnd(), procs = 1L,
+  verbose = TRUE, eps = 1e-05, iterations = 10, minP = 0.05)
 }
 \arguments{
 \item{treatment}{An \code{integer} vector of treatment counts or a
@@ -40,24 +41,27 @@ diffR(treatment, control, genome, ...)
 "\code{control}.bai" index file should exist in the same folder.}
 
 \item{genome}{Either \code{NULL} (default), a \code{character} specifying a
-USCS genome identifier or a \link{data.frame} consisting of two columns
-(see Details).}
+USCS genome identifier, a \link{data.frame} consisting of two columns or a
+\link{GenomicRanges} specifying the genomic regions (see Details).}
 
 \item{...}{Optional arguments for the respective implementations of
 \code{\link{diffR}}.}
-
-\item{eps}{A \code{numeric} specifying the Threshold for EM convergence,
-\emph{i.e.} the minimal difference in log-likelihood in two consecutive
-steps.}
-
-\item{iterations}{An \code{integer} specifying how many times the EM is
-initialized with random model parameters.}
 
 \item{procs}{An \code{integer} giving the number of parallel threads to
 use.}
 
 \item{verbose}{A \code{logical} indicating whether verbose output is
 desired.}
+
+\item{eps}{A \code{numeric} specifying the T Filter threshold and the
+threshold for EM convergence, \emph{i.e.} the minimal difference in
+log-likelihood in two consecutive steps.}
+
+\item{iterations}{An \code{integer} specifying how many times the EM is
+initialized with random model parameters.}
+
+\item{minP}{An \code{integer} controlling the threshold for the T
+method when filtering low power regions, i.e. regions with low counts.}
 
 \item{countConfig}{A \code{\link{NormRCountConfig}} object specifying bam
 counting parameters for read count retrieval. See Details.}
@@ -99,7 +103,9 @@ this case, only assembled molecules will be considered (no circular). Please
 check if your bam files obey this annotation. If \code{genome} is a
 \code{data.frame}, it represents the chromosome specification. The first
 column will be used as chromosome ID and the second column will be used as
-the chromosome lengths.
+the chromosome lengths. If \code{genome} is a \code{GenomicRanges}, it
+should contain the equally sized genomic loci to count in, e.g. promoters.
+The binsize in the supplied NormRCountConfig is ignore in this case.
 
 \code{bamCountConfig} is an instance of class \code{\link{NormRCountConfig}}
 specifying settings for read counting on bam files. You can specify the

@@ -106,12 +106,12 @@ deployR <- function(pckg=".", registerFun=T, check=T) {
   setwd("../")
 
   #  try installing the package in a stub library
+  tmp.lib <- paste0(pckg, "_BUILDtmp")
   message(" #### Trying to install the package")
   system(paste0("R CMD build ", pckg))
   install.packages(paste0(pckg, "_", vsion, ".tar.gz"), lib=tmp.lib)
 
   #extensive checking
-  tmp.lib <- paste0(pckg, "_BUILDtmp")
   dir.create(tmp.lib)
   if (check) {
     message(" #### Testing requested: running 'R CMD check'")
