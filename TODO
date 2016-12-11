@@ -90,3 +90,4 @@ DONE update README
 -update dates & LICENSE HEADER in sourcefiles
 -make release on github
 -improve test coverage reported by BioC
+-adjust version number to release schedule of BioC
