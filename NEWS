@@ -1,3 +1,34 @@
+CHANGES IN VERSION 1.3.1
+-------------------------
+
+Bioconductor 3.6 Release
+
+FEATURES
+     o BETA BINOMIAL
+     o 
+
+BUGFIXES
+     o ...
+
+
+CHANGES IN VERSION 1.2.0
+-------------------------
+
+Bioconductor 3.5 Release
+
+
+CHANGES IN VERSION 1.1.0
+-------------------------
+
+Bioconductor 3.4 Release
+
+
+CHANGES IN VERSION 1.0.0
+-------------------------
+
+Initial Bioconductor 3.3 Release
+
+
 CHANGES IN VERSION 0.99.7
 -------------------------
 
@@ -12,6 +43,7 @@ BUGFIXES
      o T Filter threshold is now controlled with the minP argument in main
        methods
 
+
 CHANGES IN VERSION 0.99.6
 -------------------------
 
@@ -24,6 +56,7 @@ FEATURES
 PERFORMANCE
      o SIMD optimization for OpenMP >= ver4
 
+
 CHANGES IN VERSION 0.99.5
 -------------------------
 
@@ -34,17 +67,20 @@ FEATURES
 BUGFIXES
      o Removing MAKEFLAG "-D_GLIBCXX_PARALLEL" because it is experimental
 
+
 CHANGES IN VERSION 0.99.4
 -------------------------
 
 BUGFIXES
      o Removing PKG_CPPFLAGS and PKG_LIBS variables from src/Makevars
 
+
 CHANGES IN VERSION 0.99.3
 -------------------------
 
 BUGFIXES
      o Fixing imports in roxygen2
+
 
 CHANGES IN VERSION 0.99.2
 -------------------------
@@ -55,6 +91,7 @@ FEATURES
 
 BUGFIXES
      o deploy.log removed
+
 
 CHANGES IN VERSION 0.99.1
 -------------------------
