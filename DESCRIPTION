@@ -1,8 +1,8 @@
 Package: normr
 Type: Package
 Title: Normalization and difference calling in ChIP-seq data
-Version: 0.99.7
-Date: 2016-07-18
+Version: 1.3.1
+Date: 2017-05-22
 Authors@R: c(person(given="Johannes",family="Helmuth",
         email="helmuth@molgen.mpg.de", role=c("aut", "cre")),
         person(given="Ho-Ryun",family="Chung",
