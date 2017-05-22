@@ -169,12 +169,10 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
                   tlenFilter=countConfig@tlenFilter,
                   filteredFlag=countConfig@filteredFlag,
                   verbose=FALSE),
-    mc.cores=procs, SIMPLIFY=FALSE
+    mc.cores=procs, SIMPLIFY=T
   )
-  counts[[1]] <- unlist(as.list(counts[[1]]))
-  counts[[2]] <- unlist(as.list(counts[[2]]))
 
-  return(list(counts=counts, gr=gr))
+  return(list(counts=list(counts[,1], counts[,2]), gr=gr))
 }
 
 #' Enrichment Calling on ChIP-seq data in normR with enrichR
