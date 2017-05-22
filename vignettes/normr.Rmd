@@ -16,6 +16,8 @@ vignette: >
 BiocStyle::markdown()
 ```
 
+![](../inst/extdata/normr_overview.jpg)
+
 # TL;DR (Too long; didn't read)
 
 * `enrichR()` calls ChIP-seq enrichment over control for coordinate-sorted and
