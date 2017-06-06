@@ -101,13 +101,23 @@ handleCharCharChar <- function(treatment, control, genome, verbose) {
 }
 handleCharCharDf <- function(treatment, control, genome, countConfig, procs,
                              verbose) {
-  treatment <- path.expand(treatment); control <- path.expand(control)
-  if(!file.exists(paste(treatment, ".bai", sep=""))) {
-    stop("No index file for", treatment, ".\n")
+  treatment <- path.expand(treatment)
+
+  treatment_idx_ext <- paste(treatment, ".bai", sep="")
+  treatment_idx_sub <- sub("\\.bam$", ".bai", treatment, fixed=FALSE)
+
+  if (!(file.exists(treatment_idx_ext) | file.exists(treatment_idx_sub))) {
+    stop("No index file for treatment ", treatment, ".\n")
   }
-  if(!file.exists(paste(control, ".bai", sep=""))) {
-    stop("No index file for", control, ".\n")
+  control <- path.expand(control)
+
+  control_idx_ext <- paste(control, ".bai", sep="")
+  control_idx_sub <- sub("\\.bam$", ".bai", control, fixed=FALSE)
+
+  if (!(file.exists(control_idx_ext) | file.exists(control_idx_sub))) {
+    stop("No index file for control ", control, ".\n")
   }
+
   if (NCOL(genome) != 2) stop("invalid genome data.frame")
 
   if (verbose) {
@@ -142,12 +152,22 @@ handleCharCharDf <- function(treatment, control, genome, countConfig, procs,
 }
 handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
                              verbose) {
-  treatment <- path.expand(treatment); control <- path.expand(control)
-  if(!file.exists(paste(treatment, ".bai", sep=""))) {
-    stop("No index file for", treatment, ".\n")
+
+  treatment <- path.expand(treatment)
+
+  treatment_idx_ext <- paste(treatment, ".bai", sep="")
+  treatment_idx_sub <- sub("\\.bam$", ".bai", treatment, fixed=FALSE)
+
+  if (!(file.exists(treatment_idx_ext) | file.exists(treatment_idx_sub))) {
+    stop("No index file for treatment ", treatment, ".\n")
   }
-  if(!file.exists(paste(control, ".bai", sep=""))) {
-    stop("No index file for", control, ".\n")
+  control <- path.expand(control)
+
+  control_idx_ext <- paste(control, ".bai", sep="")
+  control_idx_sub <- sub("\\.bam$", ".bai", control, fixed=FALSE)
+
+  if (!(file.exists(control_idx_ext) | file.exists(control_idx_sub))) {
+    stop("No index file for control ", control, ".\n")
   }
 
   if (!all(width(gr) == width(gr)[1])) {
