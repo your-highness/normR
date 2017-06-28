@@ -2,15 +2,15 @@
 % Please edit documentation in R/methods.R
 \docType{methods}
 \name{regimeR}
-\alias{RegimeCalling}
-\alias{regimeCall}
 \alias{regimeR}
-\alias{regimeR,character,character,GenomicRanges,numeric-method}
-\alias{regimeR,character,character,character,numeric-method}
-\alias{regimeR,character,character,data.frame,numeric-method}
-\alias{regimeR,integer,integer,GenomicRanges,numeric-method}
 \alias{regimeR-generic}
 \alias{regimer}
+\alias{regimeCall}
+\alias{RegimeCalling}
+\alias{regimeR,integer,integer,GenomicRanges,numeric-method}
+\alias{regimeR,character,character,GenomicRanges,numeric-method}
+\alias{regimeR,character,character,data.frame,numeric-method}
+\alias{regimeR,character,character,character,numeric-method}
 \title{Regime Enrichment Calling for ChIP-seq data in normR with regimeR}
 \usage{
 regimeR(treatment, control, genome, models, ...)
@@ -158,12 +158,11 @@ regime <- regimeR(treatment = chipK36, control = input, models = 3,
                   iterations = 10, procs = 1, verbose = TRUE)
 summary(regime)
 }
-\author{
-Johannes Helmuth \email{helmuth@molgen.mpg.de}
-}
 \seealso{
 \code{\link{NormRFit-class}} for functions on accessing and
 exporting the regimeR fit. \code{\link{NormRCountConfig-class}} for
 configuration of the read counting procedure (binsize, mapping quality,...).
 }
-
+\author{
+Johannes Helmuth \email{helmuth@molgen.mpg.de}
+}
