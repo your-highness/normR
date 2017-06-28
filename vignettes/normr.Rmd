@@ -211,8 +211,8 @@ in our example because the toy alignment files are filtered for reads within
 chr1 22.5Mb to 25Mb. However, the specified genome covers `chr1:0-249250621`
 which results in alot of zero counts. This does not influence the fit but for
 testing the regions are filtered. Based on computed q-vlaues, H3K4me3 shows
-596 (24+438+59+75) regions significantly enriched for $FDR \le 0.05$. The
-summary for H3K36me3 enrichment calls confirms 2,364 (0+1947+211+206) regions
+587 (24+433+67+63) regions significantly enriched for $FDR \le 0.05$. The
+summary for H3K36me3 enrichment calls confirms 2,378 (0+1951+212+215) regions
 significantly enriched for $FDR \le 0.05$:
 
 ```{r}
@@ -284,7 +284,7 @@ k4me3Ranges <- getRanges(k4me3Fit)[!is.na(k4me3Classes)]
 #Alternatively you can extract ranges without storing the class vector
 k4me3Ranges <- getRanges(k4me3Fit, fdr = 0.05)
 
-#as expected we get 586 regions
+#as expected we get 587 regions
 length(k4me3Ranges)
 ```
 
@@ -327,11 +327,11 @@ It is known that promoters are marked by H3K4me3 if their gene's expression is
 initiated. Our analysis above shows that H3K4me3-enriched regions are indeed
 significantly overrepresented within genes (Fisher's signed-exact test;
 P-value<0.001; odds ratio = 1.72) and, more pronounced, in promoter regions
-(odds ratio = 7.56).
+(odds ratio = 7.74).
 
 By comparing H3K36me3 and H3K4me3 ranges, we can identify significant overlap
-of H3K36me3 and H3K4me3 that most pronounced in promoter regions (odds ratio =
-9.37) than compared to gene bodies (odds ratio = 2.80).
+of H3K36me3 and H3K4me3 (odds ratio = 1.53) that is most pronounced in promoter
+regions (odds ratio = 9.68) than compared to gene bodies (odds ratio = 2.85).
 
 ```{r}
 #Overlap of H3K36me3 with H3K4me3
@@ -350,7 +350,7 @@ overlapOdds(k36me3Ranges[countOverlaps(k36me3Ranges, genes) != 0],
 H3K36me3 is associated to transcriptional elongation in the gene body. The
 presence of H3K36me3 within the gene body marks transcribed genes.  Indeed,
 H3K36me3 enrichment is significantly overrepresented mostly at genes (odds
-ratio = 5.53) and, to a lower extend, at promoters (odds ratio = 2.68).
+ratio = 5.52) and, to a lower extend, at promoters (odds ratio = 2.68).
 
 ```{r}
 #Overlap of H3K36me3 in genes
@@ -423,10 +423,10 @@ H3K36me3 enrichment without H3K4me3-enrichment, (ii) H3K36me3 and H3K4me3
 "Backgroundcomponent B" is 2 in this case: `diffR()` identifies significant
 enrichment and depletion by a two-sided test on the background. Looking at the
 "Mixture Proportions", regions are classified to (i) in ~49.8%, (ii) in
-~29.5% and (iii) in ~20.7% of the regions. 1,654 (0+1624+24+6) regions are
-significantly different from background with $FDR \le 0.05$. These regions are
-either H3K4me3-positive or H3K36me3 positive. We can export these regions and
-the normalized enrichment with `exportR`:
+~29.5% and (iii) in ~20.7% of the regions. 2,629 regions are significantly
+different from background with $FDR \le 0.05$. These regions are either
+H3K4me3-positive or H3K36me3 positive. We can export these regions and the
+normalized enrichment with `exportR`:
 
 ```{r warning=FALSE}
 exportR(k4k36Dif, filename = "k4k36Dif.bed", type = "bed", fdr = 0.05)
@@ -461,8 +461,7 @@ summary(k4me3Regimes)
 ```
 
 ~10.5% of the regions show enrichment which gets segmented into ~7.7% low
-and ~2.8% high enrichment. 684 (41+445+84+114) regions are significant
-($FDR \le 0.05$).
+and ~2.8% high enrichment. 692 regions are significant ($FDR \le 0.05$).
 
 Now, we would like to use two enrichment regimes for H3K36me3. In this way, we
 might be able to classify genes of low and high transcriptional rates:
@@ -536,7 +535,7 @@ same size.
 ```{r warning=FALSE}
 promoters <- promoters(genes, 1500, 1500)
 #regions have identical size?
-all(width(promoters) == 4000)
+all(width(promoters) == 3000)
 ```
 
 ```{r}
