@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Johannes Helmuth
+/* Copyright (C) 2017 Johannes Helmuth & Ho-Ryun Chung
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * Functions defined herein fit a binomial mixture model to count data
  *
  * @author Johannes Helmuth
- * @version 0.99.3 06/23/2016
+ * @version 1.3.1 2016-06-28
  */
 #include <algorithm>
 #include <Rcpp.h>
