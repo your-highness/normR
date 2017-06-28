@@ -1,14 +1,26 @@
 CHANGES IN VERSION 1.3.1
 -------------------------
 
-Bioconductor 3.6 Release
-
 FEATURES
-     o BETA BINOMIAL
-     o 
+     o `summary()` output more concise
+     o `getEnrichment()` takes `F` for specifying a desired foreground
+         component for standardization of the enrichment
+     o `iterations` argument allows running multiple fits with different
+         starting values
+     o T Filter threshold can now be specified with `minP` argument for less 
+         stringent filtering
+     o Added a normR overview scheme to the vignette
+     o Qvalue computation improvement by specifying range for prop. of H_0
 
 BUGFIXES
-     o ...
+     o Fixed the erroneous tiling of supplied GR objects in char,char,GRanges
+     o `diffR()` is more robust by doing a label-switched fit also
+
+
+CHANGES IN VERSION 1.3.0
+-------------------------
+
+Bioconductor 3.6 Release
 
 
 CHANGES IN VERSION 1.2.0
