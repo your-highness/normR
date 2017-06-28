@@ -74,7 +74,7 @@ RnormR <- function(s, r, nmodels=2, eps=1e-5){
     posteriors <- exp(likelihood - lnZ)
     mixtures <- colSums(posteriors, na.rm=TRUE)
     mixtures <- mixtures / sum(mixtures)
-    theta <- colSums( posteriors * s[idx], na.rm=T) / 
+    theta <- colSums( posteriors * s[idx], na.rm=T) /
                colSums( posteriors * n[idx], na.rm=T)
     o <- order(theta)
     theta <- theta[o]
@@ -103,7 +103,7 @@ RnormR <- function(s, r, nmodels=2, eps=1e-5){
 RgetP <- function(s, r, p) {
   return(pbinom(s, r+s, p, lower.tail=F) + dbinom(s, r+s, p))
 }
-Rtfilter <- function(fit, thresh=1e-5, bgIdx=1) {
+Rtfilter <- function(fit, thresh=5e-2, bgIdx=1) {
     marg = 0
     r = 0
     s = 0
@@ -148,7 +148,7 @@ RgetEnrichment <- function(post, r, s, theta, bgIdx=1, fgIdx=2) {
   return((foldchange + regularization)/standardization)
 }
 RenrichR <- function(s, r, eps=1e-5, bgIdx=1) {
-  fit <- RnormR(s,r)
+  fit <- RnormR(s,r, eps = eps)
 
   #get enrichment
   fit$lnenrichment <- RgetEnrichment(fit$posteriors,r,s,fit$theta)
@@ -159,11 +159,14 @@ RenrichR <- function(s, r, eps=1e-5, bgIdx=1) {
   fit$pvals[fit$pvals < 0] <- 0
 
   #Apply Rtfilter filter
-  fit$filteredT <- Rtfilter(fit, eps, bgIdx=bgIdx)
+  fit$filteredT <- Rtfilter(fit, bgIdx=bgIdx)
 
   #Q values
   fit$qvals <- rep(NA, length(r))
-  fit$qvals[fit$filteredT] <- qvalue::qvalue(fit$pvals[fit$filteredT])$qvalues
+  p <- fit$pvals
+  fit$qvals[fit$filteredT] <- 
+    qvalue::qvalue(fit$pvals[fit$filteredT], 
+      lambda=seq(min(p), min(0.99, max(p)), .05))$qvalues
 
   #classes
   fit$classes <- as.integer(rep(NA, length(r)))
@@ -183,7 +186,7 @@ RgetPDiff <- function(s, r, p) {
     else stats::binom.test(s[i], r[i]+s[i], p, alternative="two.sided")$p.value
   }))
 }
-RtfilterDiff <- function(fit, thresh=1e-5, bgIdx=2) {
+RtfilterDiff <- function(fit, thresh=1e-2, bgIdx=2) {
   marg = 0
   r = 0
   s = 0
@@ -235,7 +238,7 @@ RgetEnrichmentDiff <- function(post, r, s, theta) {
   return(foldchange)
 }
 RdiffR <- function(s, r, eps=1e-5) {
-  fit <- RnormR(s,r,3)
+  fit <- RnormR(s,r,3,eps)
 
   #get enrichment
   fit$lnenrichment <- RgetEnrichmentDiff(fit$posteriors,r,s,fit$theta)
@@ -252,7 +255,10 @@ RdiffR <- function(s, r, eps=1e-5) {
 
   #Q values
   fit$qvals <- rep(NA, length(r))
-  fit$qvals[fit$filteredT] <- qvalue::qvalue(fit$pvals[fit$filteredT])$qvalues
+  p <- fit$pvals
+  fit$qvals[fit$filteredT] <- 
+    qvalue::qvalue(fit$pvals[fit$filteredT], 
+      lambda=seq(min(p), min(0.99, max(p)), .05))$qvalues
 
   #classes
   fit$classes <- as.integer(rep(NA, length(r)))
@@ -266,7 +272,7 @@ RdiffR <- function(s, r, eps=1e-5) {
 # R regimeR methods
 ###
 RregimeR <- function(s, r, nmodels, eps=1e-5, bgIdx=1) {
-  fit <- RnormR(s,r,nmodels)
+  fit <- RnormR(s,r,nmodels, eps=eps)
 
   #get enrichment
   fit$lnenrichment <- RgetEnrichment(fit$posteriors,r,s,fit$theta,1,nmodels)
@@ -277,11 +283,14 @@ RregimeR <- function(s, r, nmodels, eps=1e-5, bgIdx=1) {
   fit$pvals[fit$pvals < 0] <- 0
 
   #Apply Rtfilter filter
-  fit$filteredT <- Rtfilter(fit, eps, bgIdx=bgIdx)
+  fit$filteredT <- Rtfilter(fit, bgIdx=bgIdx)
 
   #Q values
   fit$qvals <- rep(NA, length(r))
-  fit$qvals[fit$filteredT] <- qvalue::qvalue(fit$pvals[fit$filteredT])$qvalues
+  p <- fit$pvals
+  fit$qvals[fit$filteredT] <- 
+    qvalue::qvalue(fit$pvals[fit$filteredT], 
+      lambda=seq(min(p), min(0.99, max(p)), .05))$qvalues
 
   #classes
   fit$classes <- as.integer(rep(NA, length(r)))

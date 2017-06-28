@@ -1,4 +1,4 @@
-# Copyright (C) 2016 Johannes Helmuth
+# Copyright (C) 2017 Johannes Helmuth & Ho-Ryun Chung
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -251,7 +251,7 @@ setMethod("exportR", signature=c("NormRFit", "character"),
         return(apply(col2rgb(pal), 2, paste, collapse=","))
       }
       if (x@type == "enrichR") {
-        if (is.na(color)) color <- "gray50"
+        if (is.na(color[1])) color <- "gray50"
         if (length(color) != 1) {
           stop("invalid color argument for type 'enrichR' (length!=1)")
         }
@@ -259,7 +259,7 @@ setMethod("exportR", signature=c("NormRFit", "character"),
         gr$col <- getColRamp(color)[as.integer(gr$score/250)+1]
 
       } else if (x@type == "diffR") {
-        if (is.na(color)) color <- c("darkblue", "darkred")
+        if (is.na(color[1])) color <- c("darkblue", "darkred")
         if (length(color) != 2) {
           stop("invalid color argument for type 'diffR' (length!=2)")
         }
@@ -275,7 +275,7 @@ setMethod("exportR", signature=c("NormRFit", "character"),
         gr$col <- col
 
       } else if (x@type == "regimeR") {
-        if (is.na(color)) color <- rev(terrain.colors(x@k+1))[-1]
+        if (is.na(color[1])) color <- rev(terrain.colors(x@k+1))[-1]
         if (length(color) != x@k) {
           stop(paste0("invalid color argument for type 'regimeR' (length!=",
             x@k, ")"))
@@ -373,15 +373,15 @@ setGeneric("getRanges", function(x, ...) standardGeneric("getRanges"))
 setMethod("getRanges", "NormRFit", function(x, fdr=NA, k=NULL ) {
    if (!is.na(fdr)) if(fdr < 0 | fdr > 1) stop("invalid fdr specified")
    if (!is.null(k)) {
-     if(k < 0) stop("invalid k specified")
-     if (k == x@B & !is.na(fdr)) stop("impossible to filter k with fdr")
+     if(k < 0 | k > x@k) stop("invalid k specified")
+     if (k == 0 & !is.na(fdr)) stop("impossible to filter k with fdr")
    }
 
    gr <- x@ranges
    if (is.na(fdr)) {
      gr$component <- getClasses(x) #MAP class assignments
      if (!is.null(k)) {
-       gr <- gr[gr$component == k]
+       gr <- gr[which(gr$component == k)]
      }
      return(gr)
    } else if (!is.na(fdr)) {
@@ -415,6 +415,11 @@ setGeneric("getEnrichment", function(x, ...) standardGeneric("getEnrichment"))
 #' @param B An \code{integer} specifying the index of a mixture component. The
 #' enrichment is calculated relative to this component used as a background
 #' component. If \code{<NA>} (default), the background is determined by normR.
+#' @param F An \code{integer} specifying the index of a mixture component. The
+#' enrichment is calculated for this component over background \code{B}. If
+#' \code{<NA>} (default), the component with theta closest to B is used
+#' (\code{enrichR}, \code{regimeR}). For \code{diffR}, \code{F} is not
+#' effective.
 #' @param standardized A \code{logical} indicating if the enrichment should be
 #' standardized betwen 0 and 1. A non-standardized enrichment is particular
 #' useful when comparing intensities for ChIP-seq against the same antigen in
@@ -427,16 +432,18 @@ setGeneric("getEnrichment", function(x, ...) standardGeneric("getEnrichment"))
 #' @aliases getEnrichment
 #'
 #' @export
-setMethod("getEnrichment", "NormRFit", function(x, B=NA, standardized=TRUE,
-                                                procs=1L) {
-  if (is.na(B) & standardized) {
+setMethod("getEnrichment", "NormRFit", function(x, B=NA, F=NA,
+                                                standardized=TRUE,  procs=1L) {
+  if (is.na(B) & is.na(F) & standardized) {
     return(x@lnenrichment[x@map])
   } else { #recomputation needed for specified B or non-standardized enrichment
     if (is.na(B)) B <- x@B
     if (B < 1 | B > x@k) stop("invalid B specified")
-    e <- normr::computeEnrichmentWithMap(x@lnposteriors,
-      list("values"=do.call(rbind, x@counts), "amount"=x@amount), x@theta,
-      (x@k-1), (B-1), (x@type == "diffR"), standardized, procs)
+    if (is.na(F)) F <- x@k
+    if (F == B | F < 1 | F > x@k) stop("invalid F specified")
+    e <- normr:::computeEnrichmentWithMap(x@lnposteriors,
+       list("values"=do.call(rbind, x@counts), "amount"=x@amount), x@theta,
+      (F-1), (B-1), (x@type == "diffR"), standardized, procs)
     return(e[x@map])
   }
 })
@@ -605,9 +612,10 @@ setMethod("summary", "NormRFit",
         digits=digits), "\n\n")
 
       qvals <- getQvalues(object)
+      nfiltered <- sum(is.na(qvals))
       ans <- paste0(ans, "+++ Results of binomial test +++ \n",
         "T-Filter threshold: ", object@thresholdT, "\n",
-        "Number of Regions filtered out: ", sum(is.na(qvals)), "\n")
+        "Number of Regions filtered out: ", nfiltered, "\n")
 
       ans <- paste0(ans,
         "Significantly different from background B based on q-values:\n",
