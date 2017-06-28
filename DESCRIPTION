@@ -51,6 +51,6 @@ Collate:
     'methods.R'
     'NormRCountConfig.R'
     'RcppExports.R'
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 URL: https://github.com/your-highness/normR
 BugReports: https://github.com/your-highness/normR/issues
