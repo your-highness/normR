@@ -12,10 +12,8 @@ regimes in the supplied NGS tracks.  Log-space computation is done in C/C++
 where [OpenMP](http://openmp.org) enables for fast parallel computation.
 
 
-### Development version
+### Release Version
 
-This development branch implements upcoming features for normR. These features
-will eventually be pushed to this master branch and populated to Bioconductor.
 The master branch is always in sync with the [normR Bioconductor release](
 http://bioconductor.org/packages/devel/bioc/html/normr.html) and the [normR
 github Bioconductor mirror]( https://github.com/Bioconductor-mirror/normr).  A
@@ -25,7 +23,8 @@ https://github.com/your-highness/normR/tree/R3.2).
 
 ### Installation
 
-To install normR from the working repository, easiest is using devtools:
+To install normR from the release repository, easiest way is to use
+Bioconductor or devtools:
 
 ```R
 #install dependencies
@@ -34,7 +33,7 @@ biocLite("bamsignals", suppressUpdates=T)
 #fetch current normR version from github
 install.packages("devtools")
 require(devtools)
-devtools::install_github("your-highness/normr@development")
+devtools::install_github("your-highness/normr")
 ```
 
 ### Usage
