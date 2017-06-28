@@ -1,3 +1,61 @@
+CHANGES IN VERSION 1.3.1
+-------------------------
+
+FEATURES
+     o `summary()` output more concise
+     o `getEnrichment()` takes `F` for specifying a desired foreground
+         component for standardization of the enrichment
+     o `iterations` argument allows running multiple fits with different
+         starting values
+     o T Filter threshold can now be specified with `minP` argument for less 
+         stringent filtering
+     o Added a normR overview scheme to the vignette
+     o Qvalue computation improvement by specifying range for prop. of H_0
+
+BUGFIXES
+     o Fixed the erroneous tiling of supplied GR objects in char,char,GRanges
+     o `diffR()` is more robust by doing a label-switched fit also
+
+
+CHANGES IN VERSION 1.3.0
+-------------------------
+
+Bioconductor 3.6 Release
+
+
+CHANGES IN VERSION 1.2.0
+-------------------------
+
+Bioconductor 3.5 Release
+
+
+CHANGES IN VERSION 1.1.0
+-------------------------
+
+Bioconductor 3.4 Release
+
+
+CHANGES IN VERSION 1.0.0
+-------------------------
+
+Initial Bioconductor 3.3 Release
+
+
+CHANGES IN VERSION 0.99.7
+-------------------------
+
+BUGFIXES
+     o Binning "genome" now reports correct genomic coordinates
+        enrichR,character,character,data.frame-method
+        diffR,character,character,data.frame-method
+        regimeR,character,character,data.frame-method
+     o Correcting counting on supplied ranges object with a warning displayed
+       if they are not equally sized
+     o getEnrichment() allows for adjusting the foreground now
+     o T Filter threshold is now controlled with the minP argument in main
+       methods
+
+
 CHANGES IN VERSION 0.99.6
 -------------------------
 
@@ -10,6 +68,7 @@ FEATURES
 PERFORMANCE
      o SIMD optimization for OpenMP >= ver4
 
+
 CHANGES IN VERSION 0.99.5
 -------------------------
 
@@ -20,17 +79,20 @@ FEATURES
 BUGFIXES
      o Removing MAKEFLAG "-D_GLIBCXX_PARALLEL" because it is experimental
 
+
 CHANGES IN VERSION 0.99.4
 -------------------------
 
 BUGFIXES
      o Removing PKG_CPPFLAGS and PKG_LIBS variables from src/Makevars
 
+
 CHANGES IN VERSION 0.99.3
 -------------------------
 
 BUGFIXES
      o Fixing imports in roxygen2
+
 
 CHANGES IN VERSION 0.99.2
 -------------------------
@@ -41,6 +103,7 @@ FEATURES
 
 BUGFIXES
      o deploy.log removed
+
 
 CHANGES IN VERSION 0.99.1
 -------------------------

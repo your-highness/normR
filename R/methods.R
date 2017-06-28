@@ -1,4 +1,4 @@
-# Copyright (C) 2016 Johannes Helmuth
+# Copyright (C) 2017 Johannes Helmuth & Ho-Ryun Chung
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -101,13 +101,23 @@ handleCharCharChar <- function(treatment, control, genome, verbose) {
 }
 handleCharCharDf <- function(treatment, control, genome, countConfig, procs,
                              verbose) {
-  treatment <- path.expand(treatment); control <- path.expand(control)
-  if(!file.exists(paste(treatment, ".bai", sep=""))) {
-    stop("No index file for", treatment, ".\n")
+  treatment <- path.expand(treatment)
+
+  treatment_idx_ext <- paste(treatment, ".bai", sep="")
+  treatment_idx_sub <- sub("\\.bam$", ".bai", treatment, fixed=FALSE)
+
+  if (!(file.exists(treatment_idx_ext) | file.exists(treatment_idx_sub))) {
+    stop("No index file for treatment ", treatment, ".\n")
   }
-  if(!file.exists(paste(control, ".bai", sep=""))) {
-    stop("No index file for", control, ".\n")
+  control <- path.expand(control)
+
+  control_idx_ext <- paste(control, ".bai", sep="")
+  control_idx_sub <- sub("\\.bam$", ".bai", control, fixed=FALSE)
+
+  if (!(file.exists(control_idx_ext) | file.exists(control_idx_sub))) {
+    stop("No index file for control ", control, ".\n")
   }
+
   if (NCOL(genome) != 2) stop("invalid genome data.frame")
 
   if (verbose) {
@@ -133,20 +143,37 @@ handleCharCharDf <- function(treatment, control, genome, countConfig, procs,
   counts[[2]] <- unlist(as.list(counts[[2]]))
 
   #Give bins across the supplied genome
-  gr <- unlist(tile(gr, width=countConfig@binsize))
-  seqinfo(gr) <- Seqinfo(as.character(genome[,1]), genome[,2])
+  seqlengths <- genome[,2]
+  names(seqlengths) <- genome[,1]
+  gr <- GenomicRanges::tileGenome(seqlengths, tilewidth=countConfig@binsize,
+                                  cut.last.tile.in.chrom=T)
 
   return(list(counts=counts, gr=gr))
 }
 handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
                              verbose) {
-  treatment <- path.expand(treatment); control <- path.expand(control)
-  if(!file.exists(paste(treatment, ".bai", sep=""))) {
-    stop("No index file for", treatment, ".\n")
+
+  treatment <- path.expand(treatment)
+
+  treatment_idx_ext <- paste(treatment, ".bai", sep="")
+  treatment_idx_sub <- sub("\\.bam$", ".bai", treatment, fixed=FALSE)
+
+  if (!(file.exists(treatment_idx_ext) | file.exists(treatment_idx_sub))) {
+    stop("No index file for treatment ", treatment, ".\n")
   }
-  if(!file.exists(paste(control, ".bai", sep=""))) {
-    stop("No index file for", control, ".\n")
+  control <- path.expand(control)
+
+  control_idx_ext <- paste(control, ".bai", sep="")
+  control_idx_sub <- sub("\\.bam$", ".bai", control, fixed=FALSE)
+
+  if (!(file.exists(control_idx_ext) | file.exists(control_idx_sub))) {
+    stop("No index file for control ", control, ".\n")
   }
+
+  if (!all(width(gr) == width(gr)[1])) {
+    warning("Supplied GenomicRanges have varying widths! Still doing fit...")
+  }
+
 
   if (verbose) {
     message(paste0("Counting on ", control, " & ", treatment,
@@ -154,20 +181,18 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
   }
 
   counts <- parallel::mcmapply(
-    bamsignals::bamProfile, bampath=c(treatment, control),
-    MoreArgs=list(gr=gr, binsize=countConfig@binsize,
+    bamsignals::bamCount, bampath=c(treatment, control),
+    MoreArgs=list(gr=gr,
                   mapq=countConfig@mapq,
                   shift=countConfig@shift,
                   paired.end=getFilter(countConfig),
                   tlenFilter=countConfig@tlenFilter,
                   filteredFlag=countConfig@filteredFlag,
                   verbose=FALSE),
-    mc.cores=procs, SIMPLIFY=FALSE
+    mc.cores=procs, SIMPLIFY=T
   )
-  counts[[1]] <- unlist(as.list(counts[[1]]))
-  counts[[2]] <- unlist(as.list(counts[[2]]))
 
-  return(list(counts=counts, gr=gr))
+  return(list(counts=list(counts[,1], counts[,2]), gr=gr))
 }
 
 #' Enrichment Calling on ChIP-seq data in normR with enrichR
@@ -202,7 +227,9 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
 #' check if your bam files obey this annotation. If \code{genome} is a
 #' \code{data.frame}, it represents the chromosome specification. The first
 #' column will be used as chromosome ID and the second column will be used as
-#' the chromosome lengths.
+#' the chromosome lengths. If \code{genome} is a \code{GenomicRanges}, it
+#' should contain the equally sized genomic loci to count in, e.g. promoters.
+#' The binsize in the supplied NormRCountConfig is ignore in this case.
 #'
 #' \code{bamCountConfig} is an instance of class \code{\link{NormRCountConfig}}
 #' specifying settings for read counting on bam files. You can specify the
@@ -216,19 +243,21 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
 #' \link{character} pointing to the control bam file. In the latter case an
 #' "\code{control}.bai" index file should exist in the same folder.
 #' @param genome Either \code{NULL} (default), a \code{character} specifying a
-#' USCS genome identifier  or a \link{data.frame} consisting of two columns
-#' (see Details).
+#' USCS genome identifier, a \link{data.frame} consisting of two columns or a
+#' \link{GenomicRanges} specifying the genomic regions (see Details).
 #' @param countConfig A \code{\link{NormRCountConfig}} object specifying bam
 #' counting parameters for read count retrieval. See Details.
-#' @param eps A \code{numeric} specifying the Threshold for EM convergence,
-#' \emph{i.e.} the minimal difference in log-likelihood in two consecutive
-#' steps.
-#' @param iterations An \code{integer} specifying how many times the EM is
-#' initialized with random model parameters.
 #' @param procs An \code{integer} giving the number of parallel threads to
 #' use.
 #' @param verbose A \code{logical} indicating whether verbose output is
 #' desired.
+#' @param eps A \code{numeric} specifying the T Filter threshold and the
+#' threshold for EM convergence, \emph{i.e.} the minimal difference in
+#' log-likelihood in two consecutive steps.
+#' @param iterations An \code{integer} specifying how many times the EM is
+#' initialized with random model parameters.
+#' @param minP An \code{integer} controlling the threshold for the T
+#' method when filtering low power regions, i.e. regions with low counts.
 #' @param ... Optional arguments for the respective implementations of
 #' \code{\link{enrichR}}.
 #'
@@ -253,20 +282,22 @@ setGeneric("enrichR", function(treatment, control, genome, ...)
 #'
 #' @export
 setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
-  function(treatment, control, genome, eps=1e-5, iterations=10,
-           procs=1L, verbose=TRUE) {
+  function(treatment, control, genome, procs=1L, verbose=TRUE,
+           eps=1e-5, iterations=10, minP=5e-2) {
     if (length(treatment) != length(control)) {
       stop("incompatible treatment and control count vectors")
     }
-    fit <- normr:::normr_core(control, treatment, 2L, eps, iterations, 0,
-                              FALSE, verbose, procs)
+    fit <- normr:::normr_core(control, treatment, 2L, eps, iterations,
+                              minP, 0, FALSE, verbose, procs)
 
     #Storey's q-value on T filtered P-values
     if (verbose) message("... computing Q-values.")
     idx <- which(fit$map$map %in% fit$filteredT)
     lnqvals <- as.numeric(rep(NA,length(treatment)))
-    lnqvals[idx] <-
-     log(qvalue(exp(normr:::mapToOriginal(fit$lnpvals, fit$map)[idx]))$qvalues)
+    p <- exp(fit$lnpvals)
+    lnqvals[idx] <- qvalue(normr:::mapToOriginal(p, fit$map)[idx], 
+                           lambda=seq(min(p), min(0.99, max(p)), .05))$qvalues
+    lnqvals[idx] <- log(lnqvals[idx])
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
     #Create classes vector w/ Maximum A Posteriori (<NA> isset for background)
@@ -301,35 +332,38 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
 #' @export
 setMethod("enrichR", signature("character", "character", "GenomicRanges"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+            procs=1L, verbose=TRUE, eps=1e-5, iterations=10,
+            minP=5e-2) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharGR(treatment, control, genome, countConfig,
                                  procs, verbose)
-    return(enrichR(countsGr$counts[[1]], countsGr$counts[[2]], genome, eps,
-      iterations, procs, verbose))
+    return(enrichR(countsGr$counts[[1]], countsGr$counts[[2]], genome, procs,
+      verbose, eps, iterations, minP))
 })
 #' @rdname normR-enrichR
 #'
 #' @export
 setMethod("enrichR", signature("character", "character", "data.frame"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           procs=1L, verbose=TRUE, eps=1e-5, iterations=10,
+           minP=5e-2) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharDf(treatment, control, genome, countConfig,
                                  procs, verbose)
     return(enrichR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr,
-                   eps, iterations, procs, verbose))
+      procs, verbose, eps, iterations, minP))
 })
 #' @rdname normR-enrichR
 #'
 #' @export
 setMethod("enrichR", signature("character", "character", "character"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           procs=1L, verbose=TRUE, eps=1e-5, iterations=10,
+           minP=5e-2) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     genome <- handleCharCharChar(treatment, control, genome, verbose)
-    return(enrichR(treatment, control, genome, countConfig, eps,
-      iterations, procs, verbose))
+    return(enrichR(treatment, control, genome, countConfig,
+      procs, verbose, eps, iterations, minP))
 })
 
 #' Difference Calling between conditional ChIP-seq data in normR with diffR
@@ -365,7 +399,9 @@ setMethod("enrichR", signature("character", "character", "character"),
 #' check if your bam files obey this annotation. If \code{genome} is a
 #' \code{data.frame}, it represents the chromosome specification. The first
 #' column will be used as chromosome ID and the second column will be used as
-#' the chromosome lengths.
+#' the chromosome lengths. If \code{genome} is a \code{GenomicRanges}, it
+#' should contain the equally sized genomic loci to count in, e.g. promoters.
+#' The binsize in the supplied NormRCountConfig is ignore in this case.
 #'
 #' \code{bamCountConfig} is an instance of class \code{\link{NormRCountConfig}}
 #' specifying settings for read counting on bam files. You can specify the
@@ -379,19 +415,21 @@ setMethod("enrichR", signature("character", "character", "character"),
 #' \link{character} pointing to the control bam file. In the latter case an
 #' "\code{control}.bai" index file should exist in the same folder.
 #' @param genome Either \code{NULL} (default), a \code{character} specifying a
-#' USCS genome identifier or a \link{data.frame} consisting of two columns
-#' (see Details).
+#' USCS genome identifier, a \link{data.frame} consisting of two columns or a
+#' \link{GenomicRanges} specifying the genomic regions (see Details).
 #' @param countConfig A \code{\link{NormRCountConfig}} object specifying bam
 #' counting parameters for read count retrieval. See Details.
-#' @param eps A \code{numeric} specifying the Threshold for EM convergence,
-#' \emph{i.e.} the minimal difference in log-likelihood in two consecutive
-#' steps.
-#' @param iterations An \code{integer} specifying how many times the EM is
-#' initialized with random model parameters.
 #' @param procs An \code{integer} giving the number of parallel threads to
 #' use.
 #' @param verbose A \code{logical} indicating whether verbose output is
 #' desired.
+#' @param eps A \code{numeric} specifying the T Filter threshold and the
+#' threshold for EM convergence, \emph{i.e.} the minimal difference in
+#' log-likelihood in two consecutive steps.
+#' @param iterations An \code{integer} specifying how many times the EM is
+#' initialized with random model parameters.
+#' @param minP An \code{integer} controlling the threshold for the T
+#' method when filtering low power regions, i.e. regions with low counts.
 #' @param ... Optional arguments for the respective implementations of
 #' \code{\link{diffR}}.
 #'
@@ -415,17 +453,17 @@ setGeneric("diffR", function(treatment, control, genome, ...)
 #'
 #' @export
 setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
-  function(treatment, control, genome, eps=1e-5, iterations=10,
-           procs=1L, verbose=TRUE) {
+  function(treatment, control, genome, procs=1L, verbose=TRUE, eps=1e-5,
+           iterations=10, minP=5e-2) {
     if (length(treatment) != length(control)) {
       stop("incompatible treatment and control count vectors")
     }
-    fit <- normr:::normr_core(control, treatment, 3L, eps, iterations, 1, TRUE,
-                              verbose, procs)
+    fit <- normr:::normr_core(control, treatment, 3L, eps, iterations, minP,
+                              1, TRUE, verbose, procs)
 
     #T filter is computed for label-switched fit as well
-    fit2 <- normr:::normr_core(treatment, control, 3L, eps, iterations, 1,
-                               TRUE, FALSE, procs)
+    fit2 <- normr:::normr_core(treatment, control, 3L, eps, iterations, minP,
+                               1, TRUE, FALSE, procs)
     fit$filteredT <- intersect(fit$filteredT,
                            which(colSums(fit$map$values) >= fit2$Tthreshold)
     )
@@ -437,8 +475,10 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
     if (verbose) message("... computing Q-values.")
     idx <- which(fit$map$map %in% fit$filteredT)
     lnqvals <- as.numeric(rep(NA,length(treatment)))
-    lnqvals[idx] <-
-     log(qvalue(exp(normr:::mapToOriginal(fit$lnpvals, fit$map)[idx]))$qvalues)
+    p <- exp(fit$lnpvals)
+    lnqvals[idx] <- qvalue(normr:::mapToOriginal(p, fit$map)[idx], 
+                           lambda=seq(min(p), min(0.99, max(p)), .05))$qvalues
+    lnqvals[idx] <- log(lnqvals[idx])
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
     #Create classes vector w/ Maximum A Posteriori (<NA> isset for background)
@@ -470,35 +510,35 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
 #' @export
 setMethod("diffR", signature("character", "character", "GenomicRanges"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+            procs=1L, verbose=TRUE, eps=1e-5, iterations=10, minP=5e-2) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharGR(treatment, control, genome, countConfig,
                                  procs, verbose)
-    return(diffR(countsGr$counts[[1]], countsGr$counts[[2]], genome, eps,
-      iterations, procs, verbose))
+    return(diffR(countsGr$counts[[1]], countsGr$counts[[2]], genome, procs,
+       verbose, eps, iterations, minP))
 })
 #' @rdname normR-diffR
 #'
 #' @export
 setMethod("diffR", signature("character", "character", "data.frame"),
   function(treatment, control, genome, countConfig=countConfigSingleEnd(),
-           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           procs=1L, verbose=TRUE, eps=1e-5, iterations=10, minP=5e-2) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharDf(treatment, control, genome, countConfig,
                                  procs, verbose)
-    return(diffR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr, eps,
-      iterations, procs, verbose))
+    return(diffR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr,
+       procs, verbose, eps, iterations, minP))
 })
 #' @rdname normR-diffR
 #'
 #' @export
 setMethod("diffR", signature("character", "character", "character"),
   function(treatment, control, genome="", countConfig=countConfigSingleEnd(),
-           eps=1e-5, iterations=10, procs=1L, verbose=TRUE) {
+           procs=1L, verbose=TRUE, eps=1e-5, iterations=10, minP=5e-2) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     genome <- handleCharCharChar(treatment, control, genome, verbose)
-    return(diffR(treatment, control, genome, countConfig, eps, iterations,
-      procs, verbose))
+    return(diffR(treatment, control, genome, countConfig, procs, verbose, eps,
+      iterations, minP))
 })
 
 #' Regime Enrichment Calling for ChIP-seq data in normR with regimeR
@@ -535,7 +575,9 @@ setMethod("diffR", signature("character", "character", "character"),
 #' check if your bam files obey this annotation. If \code{genome} is a
 #' \code{data.frame}, it represents the chromosome specification. The first
 #' column will be used as chromosome ID and the second column will be used as
-#' the chromosome lengths.
+#' the chromosome lengths. If \code{genome} is a \code{GenomicRanges}, it
+#' should contain the equally sized genomic loci to count in, e.g. promoters.
+#' The binsize in the supplied NormRCountConfig is ignore in this case.
 #'
 #' \code{bamCountConfig} is an instance of class \code{\link{NormRCountConfig}}
 #' specifying settings for read counting on bam files. You can specify the
@@ -549,21 +591,23 @@ setMethod("diffR", signature("character", "character", "character"),
 #' \link{character} pointing to the control bam file. In the latter case an
 #' "\code{control}.bai" index file should exist in the same folder.
 #' @param genome Either \code{NULL} (default), a \code{character} specifying a
-#' USCS genome identifier or a \link{data.frame} consisting of two columns
-#' (see Details).
+#' USCS genome identifier, a \link{data.frame} consisting of two columns or a
+#' \link{GenomicRanges} specifying the genomic regions (see Details).
 #' @param models An \code{integer} specifying the number of mixture
 #' components to fit [\code{\link{regimeR}} only]. Default is \code{3}.
 #' @param countConfig A \code{\link{NormRCountConfig}} object specifying bam
 #' counting parameters for read count retrieval. See Details.
-#' @param eps A \code{numeric} specifying the Threshold for EM convergence,
-#' \emph{i.e.} the minimal difference in log-likelihood in two consecutive
-#' steps.
-#' @param iterations An \code{integer} specifying how many times the EM is
-#' initialized with random model parameters.
 #' @param procs An \code{integer} giving the number of parallel threads to
 #' use.
 #' @param verbose A \code{logical} indicating whether verbose output is
 #' desired.
+#' @param eps A \code{numeric} specifying the T Filter threshold and the
+#' threshold for EM convergence, \emph{i.e.} the minimal difference in
+#' log-likelihood in two consecutive steps.
+#' @param iterations An \code{integer} specifying how many times the EM is
+#' initialized with random model parameters.
+#' @param minP An \code{integer} controlling the threshold for the T
+#' method when filtering low power regions, i.e. regions with low counts.
 #' @param ... Optional arguments for the respective implementations of
 #' \code{\link{regimeR}}.
 #'
@@ -589,22 +633,24 @@ setGeneric("regimeR", function(treatment, control, genome, models, ...)
 #' @export
 setMethod("regimeR",
           signature("integer", "integer", "GenomicRanges", "numeric"),
-  function(treatment, control, genome, models=3, eps=1e-5,
-            iterations=10, procs=1L, verbose=TRUE) {
+  function(treatment, control, genome, models=3, procs=1L, verbose=TRUE,
+           eps=1e-5, iterations=10, minP=5e-2) {
     if (models <= 2) stop("invalid number of models specified")
     if (length(treatment) != length(control)) {
       stop("incompatible treatment and control count vectors")
     }
     models = as.integer(models)
-    fit <- normr:::normr_core(control, treatment, models, eps, iterations, 0,
-                              FALSE, verbose, procs)
+    fit <- normr:::normr_core(control, treatment, models, eps, iterations,
+                              minP, 0, FALSE, verbose, procs)
 
     #Storey's q-value on T filtered P-values
     if (verbose) message("... computing Q-values.")
     idx <- which(fit$map$map %in% fit$filteredT)
     lnqvals <- as.numeric(rep(NA,length(treatment)))
-    lnqvals[idx] <-
-     log(qvalue(exp(normr:::mapToOriginal(fit$lnpvals, fit$map)[idx]))$qvalues)
+    p <- exp(fit$lnpvals)
+    lnqvals[idx] <- qvalue(normr:::mapToOriginal(p, fit$map)[idx], 
+                           lambda=seq(min(p), min(0.99, max(p)), .05))$qvalues
+    lnqvals[idx] <- log(lnqvals[idx])
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
     #Create classes vector w/ Maximum A Posteriori (<NA> isset for background)
@@ -640,38 +686,38 @@ setMethod("regimeR",
 setMethod("regimeR",
           signature("character", "character", "GenomicRanges", "numeric"),
   function(treatment, control, genome, models=3,
-           countConfig=countConfigSingleEnd(), eps=1e-5,
-           iterations=10, procs=1L, verbose=TRUE) {
+           countConfig=countConfigSingleEnd(), procs=1L, verbose=TRUE,
+           eps=1e-5, iterations=10, minP=5e-2) {
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharGR(treatment, control, genome, countConfig,
                                  procs, verbose)
     return(regimeR(countsGr$counts[[1]], countsGr$counts[[2]], genome, models,
-      eps, iterations, procs, verbose))
+      procs, verbose, eps, iterations, minP))
 })
 #' @rdname normR-regimeR
 #' @export
 setMethod("regimeR",
           signature("character", "character", "data.frame", "numeric"),
   function(treatment, control, genome, models=3,
-           countConfig=countConfigSingleEnd(), eps=1e-5, iterations=10,
-           procs=1L, verbose=TRUE) {
+           countConfig=countConfigSingleEnd(), procs=1L, verbose=TRUE,
+           eps=1e-5, iterations=10, minP=5e-2) {
     if (models <= 2) stop("invalid number of models specified")
     treatment <- path.expand(treatment); control <- path.expand(control)
     countsGr <- handleCharCharDf(treatment, control, genome, countConfig,
                                  procs, verbose)
     return(regimeR(countsGr$counts[[1]], countsGr$counts[[2]], countsGr$gr,
-      models, eps, iterations, procs, verbose))
+      models, procs, verbose, eps, iterations, minP))
 })
 #' @rdname normR-regimeR
 #' @export
 setMethod("regimeR",
           signature("character", "character", "character", "numeric"),
   function(treatment, control, genome="", models=3,
-           countConfig=countConfigSingleEnd(), eps=1e-5,
-           iterations=10, procs=1L, verbose=TRUE) {
+           countConfig=countConfigSingleEnd(), procs=1L, verbose=TRUE,
+           eps=1e-5, iterations=10, minP=5e-2) {
     if (models <= 2) stop("invalid number of models specified")
     treatment <- path.expand(treatment); control <- path.expand(control)
     genome <- handleCharCharChar(treatment, control, genome, verbose)
-    return(regimeR(treatment, control, genome, models, countConfig, eps,
-      iterations, procs, verbose))
+    return(regimeR(treatment, control, genome, models, countConfig, procs,
+      verbose, eps, iterations, minP))
 })
