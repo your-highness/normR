@@ -6,8 +6,6 @@ BUGFIXES
 DONE Fix tiling GenomicRanges
 DONE Prevent tiling in char,char,GenomicRanges-function's
 
--there is a C STACK usage issue when counts are very high (duplicated STARR-seq)
-
 
 FUNCTIONALITY/ENHANCEMENTS
 ##########################
@@ -86,8 +84,6 @@ DONE check correctness of getEnrichmentWithMap & getEnrichment
 DONE write vignette(enrichR(),diffR(),regimeR() with IGVshots on minimal data)
 DONE update README
 
--check vignette for correctness of reported numbers
--update dates & LICENSE HEADER in sourcefiles
--make release on github
--improve test coverage reported by BioC
--adjust version number to release schedule of BioC
+ALWAYS DO adjust version number to release schedule of BioC
+ALWAYS DO check vignette for correctness of reported numbers
+ALWAYS DO update dates & LICENSE HEADER in sourcefiles
