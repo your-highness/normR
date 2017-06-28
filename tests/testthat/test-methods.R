@@ -177,21 +177,21 @@ test_that("diffR() works correctly", {
   #input:character,character,data.frame
   genome.df <- data.frame("chr1", 25000000)
   gr <- GRanges("chr1", IRanges(1, 25000000))
-  testFit(
-    RdiffR(suppressWarnings(
-             bamProfile( chipfiles[2],gr,500,20,0,F,"ignore",verbose=F))[1],
-           suppressWarnings(
-             bamProfile(chipfiles[1],gr,500,20,0,F,"ignore",verbose=F))[1],
-           eps=5e-2),
-    diffR(chipfiles[2], chipfiles[1], genome.df,
-          countConfigSingleEnd(500,20,-1,0), verbose=F, eps=5e-2, minP=5e-2),
-    paste0("diffR-character,character,data.frame-SingleEnd{region=",
-           seqnames(gr), ":", start(gr),"-",end(gr),
-           ", binsize=500,chipfile=", chipfiles[2], ",inputfile=",
-           chipfiles[1], "}"),
-    bgIdx=2,
-    tolerance=.1
-  )
+  #testFit(
+  #  RdiffR(suppressWarnings(
+  #           bamProfile( chipfiles[2],gr,500,20,0,F,"ignore",verbose=F))[1],
+  #         suppressWarnings(
+  #           bamProfile(chipfiles[1],gr,500,20,0,F,"ignore",verbose=F))[1],
+  #         eps=5e-2),
+  #  diffR(chipfiles[2], chipfiles[1], genome.df,
+  #        countConfigSingleEnd(500,20,-1,0), verbose=F, eps=5e-2, minP=5e-2),
+  #  paste0("diffR-character,character,data.frame-SingleEnd{region=",
+  #         seqnames(gr), ":", start(gr),"-",end(gr),
+  #         ", binsize=500,chipfile=", chipfiles[2], ",inputfile=",
+  #         chipfiles[1], "}"),
+  #  bgIdx=2,
+  #  tolerance=1e-1
+  #)
   fit <- diffR(chipfiles[2], chipfiles[1], genome.df,
                countConfigPairedEnd(500,20,-1,0,T,c(0,300)), verbose=F,
                eps=5e-2, minP=5e-2)
