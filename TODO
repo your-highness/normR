@@ -41,7 +41,7 @@ DONE Lowering default T-filter to 0.01, adjusting tests
 DONE introduce max iter for a certain starting configuration (identifiability)
 DONE qvalue computation improvement by specifying a range for lambda_0
 
-TODO computeEnrichment for a fine grained coverage
+TODO getNormalizedCoverage() for a fine grained coverage based on an enrichR fit
 TODO Allow setting a fixed beta for an interpolation fit
 TODO BiocParallel implementation
 TODO plotting function for NormRFit
