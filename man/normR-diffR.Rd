@@ -2,15 +2,15 @@
 % Please edit documentation in R/methods.R
 \docType{methods}
 \name{diffR}
-\alias{DifferenceCalling}
 \alias{diffR}
-\alias{diffR,character,character,GenomicRanges-method}
-\alias{diffR,character,character,character-method}
-\alias{diffR,character,character,data.frame-method}
-\alias{diffR,integer,integer,GenomicRanges-method}
 \alias{diffR-generic}
-\alias{differenceCall}
 \alias{diffr}
+\alias{differenceCall}
+\alias{DifferenceCalling}
+\alias{diffR,integer,integer,GenomicRanges-method}
+\alias{diffR,character,character,GenomicRanges-method}
+\alias{diffR,character,character,data.frame-method}
+\alias{diffR,character,character,character-method}
 \title{Difference Calling between conditional ChIP-seq data in normR with diffR}
 \usage{
 diffR(treatment, control, genome, ...)
@@ -152,12 +152,11 @@ regime <- regimeR(treatment = chipK36, control = input, models = 3,
                   iterations = 10, procs = 1, verbose = TRUE)
 summary(regime)
 }
-\author{
-Johannes Helmuth \email{helmuth@molgen.mpg.de}
-}
 \seealso{
 \code{\link{NormRFit-class}} for functions on accessing and
 exporting the diffR fit. \code{\link{NormRCountConfig-class}} for
 configuration of the read counting procedure (binsize, mapping quality,...).
 }
-
+\author{
+Johannes Helmuth \email{helmuth@molgen.mpg.de}
+}

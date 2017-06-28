@@ -2,30 +2,30 @@
 % Please edit documentation in R/NormRFit.R
 \docType{class}
 \name{NormRFit-class}
-\alias{NormRFit}
 \alias{NormRFit-class}
-\alias{NormRfit}
-\alias{exportR}
-\alias{exportR,NormRFit,character-method}
-\alias{getClasses}
-\alias{getClasses,NormRFit-method}
-\alias{getCounts}
-\alias{getCounts,NormRFit-method}
-\alias{getEnrichment}
-\alias{getEnrichment,NormRFit-method}
-\alias{getPosteriors}
-\alias{getPosteriors,NormRFit-method}
-\alias{getPvalues}
-\alias{getPvalues,NormRFit-method}
-\alias{getQvalues}
-\alias{getQvalues,NormRFit-method}
-\alias{getRanges}
-\alias{getRanges,NormRFit-method}
-\alias{length,NormRFit-method}
+\alias{NormRFit}
 \alias{normRFit}
 \alias{normrfit}
+\alias{NormRfit}
+\alias{exportR,NormRFit,character-method}
+\alias{exportR}
 \alias{plot,NormRFit,missing-method}
 \alias{plot.NormRFit}
+\alias{getCounts,NormRFit-method}
+\alias{getCounts}
+\alias{getRanges,NormRFit-method}
+\alias{getRanges}
+\alias{getPosteriors,NormRFit-method}
+\alias{getPosteriors}
+\alias{getEnrichment,NormRFit-method}
+\alias{getEnrichment}
+\alias{getPvalues,NormRFit-method}
+\alias{getPvalues}
+\alias{getQvalues,NormRFit-method}
+\alias{getQvalues}
+\alias{getClasses,NormRFit-method}
+\alias{getClasses}
+\alias{length,NormRFit-method}
 \alias{print,NormRFit-method}
 \alias{show,NormRFit-method}
 \alias{summary,NormRFit-method}
@@ -187,6 +187,7 @@ information about component assignment.
 
 \item \code{summary}: Prints a concise summary of a NormRFit.
 }}
+
 \section{Slots}{
 
 \describe{
@@ -271,6 +272,7 @@ class assignments are based on the normR model fit. For \code{type ==
 contains \code{NA} (not enriched) and an arbitary number of enrichment class
 \code{>= 1}.}
 }}
+
 \examples{
 require(GenomicRanges)
 
@@ -308,10 +310,9 @@ getPvalues(fit)
 getQvalues(fit)
 getClasses(fit)
 }
-\author{
-Johannes Helmuth \email{helmuth@molgen.mpg.de}
-}
 \seealso{
 \link{normr} for function creating this container
 }
-
+\author{
+Johannes Helmuth \email{helmuth@molgen.mpg.de}
+}
