@@ -163,7 +163,10 @@ RenrichR <- function(s, r, eps=1e-5, bgIdx=1) {
 
   #Q values
   fit$qvals <- rep(NA, length(r))
-  fit$qvals[fit$filteredT] <- qvalue::qvalue(fit$pvals[fit$filteredT])$qvalues
+  p <- fit$pvals
+  fit$qvals[fit$filteredT] <- 
+    qvalue::qvalue(fit$pvals[fit$filteredT], 
+      lambda=seq(min(p), min(0.99, max(p)), .05))$qvalues
 
   #classes
   fit$classes <- as.integer(rep(NA, length(r)))
@@ -252,7 +255,10 @@ RdiffR <- function(s, r, eps=1e-5) {
 
   #Q values
   fit$qvals <- rep(NA, length(r))
-  fit$qvals[fit$filteredT] <- qvalue::qvalue(fit$pvals[fit$filteredT])$qvalues
+  p <- fit$pvals
+  fit$qvals[fit$filteredT] <- 
+    qvalue::qvalue(fit$pvals[fit$filteredT], 
+      lambda=seq(min(p), min(0.99, max(p)), .05))$qvalues
 
   #classes
   fit$classes <- as.integer(rep(NA, length(r)))
@@ -281,7 +287,10 @@ RregimeR <- function(s, r, nmodels, eps=1e-5, bgIdx=1) {
 
   #Q values
   fit$qvals <- rep(NA, length(r))
-  fit$qvals[fit$filteredT] <- qvalue::qvalue(fit$pvals[fit$filteredT])$qvalues
+  p <- fit$pvals
+  fit$qvals[fit$filteredT] <- 
+    qvalue::qvalue(fit$pvals[fit$filteredT], 
+      lambda=seq(min(p), min(0.99, max(p)), .05))$qvalues
 
   #classes
   fit$classes <- as.integer(rep(NA, length(r)))

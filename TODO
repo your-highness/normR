@@ -39,9 +39,10 @@ DONE summary() should report percentages at significance levels
 DONE getEnrichment() with argument on standardization
 DONE Lowering default T-filter to 0.01, adjusting tests
 DONE introduce max iter for a certain starting configuration (identifiability)
+DONE qvalue computation improvement by specifying a range for lambda_0
 
-TODO qvalue computation improvement by specifying a range for lambda_0
 TODO computeEnrichment for a fine grained coverage
+TODO Allow setting a fixed beta for an interpolation fit
 TODO BiocParallel implementation
 TODO plotting function for NormRFit
 TODO write CLI

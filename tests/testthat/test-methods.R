@@ -190,7 +190,7 @@ test_that("diffR() works correctly", {
            ", binsize=500,chipfile=", chipfiles[2], ",inputfile=",
            chipfiles[1], "}"),
     bgIdx=2,
-    tolerance=5e-2
+    tolerance=.1
   )
   fit <- diffR(chipfiles[2], chipfiles[1], genome.df,
                countConfigPairedEnd(500,20,-1,0,T,c(0,300)), verbose=F,
