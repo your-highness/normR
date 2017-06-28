@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Johannes Helmuth
+/* Copyright (C) 2017 Johannes Helmuth & Ho-Ryun Chung
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  * Functions defined herein fit a binomial mixture model to count data
  *
  * @author Johannes Helmuth
- * @version 0.99.3 06/23/2016
+ * @version 1.3.1 2016-06-28
  */
 #include <algorithm>
 #include <Rcpp.h>
@@ -586,12 +586,12 @@ NumericVector getPWithMap(const List& m2u, const double theta,
 
 //a T filter implementation: What is the margin were significance can be
 //achieved?
-int tthreshold(const double p, const double eps=1e-5,
+int tthreshold(const double p, const double minPThresh=0.05,
     const bool diffCall=false) {
   if (p < 0 || p > 1) stop("invalid p");
 
   int marg = 0;
-  double thresh = log(eps);
+  double thresh = log(minPThresh);
   bool run = true;
   while (run) {
     if (getLnP(0, marg, p, diffCall) <= thresh) break;
@@ -617,11 +617,11 @@ int tthreshold(const double p, const double eps=1e-5,
 
 //gives indices in R notation, i.e. >=1
 IntegerVector filterIdx(const List& m2u, const double theta,
-    int& threshold, const double eps=1e-5, const bool diffCall=false) {
+    int& threshold, const double minPThresh=0.05, const bool diffCall=false) {
   if (theta < 0 || theta > 1) stop("invalid theta");
-  if (eps < 0 || eps > 1) stop("invalid eps");
+  if (minPThresh < 0 || minPThresh > 1) stop("invalid minPThresh");
 
-  threshold = tthreshold(theta, eps, diffCall);
+  threshold = tthreshold(theta, minPThresh, diffCall);
 
   NumericVector n = as<NumericMatrix>(m2u["values"]).row(0) +
     as<NumericMatrix>(m2u["values"]).row(1);
@@ -659,6 +659,8 @@ IntegerVector filterIdx(const List& m2u, const double theta,
 // @param iterations \code{integer} specifying the number of individual EM runs
 // with differential initial parameters to be done. Adjust this argument to
 // find global maxima (default=5).
+// @param minPThresh \code{double} specifying the minimum achieveable P-value
+// for the T method (default=0.05).
 // @param bgIdx \code{integer} giving the index of the background component. In
 // enrichment and regime calls this should be 0. In difference calls, this
 // value can be > 0 (default=0).
@@ -683,7 +685,8 @@ IntegerVector filterIdx(const List& m2u, const double theta,
 // [[Rcpp::export]]
 List normr_core(const IntegerVector& r, const IntegerVector& s,
     const int models=2, const double eps=1e-5, const int iterations=5,
-    const int bgIdx=0, const bool diffCall=false, const bool verbose=false,
+    const double minPThresh = 0.05, const int bgIdx=0,
+    const bool diffCall=false, const bool verbose=false,
     const int nthreads=1, const String binFilter="zeroSum") {
   if (models < 2) {
       stop("Error: need at least 2 models (i.e. background and foreground)");
@@ -768,8 +771,8 @@ List normr_core(const IntegerVector& r, const IntegerVector& s,
         ".");
   }
   int threshold = 0;
-  IntegerVector filteredT = filterIdx(m2u, exp(lntheta[bgIdx]), threshold, eps,
-    diffCall);
+  IntegerVector filteredT = filterIdx(m2u, exp(lntheta[bgIdx]), threshold,
+    minPThresh, diffCall);
 
   if (verbose) message("[Finished] normR mixture modeling");
   return List::create(Named("qstar")=fit["qstar"], Named("map")=m2u,
