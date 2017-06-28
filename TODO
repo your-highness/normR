@@ -1,6 +1,11 @@
 TODO
 ###############################################################################
 
+BUGFIXES
+#############
+DONE Fix tiling GenomicRanges
+DONE Prevent tiling in char,char,GenomicRanges-function's
+
 
 FUNCTIONALITY/ENHANCEMENTS
 ##########################
@@ -32,10 +37,16 @@ DONE recompute Enrichment for a supplied background component
 DONE summary() plot per regime
 DONE summary() should report percentages at significance levels
 DONE getEnrichment() with argument on standardization
+DONE Lowering default T-filter to 0.01, adjusting tests
+DONE introduce max iter for a certain starting configuration (identifiability)
+DONE qvalue computation improvement by specifying a range for lambda_0
 
--plotting function for NormRFit
--write CLI
--reChIP analysis routine
+TODO getNormalizedCoverage() for a fine grained coverage based on an enrichR fit
+TODO Allow setting a fixed beta for an interpolation fit
+TODO BiocParallel implementation
+TODO plotting function for NormRFit
+TODO write CLI
+
 
 PERFORMANCE
 #############
@@ -52,6 +63,7 @@ DONE Setting SIMD flags conditional on OpenMP Version
      software.intel.com/en-us/articles/enabling-simd-in-program-using-openmp40
      wrathematics.github.io/RparallelGuide/#the-simd-keyword
 
+
 STRUCTURE
 #############
 DONE rename: normalize()->enrichR();difference->diffR();regimecall()->regimeR()
@@ -59,19 +71,32 @@ DONE R: S4 classes NormRFit & BamCountConfig introduced
 DONE R: S4 functions on DiffR (plotting, summary, print, ...)
 DONE R: labels for identified components -> NO!
 
-DEPLOYMENT
+
+VIGNETTE
+#############
+DONE IGVshots on minimal data
+
+TODO add CLI to vignette
+TODO add NormRFit-class::plot() to vignette when implemented
+
+
+TESTS
 #############
 DONE writing DESCRIPTION
-DONE remove tlen.filter until propagated to Bioconductor
 DONE write tests for NormRFit.R
-DONE write tests for methods.R  (small toy data)
-DONE fix failing tests for diffR
+DONE write tests for methods.R (small toy data)
 DONE check correctness of getEnrichmentWithMap & getEnrichment
-DONE write vignette(enrichR(),diffR(),regimeR() with IGVshots on minimal data)
+
+
+
+DEPLOYMENT
+#############
 DONE update README
 
-- add NormRFit-class::plot() to vignette
-- add CLI to vignette
-- update dates & LICENSE HEADER in sourcefiles
-- add citation for bioc
-- make release on github
+ALWAYS DO adjust version number to release schedule of BioC
+ALWAYS DO check vignette for correctness of reported numbers
+ALWAYS DO update dates & LICENSE HEADER in sourcefiles
+
+TODO add citation for bioc
+
+

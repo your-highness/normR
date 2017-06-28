@@ -2,19 +2,19 @@
 % Please edit documentation in R/NormRCountConfig.R
 \docType{class}
 \name{NormRCountConfig-class}
+\alias{NormRCountConfig-class}
+\alias{NormRCountConfig}
 \alias{BamsignalsConfig}
 \alias{BamsignalsCountConfig}
-\alias{NormRCountConfig}
-\alias{NormRCountConfig-class}
-\alias{configPairedEnd}
-\alias{configSingleEnd}
-\alias{countConfigPairedEnd}
-\alias{countConfigPairedEnd,ANY-method}
-\alias{countConfigSingleEnd}
 \alias{countConfigSingleEnd,ANY-method}
-\alias{getBamsignalsFilter}
-\alias{getFilter}
+\alias{countConfigSingleEnd}
+\alias{configSingleEnd}
+\alias{countConfigPairedEnd,ANY-method}
+\alias{countConfigPairedEnd}
+\alias{configPairedEnd}
 \alias{getFilter,NormRCountConfig-method}
+\alias{getFilter}
+\alias{getBamsignalsFilter}
 \alias{getNormRCountConfigFilter}
 \alias{print,NormRCountConfig-method}
 \alias{show,NormRCountConfig-method}
@@ -89,6 +89,7 @@ for paired end reads.
 
 \item \code{show}: Shows a given BamCounConfig
 }}
+
 \section{Slots}{
 
 \describe{
@@ -117,6 +118,7 @@ specifying the lower and upper length bound for a fragment to be considered.
 The fragment length as estimated from alignment in paired end experiments
 and written into the TLEN column.}
 }}
+
 \examples{
 ### Create an instance of this class (see below for helper functions)
 # 250bp bins; single end reads; MAPQ>=10; no duplicates
@@ -136,10 +138,9 @@ countConfigurationPE <- countConfigPairedEnd(midpoint = TRUE,
                                              tlenFilter = c(70, 200))
 countConfigurationPE
 }
-\author{
-Johannes Helmuth \email{helmuth@molgen.mpg.de}
-}
 \seealso{
 \link{normr} for functions that use this object.
 }
-
+\author{
+Johannes Helmuth \email{helmuth@molgen.mpg.de}
+}
