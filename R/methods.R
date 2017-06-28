@@ -294,8 +294,10 @@ setMethod("enrichR", signature("integer", "integer", "GenomicRanges"),
     if (verbose) message("... computing Q-values.")
     idx <- which(fit$map$map %in% fit$filteredT)
     lnqvals <- as.numeric(rep(NA,length(treatment)))
-    lnqvals[idx] <-
-     log(qvalue(exp(normr:::mapToOriginal(fit$lnpvals, fit$map)[idx]))$qvalues)
+    p <- exp(fit$lnpvals)
+    lnqvals[idx] <- qvalue(normr:::mapToOriginal(p, fit$map)[idx], 
+                           lambda=seq(min(p), min(0.99, max(p)), .05))$qvalues
+    lnqvals[idx] <- log(lnqvals[idx])
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
     #Create classes vector w/ Maximum A Posteriori (<NA> isset for background)
@@ -473,8 +475,10 @@ setMethod("diffR", signature("integer", "integer", "GenomicRanges"),
     if (verbose) message("... computing Q-values.")
     idx <- which(fit$map$map %in% fit$filteredT)
     lnqvals <- as.numeric(rep(NA,length(treatment)))
-    lnqvals[idx] <-
-     log(qvalue(exp(normr:::mapToOriginal(fit$lnpvals, fit$map)[idx]))$qvalues)
+    p <- exp(fit$lnpvals)
+    lnqvals[idx] <- qvalue(normr:::mapToOriginal(p, fit$map)[idx], 
+                           lambda=seq(min(p), min(0.99, max(p)), .05))$qvalues
+    lnqvals[idx] <- log(lnqvals[idx])
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
     #Create classes vector w/ Maximum A Posteriori (<NA> isset for background)
@@ -643,8 +647,10 @@ setMethod("regimeR",
     if (verbose) message("... computing Q-values.")
     idx <- which(fit$map$map %in% fit$filteredT)
     lnqvals <- as.numeric(rep(NA,length(treatment)))
-    lnqvals[idx] <-
-     log(qvalue(exp(normr:::mapToOriginal(fit$lnpvals, fit$map)[idx]))$qvalues)
+    p <- exp(fit$lnpvals)
+    lnqvals[idx] <- qvalue(normr:::mapToOriginal(p, fit$map)[idx], 
+                           lambda=seq(min(p), min(0.99, max(p)), .05))$qvalues
+    lnqvals[idx] <- log(lnqvals[idx])
     lnqvals <- normr:::mapToUniqueWithMap(lnqvals, fit$map)
 
     #Create classes vector w/ Maximum A Posteriori (<NA> isset for background)
