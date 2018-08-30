@@ -28,8 +28,9 @@ Bioconductor or devtools:
 
 ```R
 #install dependencies
-source("https://bioconductor.org/biocLite.R")
-biocLite("bamsignals", suppressUpdates=T)
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("bamsignals", suppressUpdates=T)
 #fetch current normR version from github
 install.packages("devtools")
 require(devtools)
