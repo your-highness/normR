@@ -1,0 +1,29 @@
+citHeader("To cite the normR package in publications, use:")
+
+citEntry(
+  entry = "Article",
+  author = c(
+    as.person("Johannes Helmuth"),
+    as.person("Na Li"),
+    as.person("Laura Arrigoni"),
+    as.person("Kathrin Gianmoena"),
+    as.person("Cristina Cadenas"),
+    as.person("Gilles Gasparoni"),
+    as.person("Anupam Sinha"),
+    as.person("Philip Rosenstiel"),
+    as.person("Joern Walter"),
+    as.person("Jan G. Hengstler"),
+    as.person("Thomas Manke"),
+    as.person("Ho-Ryun Chung")
+   ),
+  title = "normR: Regime enrichment calling for ChIP-seq data",
+  year = 2016,
+  doi = "10.1101/082263",
+  journal = "bioRxiv",
+  publisher = "Cold Spring Harbor Laboratory",
+  url = "https://doi.org/10.1101/082263",
+  textVersion = paste(
+    "Johannes Helmuth et al. normR: Regime enrichment calling for ChIP-seq data",
+    "bioRxiv 082263; doi: https://doi.org/10.1101/082263"
+  )
+)
