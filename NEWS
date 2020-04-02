@@ -1,6 +1,13 @@
 CHANGES IN VERSION 1.11.2
 -------------------------
 
+o Changed deprecated 'GenomeInfoDb::fetchExtendedChromInfoFromUCSC' to
+   'GenomeInfoDb::getChromInfoFromUCSC'
+
+
+CHANGES IN VERSION 1.11.2
+-------------------------
+
 o Added correct CITATION
 
 
