@@ -146,10 +146,9 @@ from UCSC for given genome identifier:
 
 ```{r warning=FALSE}
 #Fetch chromosome information
-genome <- GenomeInfoDb::fetchExtendedChromInfoFromUCSC("hg19")
+genome <- GenomeInfoDb::getChromInfoFromUCSC("hg19", assembled.molecules.only = TRUE)
 
-#Filter out irregular chromosomes and delete unnecessary columns
-idx <- which(!genome$circular & genome$SequenceRole=="assembled-molecule")
+#Delete unnecessary columns
 genome <- genome[idx,1:2]
 genome
 
