@@ -149,7 +149,7 @@ from UCSC for given genome identifier:
 genome <- GenomeInfoDb::getChromInfoFromUCSC("hg19", assembled.molecules.only = TRUE)
 
 #Delete unnecessary columns
-genome <- genome[idx,1:2]
+genome <- genome[,1:2]
 genome
 
 #Toy data has only "chr1"
