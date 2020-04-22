@@ -18,11 +18,12 @@ setClassUnion("integerOrNULL", c("integer", "NULL"))
 #' Container for configuration of read counting with bamsignals in normR
 #'
 #' This S4 class is a small wrapper for a configuration on obtaining counts
-#' from bamfiles with \code{\link[bamsignals]{bamProfile}}. Herein, two
-#' functions provide help for creating an instance of this class:
-#' \code{\link{countConfigSingleEnd}} creates a configuration for single
-#' end reads; and \code{\link{countConfigPairedEnd}} creates a configuration
-#' for paired end reads.
+#' from bamfiles with 
+#' \code{\link[bamsignals:bamsignals-methods]{bamsignals::bamProfile}()}. Herein, 
+#' two functions provide help for creating an instance of this class:
+#' \code{\link{countConfigSingleEnd}()} creates a configuration for single end
+#' reads; and \code{\link{countConfigPairedEnd}()} creates a configuration for
+#' paired end reads.
 #'
 #' @author Johannes Helmuth \email{helmuth@@molgen.mpg.de}
 #'
@@ -46,8 +47,8 @@ setClassUnion("integerOrNULL", c("integer", "NULL"))
 #' and written into the TLEN column.
 #'
 #' @return A \code{\link{NormRCountConfig}} with specified counting parameters
-#' for \code{\link{normr}} methods (\code{\link{enrichR}}, \code{\link{diffR}},
-#' \code{\link{regimeR}}
+#' for \code{\link{normr}()} methods (\code{\link{enrichR}()},
+#' \code{\link{diffR}()}, \code{\link{regimeR}()}
 #'
 #' @aliases NormRCountConfig BamsignalsConfig BamsignalsCountConfig
 #' @seealso \link{normr} for functions that use this object.
@@ -135,7 +136,7 @@ setMethod("countConfigPairedEnd",
 
 setGeneric("getFilter", function(x) standardGeneric("getFilter"))
 #' @describeIn NormRCountConfig Get the filter compliant to
-#' \code{\link[bamsignals]{bamProfile}}
+#' \code{\link[bamsignals:bamsignals-methods]{bamsignals::bamProfile}()}
 #'
 #' @aliases getFilter getBamsignalsFilter getNormRCountConfigFilter
 #'
