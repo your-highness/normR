@@ -1,3 +1,19 @@
+CHANGES IN VERSION 1.13.4
+-------------------------
+
+o  Recreation of Rd documentation files to fix R CMD check WARNING on Windows
+
+CHANGES IN VERSION 1.13.3
+-------------------------
+
+o  Fixing bamsignals-methods cross-reference that produced a warning in R CMD 
+    check on Windows
+
+CHANGES IN VERSION 1.13.2
+-------------------------
+
+o  Fixing errors in vignette using undefined symbol 'idx'
+
 CHANGES IN VERSION 1.13.1
 -------------------------
 
