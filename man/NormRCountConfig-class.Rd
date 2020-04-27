@@ -69,12 +69,13 @@ for \code{\link{normr}} methods (\code{\link{enrichR}}, \code{\link{diffR}},
 \code{\link{regimeR}}
 }
 \description{
-This S4 class is a small wrapper for a configuration on obtaining counts
-from bamfiles with \code{\link[bamsignals]{bamProfile}}. Herein, two
-functions provide help for creating an instance of this class:
-\code{\link{countConfigSingleEnd}} creates a configuration for single
-end reads; and \code{\link{countConfigPairedEnd}} creates a configuration
-for paired end reads.
+This S4 class is a small wrapper for a configuration on obtaining counts from
+bamfiles with
+\code{\link[bamsignals:bamsignals-methods]{bamsignals::bamProfile}()}. Herein,
+two functions provide help for creating an instance of this class:
+\code{\link{countConfigSingleEnd}} creates a configuration for single end reads;
+and \code{\link{countConfigPairedEnd}} creates a configuration for paired end
+reads.
 }
 \section{Methods (by generic)}{
 \itemize{
@@ -83,7 +84,7 @@ for paired end reads.
 \item \code{countConfigPairedEnd}: Setup paired end count configuration
 
 \item \code{getFilter}: Get the filter compliant to
-\code{\link[bamsignals]{bamProfile}}
+\code{\link[bamsignals:bamsignals-methods]{bamsignals::bamProfile}()}
 
 \item \code{print}: Prints a given BamCounConfig
 
