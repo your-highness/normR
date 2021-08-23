@@ -39,7 +39,7 @@ map2unique <- function(counts){
 applyMap <- function(v, map) {
   idx <- which(!duplicated(map$map))
   idx <- idx[order(map$map[idx])]
-  if (class(v) == "matrix") v[idx,]
+  if (inherits(v, "matrix")) v[idx,]
   else v[idx]
 }
 

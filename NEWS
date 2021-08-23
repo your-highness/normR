@@ -1,3 +1,9 @@
+CHANGES IN VERSION 1.19.1
+-------------------------
+
+o  Fixing R 4.1.0 _R_CHECK_LENGTH_1_LOGIC2 error in tests/testthat/utils.R:applyMap 
+   by using inherits() instead of class() to account for hadleyverse
+
 CHANGES IN VERSION 1.13.4
 -------------------------
 
