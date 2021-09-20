@@ -158,25 +158,25 @@ setValidity("NormRFit",
     if (length(object@mixtures) != object@k) return("invalid mixtures slot")
     n <- length(object@counts[[1]])
     if (NCOL(object@lnposteriors) != object@k ||
-        NROW(object@lnposteriors) != length(object@counts[[1]])) {
+        NROW(object@lnposteriors) != n) {
       return("invalid lnposterios slot")
     }
-    if (length(object@lnenrichment) != length(object@counts[[1]])) {
+    if (length(object@lnenrichment) != n) {
       return("invaled lnenrichment slot")
     }
-    if (length(object@lnpvals) != length(object@counts[[1]])) {
+    if (length(object@lnpvals) != n) {
       return("invaled lnpvals slot")
     }
-    if (max(object@filteredT) > length(object@counts[[1]])) {
+    if (max(object@filteredT) > n) {
       return("invaled filteredT slot")
     }
     if (object@thresholdT < 0) {
       return("invaled thresholdT slot")
     }
-    if (length(object@lnqvals) != length(object@counts[[1]])) {
+    if (length(object@lnqvals) != n) {
       return("invaled lnqvals slot")
     }
-    if (length(object@classes) != length(object@counts[[1]])) {
+    if (length(object@classes) != n) {
       return("invaled classes slot")
     }
     TRUE
