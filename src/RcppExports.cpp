@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // logRowSum
 NumericVector logRowSum(const NumericMatrix& mat, int nthreads);
-RcppExport SEXP normr_logRowSum(SEXP matSEXP, SEXP nthreadsSEXP) {
+RcppExport SEXP _normr_logRowSum(SEXP matSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -19,7 +19,7 @@ END_RCPP
 }
 // logSumVector
 double logSumVector(const NumericVector& vec, int nthreads);
-RcppExport SEXP normr_logSumVector(SEXP vecSEXP, SEXP nthreadsSEXP) {
+RcppExport SEXP _normr_logSumVector(SEXP vecSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -31,7 +31,7 @@ END_RCPP
 }
 // mapToOriginal
 NumericVector mapToOriginal(const NumericVector& vec, const List& m2u);
-RcppExport SEXP normr_mapToOriginal(SEXP vecSEXP, SEXP m2uSEXP) {
+RcppExport SEXP _normr_mapToOriginal(SEXP vecSEXP, SEXP m2uSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -43,7 +43,7 @@ END_RCPP
 }
 // mapToUniqueWithMap
 NumericVector mapToUniqueWithMap(const NumericVector& vec, const List& m2u);
-RcppExport SEXP normr_mapToUniqueWithMap(SEXP vecSEXP, SEXP m2uSEXP) {
+RcppExport SEXP _normr_mapToUniqueWithMap(SEXP vecSEXP, SEXP m2uSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -55,7 +55,7 @@ END_RCPP
 }
 // em
 List em(const List& m2u_sub, const int models, const double eps, const bool verbose, const int nthreads);
-RcppExport SEXP normr_em(SEXP m2u_subSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
+RcppExport SEXP _normr_em(SEXP m2u_subSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -70,7 +70,7 @@ END_RCPP
 }
 // computeEnrichmentWithMap
 NumericVector computeEnrichmentWithMap(const NumericMatrix& lnPost, const List& m2u, const NumericVector& theta, const int fg, const int bg, const bool diffCall, const bool standardized, const int nthreads);
-RcppExport SEXP normr_computeEnrichmentWithMap(SEXP lnPostSEXP, SEXP m2uSEXP, SEXP thetaSEXP, SEXP fgSEXP, SEXP bgSEXP, SEXP diffCallSEXP, SEXP standardizedSEXP, SEXP nthreadsSEXP) {
+RcppExport SEXP _normr_computeEnrichmentWithMap(SEXP lnPostSEXP, SEXP m2uSEXP, SEXP thetaSEXP, SEXP fgSEXP, SEXP bgSEXP, SEXP diffCallSEXP, SEXP standardizedSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -88,7 +88,7 @@ END_RCPP
 }
 // normr_core
 List normr_core(const IntegerVector& r, const IntegerVector& s, const int models, const double eps, const int iterations, const double minPThresh, const int bgIdx, const bool diffCall, const bool verbose, const int nthreads, const String binFilter);
-RcppExport SEXP normr_normr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP iterationsSEXP, SEXP minPThreshSEXP, SEXP bgIdxSEXP, SEXP diffCallSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP, SEXP binFilterSEXP) {
+RcppExport SEXP _normr_normr_core(SEXP rSEXP, SEXP sSEXP, SEXP modelsSEXP, SEXP epsSEXP, SEXP iterationsSEXP, SEXP minPThreshSEXP, SEXP bgIdxSEXP, SEXP diffCallSEXP, SEXP verboseSEXP, SEXP nthreadsSEXP, SEXP binFilterSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;

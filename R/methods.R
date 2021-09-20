@@ -92,9 +92,9 @@ handleCharCharChar <- function(treatment, control, genome, verbose) {
     message(paste0("Getting genome coordinates for ", genome, " ..."))
   }
 
-  #UseGenomeInfoDb to fetch information on regular, non-circular chroms
-  genome <- fetchExtendedChromInfoFromUCSC(genome)
-  idx <- which(!genome$circular & genome$SequenceRole=="assembled-molecule")
+  #UseGenomeInfoDb to get information on assembled, non-circular chroms
+  genome <- GenomeInfoDb::getChromInfoFromUCSC(genome, assembled.molecules.only = TRUE)
+  idx <- which(!genome$circular & genome$assembled)
   genome <- genome[idx,1:2]
 
   return(genome)
@@ -220,7 +220,7 @@ handleCharCharGR <- function(treatment, control, gr, countConfig, procs,
 #' bamheader might contain irregular contigs and chrM which influence the fit.
 #' Also be sure that treatment and control contain the same chromosomes.
 #' Otherwise an error will be thrown. If \code{genome} is a \code{character},
-#' \code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to
+#' \code{\link[GenomeInfoDb]{getChromInfoFromUCSC}} is used to
 #' resolve this to a valid UCSC genome identifier (see
 #' \url{https://genome.ucsc.edu/cgi-bin/hgGateway} for available genomes). In
 #' this case, only assembled molecules will be considered (no circular). Please
@@ -392,7 +392,7 @@ setMethod("enrichR", signature("character", "character", "character"),
 #' bamheader might contain irregular contigs and chrM which influence the fit.
 #' Also be sure that treatment and control contain the same chromosomes.
 #' Otherwise an error will be thrown. If \code{genome} is a \code{character},
-#' \code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to
+#' \code{\link[GenomeInfoDb]{getChromInfoFromUCSC}} is used to
 #' resolve this to a valid UCSC genome identifier (see
 #' \url{https://genome.ucsc.edu/cgi-bin/hgGateway} for available genomes). In
 #' this case, only assembled molecules will be considered (no circular). Please
@@ -568,7 +568,7 @@ setMethod("diffR", signature("character", "character", "character"),
 #' bamheader might contain irregular contigs and chrM which influence the fit.
 #' Also be sure that treatment and control contain the same chromosomes.
 #' Otherwise an error will be thrown. If \code{genome} is a \code{character},
-#' \code{\link[GenomeInfoDb]{fetchExtendedChromInfoFromUCSC}} is used to
+#' \code{\link[GenomeInfoDb]{getChromInfoFromUCSC}} is used to
 #' resolve this to a valid UCSC genome identifier (see
 #' \url{https://genome.ucsc.edu/cgi-bin/hgGateway} for available genomes). In
 #' this case, only assembled molecules will be considered (no circular). Please
