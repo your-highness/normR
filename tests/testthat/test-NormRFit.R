@@ -33,17 +33,6 @@ getData <- function(n, type) {
     "thresholdT"=3L, "lnqvals"= log(qvals), "classes"=classes)
 }
 
-runs <- function(expr){
-  res <- try(force(expr), TRUE)
-  msg1 <- "code did not generate an error"
-  msg2 <- "code generated an error"
-  expectation("error", msg2, msg1)
-}
-
-expect_runs <- function(expr){
-  expect_that(expr, runs, label=testthat:::find_expr("expr"))
-}
-
 context("NormRFit-class")
 test_that("Test NormRFit construction, validity and accessors", {
   n <- 1000
@@ -147,14 +136,14 @@ test_that("Test NormRFit construction, validity and accessors", {
     #length
     expect_equal(length(o), n)
     #print
-    expect_runs(capture.output(print(o)))
+    expect_no_error(capture.output(print(o)))
     o2 <- o; o2@theta <- as.numeric(NULL)
-    expect_runs(capture.output(print(o2)))
+    expect_no_error(capture.output(print(o2)))
     #show
-    expect_runs(capture.output(show(o)))
+    expect_no_error(capture.output(show(o)))
     #summary
-    expect_runs(capture.output(summary(o)))
-    expect_runs(capture.output(summary(o2)))
+    expect_no_error(capture.output(summary(o)))
+    expect_no_error(capture.output(summary(o2)))
 
   }
 })
